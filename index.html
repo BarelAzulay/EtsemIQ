@@ -4016,24 +4016,8 @@ function finishUnlock(){
   /* Someone can buy straight from the pricing page without ever taking the test.
      There is no report to unlock in that case — drop them into the member lobby. */
   if(!window._reportData){ renderLobby(); showScreen('screen-lobby'); bobNudge(); return; }
-  const {iq,cats}=window._reportData;
-  document.getElementById('exact-score').textContent=iq;
-  document.getElementById('cert-score').textContent=iq;
-  const pct=Math.min(99,Math.max(1,Math.round(((iq-70)/(148-70))*100)));
-  document.getElementById('percentile-pill').textContent=`${pct}%`;
-  document.getElementById('category-list-full').innerHTML=CAT_KEYS.map(c=>`
-    <div class="full-cat-row"><div class="full-cat-name">${catName(c)}</div>
-    <div class="full-cat-track"><div class="full-cat-fill" style="width:${cats[c]}%"></div></div>
-    <div class="full-cat-val">${cats[c]}</div></div>`).join('');
-  document.getElementById('cert-subscores').innerHTML=CAT_KEYS.map(c=>`
-    <div class="cert-subscore"><b>${cats[c]}</b><span>${catName(c).split(' ')[0]}</span></div>`).join('');
-  if(currentUser) document.getElementById('cert-name').value=currentUser.name;
-  const d=new Date();
-  document.getElementById('cert-date').textContent=d.toLocaleDateString(lang==='en'?undefined:lang,{year:'numeric',month:'long',day:'numeric'});
-  const cid='ETSM-'+d.getFullYear()+'-'+Math.floor(100000+Math.random()*899999);
-  document.getElementById('cert-id').textContent=cid;
-  document.getElementById('cert-qr').innerHTML=qrPattern(cid);
-  lastCertId=cid;
+  renderReport({fresh:true});          /* a new unlock issues a new certificate */
+  const cid=lastCertId;
   if(currentUser){
     const a=accounts();
     if(a[currentUser.email]){ a[currentUser.email].certId=cid; a[currentUser.email].plan=selectedPlan; saveAccounts(a); }
@@ -4043,6 +4027,60 @@ function finishUnlock(){
   bobNudge();
   setBobState(document.getElementById('bob-fab-mount'),'celebrate',3000);
   bobMoment('testComplete',bobLine('testComplete'),4200);
+}
+
+/* ==================== REPORT + SHARED HELPERS (fixes) ==================== */
+/* Percentile on the IQ scale: the normal CDF with mean 100 and SD 15
+   (Abramowitz–Stegun 7.1.26 for erf, |error| < 1.5e-7), clamped to 1..99. */
+function iqPercentile(iq){
+  const z=(Number(iq)-100)/15;
+  if(!isFinite(z)) return 50;
+  const x=Math.abs(z)/Math.SQRT2, k=1/(1+0.3275911*x);
+  const erf=1-((((1.061405429*k-1.453152027)*k+1.421413741)*k-0.284496736)*k+0.254829592)*k*Math.exp(-x*x);
+  const cdf=0.5*(1+(z<0?-erf:erf));
+  return Math.min(99,Math.max(1,Math.round(cdf*100)));
+}
+
+/* Fills the report from window._reportData. It runs every time the report
+   opens (showScreen hooks it), so the page is never blank after a reload, a
+   login or a language switch. `fresh` issues a new certificate ID; otherwise
+   the one already on the account is reused. */
+function renderReport(opts){
+  const o=opts||{}, $=id=>document.getElementById(id);
+  const r=window._reportData;
+  const nameEl=$('cert-name');
+  if(nameEl){
+    const owner=currentUser?currentUser.email:'';
+    if(nameEl.dataset.owner!==owner){ nameEl.value=currentUser?(currentUser.name||''):''; nameEl.dataset.owner=owner; }
+  }
+  if(!r){
+    ['exact-score','cert-score','cert-date','cert-id'].forEach(id=>{ if($(id)) $(id).textContent='—'; });
+    ['percentile-pill','category-list-full','cert-subscores','cert-qr'].forEach(id=>{ if($(id)) $(id).innerHTML=''; });
+    return;
+  }
+  const {iq,cats}=r;
+  $('exact-score').textContent=iq;
+  $('cert-score').textContent=iq;
+  $('percentile-pill').textContent=`${iqPercentile(iq)}%`;
+  $('category-list-full').innerHTML=CAT_KEYS.map(c=>`
+    <div class="full-cat-row"><div class="full-cat-name">${catName(c)}</div>
+    <div class="full-cat-track"><div class="full-cat-fill" style="width:${cats[c]}%"></div></div>
+    <div class="full-cat-val">${cats[c]}</div></div>`).join('');
+  $('cert-subscores').innerHTML=CAT_KEYS.map(c=>`
+    <div class="cert-subscore"><b>${cats[c]}</b><span>${catName(c).split(' ')[0]}</span></div>`).join('');
+  const all=currentUser?accounts():null, acc=all&&all[currentUser.email];
+  let cid=o.fresh?null:(lastCertId||(acc&&acc.certId)||null);
+  let when=(!o.fresh&&acc&&acc.certDate)||null;
+  if(!cid){
+    const d=new Date();
+    cid='ETSM-'+d.getFullYear()+'-'+Math.floor(100000+Math.random()*899999);
+    when=d.getTime();
+    if(acc){ acc.certId=cid; acc.certDate=when; saveAccounts(all); }
+  }
+  lastCertId=cid;
+  $('cert-date').textContent=new Date(when||Date.now()).toLocaleDateString(lang==='en'?undefined:lang,{year:'numeric',month:'long',day:'numeric'});
+  $('cert-id').textContent=cid;
+  $('cert-qr').innerHTML=qrPattern(cid);
 }
 
 function qrPattern(seed){
@@ -6297,7 +6335,7 @@ function bobFacts(){
     f.iq=r.iq;
     f.strong=catName(ranked[0]);
     f.weak=catName(ranked[ranked.length-1]);
-    f.pct=Math.min(99,Math.max(1,Math.round(((r.iq-70)/(148-70))*100)));
+    f.pct=iqPercentile(r.iq);
     f.cats=CAT_KEYS.map(c=>`${catName(c)} ${r.cats[c]}`).join(' · ');
   }
   return f;
@@ -6473,6 +6511,7 @@ function showScreen(id,opts){
   }
   clearInterval(engine.timer);
   hideBobMoment();
+  if(id==='screen-report') renderReport();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el=document.getElementById(id);
   el.classList.add('active');
@@ -6503,7 +6542,7 @@ function renderLobby(){
     scoreCard.innerHTML=`<div class="lsc-label">${t('set.currentscore')}</div>
       <div class="lsc-score">${r.iq}</div>
       <div class="lsc-sub">${catName(ranked[0])} · ${r.cats[ranked[0]]}%</div>
-      <div class="lsc-bar"><i style="width:${Math.min(100,Math.round(((r.iq-70)/78)*100))}%"></i></div>`;
+      <div class="lsc-bar"><i style="width:${iqPercentile(r.iq)}%"></i></div>`;
   } else {
     scoreCard.innerHTML=`<div class="lsc-label">${t('set.currentscore')}</div>
       <div class="lsc-score">—</div><div class="lsc-sub">${t('lobby.noscore')}</div>`;
