@@ -1261,9 +1261,6 @@
   .level-label .gx-tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
     color:var(--accent-ink);background:var(--accent-soft);border-radius:8px;padding:1px 7px;margin-inline-start:6px;}
 
-  /* Word Wit analogy line */
-  .q-sub.gx-ana{font-size:17px;font-family:'Space Grotesk',sans-serif;font-weight:600;}
-
   @media (max-width:560px){
     .gx-achs{grid-template-columns:1fr;}
     .gx-player{padding:16px;gap:12px 14px;}
@@ -5277,12 +5274,10 @@ const GAME_BANKS={
     secsPerLevel:150, secs:(lvl)=>Math.round(150-(Math.min(lvl,50)-1)*60/49), gen:(lvl)=>genSpatial(lvl)
   },
   wordrecall:{
-    name:()=>({en:'Word Recall',he:'שליפת מילים',es:'Recuerdo verbal',ru:'Словесная память',ar:'استرجاع الكلمات'}[lang]),
-    desc:()=>({en:'Clue-based verbal retrieval, in the spirit of crosswords — a format linked to improved cognition in a 2022 trial.',
-      he:'שליפה מילולית מבוססת רמזים, ברוח תשבצים — פורמט שנקשר לשיפור קוגניטיבי במחקר מ-2022.',
-      es:'Recuperación verbal por pistas, al estilo de los crucigramas — un formato ligado a mejor cognición en un ensayo de 2022.',
-      ru:'Словесный поиск по подсказкам в духе кроссвордов — формат, связанный с улучшением когнитивных функций в исследовании 2022 года.',
-      ar:'استرجاع لفظي بالأدلة على غرار الكلمات المتقاطعة — نمط ارتبط بتحسن معرفي في دراسة 2022.'}[lang]),
+    /* Renamed from "Word Recall": it is synonyms, opposites and analogies,
+       not crossword-style recall, so the card no longer claims to be. */
+    name:()=>t('ww.name'),
+    desc:()=>t('ww.desc'),
     icon:'<rect x="9" y="14" width="34" height="24" rx="4" fill="#FFE0EA" stroke="var(--reveal)" stroke-width="3"/><path d="M16 23h20M16 30h13" stroke="var(--reveal)" stroke-width="3" stroke-linecap="round"/>',
     secsPerLevel:150, gen:(lvl)=>genWord(lvl)
   }
@@ -5580,55 +5575,193 @@ function spGen(lvl){
   }));
 }
 
-const WORD_SETS=[
-  {q:{en:'Which word means the opposite of "scarce"?',he:'איזו מילה הפוכה ל"נדיר"?',es:'¿Qué palabra es lo opuesto de "escaso"?',ru:'Какое слово противоположно «скудный»?',ar:'أي كلمة عكس "نادر"؟'},
-   o:[{en:'Abundant',he:'שופע',es:'Abundante',ru:'Обильный',ar:'وفير'},{en:'Rare',he:'נדיר',es:'Raro',ru:'Редкий',ar:'نادر'},{en:'Limited',he:'מוגבל',es:'Limitado',ru:'Ограниченный',ar:'محدود'},{en:'Sparse',he:'דליל',es:'Escaso',ru:'Разреженный',ar:'متناثر'}]},
-  {q:{en:'Which word means "to make less severe"?',he:'איזו מילה פירושה "להקל"?',es:'¿Qué palabra significa "hacer menos grave"?',ru:'Какое слово означает «смягчить»?',ar:'أي كلمة تعني "يخفف"؟'},
-   o:[{en:'Mitigate',he:'למתן',es:'Mitigar',ru:'Смягчить',ar:'يخفف'},{en:'Aggravate',he:'להחמיר',es:'Agravar',ru:'Усугубить',ar:'يفاقم'},{en:'Fabricate',he:'לזייף',es:'Fabricar',ru:'Сфабриковать',ar:'يختلق'},{en:'Delegate',he:'להאציל',es:'Delegar',ru:'Делегировать',ar:'يفوض'}]},
-  {q:{en:'Which word does not belong?',he:'איזו מילה לא שייכת?',es:'¿Qué palabra no pertenece?',ru:'Какое слово лишнее?',ar:'أي كلمة لا تنتمي؟'},
-   o:[{en:'Silence',he:'שתיקה',es:'Silencio',ru:'Тишина',ar:'صمت'},{en:'Whisper',he:'לחישה',es:'Susurro',ru:'Шёпот',ar:'همس'},{en:'Shout',he:'צעקה',es:'Grito',ru:'Крик',ar:'صراخ'},{en:'Murmur',he:'מלמול',es:'Murmullo',ru:'Бормотание',ar:'تمتمة'}]},
-  {q:{en:'Which is a synonym for "meticulous"?',he:'מהו מילה נרדפת ל"קפדני"?',es:'¿Cuál es sinónimo de "meticuloso"?',ru:'Какой синоним слова «дотошный»?',ar:'ما مرادف "دقيق"؟'},
-   o:[{en:'Thorough',he:'יסודי',es:'Minucioso',ru:'Тщательный',ar:'شامل'},{en:'Careless',he:'רשלני',es:'Descuidado',ru:'Небрежный',ar:'مهمل'},{en:'Hasty',he:'נחפז',es:'Apresurado',ru:'Поспешный',ar:'متسرع'},{en:'Vague',he:'מעורפל',es:'Vago',ru:'Расплывчатый',ar:'غامض'}]},
-  {q:{en:'Pen is to Write as Knife is to ___?',he:'עט הוא לכתוב כמו סכין הוא ל___?',es:'Pluma es a Escribir como Cuchillo es a ___?',ru:'Ручка к Писать, как Нож к ___?',ar:'قلم إلى يكتب كما سكين إلى ___؟'},
-   o:[{en:'Cut',he:'לחתוך',es:'Cortar',ru:'Резать',ar:'يقطع'},{en:'Sharp',he:'חד',es:'Afilado',ru:'Острый',ar:'حاد'},{en:'Kitchen',he:'מטבח',es:'Cocina',ru:'Кухня',ar:'مطبخ'},{en:'Blade',he:'להב',es:'Hoja',ru:'Лезвие',ar:'نصل'}]},
-  /* Swapped in the 2026 audit: this slot used to ask for "short-lived", whose
-     key word was also the answer to free-test item Q30. Seeing the same word
-     in both places let the test be answered from the game. */
-  {q:{en:'Which word means "happening at the same time"?',he:'איזו מילה פירושה "מתרחש בו-זמנית"?',es:'¿Qué palabra significa "que ocurre a la vez"?',ru:'Какое слово означает «происходящий одновременно»?',ar:'أي كلمة تعني "يحدث في الوقت نفسه"؟'},
-   o:[{en:'Simultaneous',he:'בו-זמני',es:'Simultáneo',ru:'Одновременный',ar:'متزامن'},{en:'Sequential',he:'עוקב',es:'Secuencial',ru:'Последовательный',ar:'متتابع'},{en:'Delayed',he:'מושהה',es:'Retrasado',ru:'Отложенный',ar:'مؤجل'},{en:'Occasional',he:'מזדמן',es:'Ocasional',ru:'Случайный',ar:'عرضي'}]},
-  {q:{en:'Doctor is to Hospital as Teacher is to ___?',he:'רופא הוא לבית חולים כמו מורה הוא ל___?',es:'Médico es a Hospital como Maestro es a ___?',ru:'Врач к Больнице, как Учитель к ___?',ar:'طبيب إلى مستشفى كما معلم إلى ___؟'},
-   o:[{en:'School',he:'בית ספר',es:'Escuela',ru:'Школа',ar:'مدرسة'},{en:'Book',he:'ספר',es:'Libro',ru:'Книга',ar:'كتاب'},{en:'Student',he:'תלמיד',es:'Estudiante',ru:'Ученик',ar:'طالب'},{en:'Chalk',he:'גיר',es:'Tiza',ru:'Мел',ar:'طباشير'}]},
-  {q:{en:'Which word means "widespread"?',he:'איזו מילה פירושה "נפוץ מאוד"?',es:'¿Qué palabra significa "extendido"?',ru:'Какое слово означает «повсеместный»?',ar:'أي كلمة تعني "واسع الانتشار"؟'},
-   o:[{en:'Prevalent',he:'רווח',es:'Prevalente',ru:'Распространённый',ar:'سائد'},{en:'Obscure',he:'סתום',es:'Oscuro',ru:'Неясный',ar:'غامض'},{en:'Isolated',he:'מבודד',es:'Aislado',ru:'Изолированный',ar:'معزول'},{en:'Minor',he:'זניח',es:'Menor',ru:'Незначительный',ar:'طفيف'}]}
+/* ==================== WORD WIT (was "Word Recall") ====================
+   What the game really is: synonyms, opposites, analogies, odd-one-out and
+   definitions — so it is named and described for that. 124 items, each
+   tagged d:1 everyday / d:2 educated / d:3 advanced and drawn by level band.
+   Rules every item is held to, in all five languages:
+     • exactly one defensible answer; distractors are clearly wrong, and a
+       "trap" distractor (a synonym in an opposites item) is never itself
+       the answer to the question asked;
+     • no translation creates a second answer (checked by hand: e.g. no
+       option may translate to the stem word, as "Escaso" once did);
+     • no stem or answer reuses a key word of the free test (QB);
+     • a word is never offered twice in one item, in any language.
+   Format: [id, kind, d, stem, [answer, distractor, distractor, distractor]]
+   Words are "en|he|es|ru|ar". Analogy stems are three words; odd-one-out
+   items have no stem (the first option is the odd one); definition stems
+   are phrases. The options are shuffled when the item is drawn.           */
+const WW_LANGS=['en','he','es','ru','ar'];
+const WW=[
+/* ---------- d:1 ---------- */
+["w101","syn",1,"Happy|שמח|Feliz|Счастливый|سعيد",["Joyful|עליז|Alegre|Радостный|مسرور","Angry|כועס|Enojado|Сердитый|غاضب","Tired|עייף|Cansado|Усталый|متعب","Quiet|שקט|Callado|Тихий|هادئ"]],
+["w102","syn",1,"Smart|חכם|Inteligente|Умный|ذكي",["Clever|נבון|Listo|Сообразительный|نبيه","Lazy|עצלן|Perezoso|Ленивый|كسول","Rude|גס רוח|Grosero|Грубый|وقح","Shy|ביישן|Tímido|Застенчивый|خجول"]],
+["w103","syn",1,"Gift|מתנה|Regalo|Подарок|هدية",["Present|שי|Obsequio|Дар|عطية","Debt|חוב|Deuda|Долг|دَين","Ticket|כרטיס|Billete|Билет|تذكرة","Wall|קיר|Pared|Стена|جدار"]],
+["w104","syn",1,"Wealthy|אמיד|Adinerado|Состоятельный|ثري",["Rich|עשיר|Rico|Богатый|غني","Poor|עני|Pobre|Бедный|فقير","Brave|אמיץ|Valiente|Храбрый|شجاع","Sleepy|ישנוני|Somnoliento|Сонный|نعسان"]],
+["w105","syn",1,"Error|שגיאה|Error|Ошибка|خطأ",["Mistake|טעות|Equivocación|Промах|غلطة","Reward|פרס|Premio|Награда|مكافأة","Answer|תשובה|Respuesta|Ответ|جواب","Habit|הרגל|Costumbre|Привычка|عادة"]],
+["w106","syn",1,"Brave|אמיץ|Valiente|Храбрый|شجاع",["Courageous|נועז|Valeroso|Смелый|جريء","Cruel|אכזר|Cruel|Жестокий|قاسٍ","Clumsy|מגושם|Torpe|Неуклюжий|أخرق","Greedy|חמדן|Codicioso|Жадный|جشع"]],
+["w107","syn",1,"Shout|לצעוק|Gritar|Кричать|يصرخ",["Yell|לזעוק|Chillar|Орать|يصيح","Whisper|ללחוש|Susurrar|Шептать|يهمس","Sit|לשבת|Sentarse|Сидеть|يجلس","Sleep|לישון|Dormir|Спать|ينام"]],
+["w108","syn",1,"Help|לעזור|Ayudar|Помогать|يساعد",["Assist|לסייע|Auxiliar|Содействовать|يعاون","Hinder|להפריע|Estorbar|Мешать|يعرقل","Borrow|ללוות|Pedir prestado|Занимать|يستعير","Count|לספור|Contar|Считать|يعدّ"]],
+["w109","syn",1,"Journey|מסע|Viaje|Путешествие|رحلة",["Trip|נסיעה|Travesía|Поездка|سفر","Meal|ארוחה|Comida|Обед|وجبة","Story|סיפור|Cuento|Рассказ|قصة","Bridge|גשר|Puente|Мост|جسر"]],
+["w110","syn",1,"Quiet|שקט|Callado|Тихий|هادئ",["Silent|דומם|Silencioso|Безмолвный|صامت","Noisy|רועש|Ruidoso|Шумный|صاخب","Bright|בהיר|Brillante|Яркий|ساطع","Hungry|רעב|Hambriento|Голодный|جائع"]],
+["w111","syn",1,"Sad|עצוב|Triste|Грустный|حزين",["Unhappy|אומלל|Desdichado|Печальный|كئيب","Cheerful|עליז|Alegre|Весёлый|مرح","Strict|קפדן|Estricto|Строгий|صارم","Late|מאוחר|Tardío|Поздний|متأخر"]],
+["w121","ant",1,"Hot|חם|Caliente|Горячий|حار",["Cold|קר|Frío|Холодный|بارد","Warm|חמים|Tibio|Тёплый|دافئ","Dry|יבש|Seco|Сухой|جاف","Loud|רועש|Ruidoso|Громкий|صاخب"]],
+["w122","ant",1,"Early|מוקדם|Temprano|Рано|مبكراً",["Late|מאוחר|Tarde|Поздно|متأخراً","Soon|בקרוב|Pronto|Скоро|قريباً","Often|תכופות|A menudo|Часто|غالباً","Long|ארוך|Largo|Долго|طويلاً"]],
+["w123","ant",1,"Open|פתוח|Abierto|Открытый|مفتوح",["Closed|סגור|Cerrado|Закрытый|مغلق","Empty|ריק|Vacío|Пустой|فارغ","Broken|שבור|Roto|Сломанный|مكسور","Wide|רחב|Ancho|Широкий|واسع"]],
+["w124","ant",1,"Heavy|כבד|Pesado|Тяжёлый|ثقيل",["Light|קל|Ligero|Лёгкий|خفيف","Strong|חזק|Fuerte|Сильный|قوي","Full|מלא|Lleno|Полный|ممتلئ","Thick|עבה|Grueso|Толстый|سميك"]],
+["w125","ant",1,"Inside|בפנים|Dentro|Внутри|داخل",["Outside|בחוץ|Fuera|Снаружи|خارج","Above|מעל|Encima|Сверху|فوق","Behind|מאחור|Detrás|Сзади|خلف","Near|קרוב|Cerca|Рядом|قرب"]],
+["w126","ant",1,"Arrive|להגיע|Llegar|Прибывать|يصل",["Leave|לעזוב|Partir|Отбывать|يغادر","Wait|לחכות|Esperar|Ждать|ينتظر","Return|לחזור|Volver|Возвращаться|يعود","Carry|לסחוב|Cargar|Нести|يحمل"]],
+["w127","ant",1,"Victory|ניצחון|Victoria|Победа|نصر",["Defeat|תבוסה|Derrota|Поражение|هزيمة","Battle|קרב|Batalla|Битва|معركة","Prize|פרס|Premio|Приз|جائزة","Effort|מאמץ|Esfuerzo|Усилие|جهد"]],
+["w128","ant",1,"Buy|לקנות|Comprar|Покупать|يشتري",["Sell|למכור|Vender|Продавать|يبيع","Pay|לשלם|Pagar|Платить|يدفع","Borrow|ללוות|Pedir prestado|Занимать|يستعير","Spend|להוציא|Gastar|Тратить|ينفق"]],
+["w129","ant",1,"Ancient|עתיק|Antiguo|Древний|قديم",["Modern|מודרני|Moderno|Современный|حديث","Old|ישן|Viejo|Старый|عتيق","Famous|מפורסם|Famoso|Знаменитый|مشهور","Broken|שבור|Roto|Сломанный|مكسور"]],
+["w130","ant",1,"Generous|נדיב|Generoso|Щедрый|كريم",["Stingy|קמצן|Tacaño|Скупой|بخيل","Kind|אדיב|Amable|Добрый|لطيف","Honest|ישר|Honesto|Честный|صادق","Patient|סבלני|Paciente|Терпеливый|صبور"]],
+["w131","ant",1,"Tall|גבוה|Alto|Высокий|طويل",["Short|נמוך|Bajo|Низкий|قصير","Thin|רזה|Delgado|Худой|نحيف","Young|צעיר|Joven|Молодой|شاب","Strong|חזק|Fuerte|Сильный|قوي"]],
+["w132","ant",1,"Accept|לקבל|Aceptar|Принимать|يقبل",["Refuse|לסרב|Rechazar|Отвергать|يرفض","Agree|להסכים|Consentir|Соглашаться|يوافق","Answer|לענות|Responder|Отвечать|يجيب","Explain|להסביר|Explicar|Объяснять|يشرح"]],
+["w133","ant",1,"Wet|רטוב|Mojado|Мокрый|مبلل",["Dry|יבש|Seco|Сухой|جاف","Cold|קר|Frío|Холодный|بارد","Clean|נקי|Limpio|Чистый|نظيف","Soft|רך|Blando|Мягкий|ناعم"]],
+["w134","ant",1,"Remember|לזכור|Recordar|Помнить|يتذكر",["Forget|לשכוח|Olvidar|Забывать|ينسى","Repeat|לחזור על|Repetir|Повторять|يكرر","Notice|להבחין|Notar|Замечать|يلاحظ","Learn|ללמוד|Aprender|Учить|يتعلم"]],
+["w141","ana",1,["Bird|ציפור|Pájaro|Птица|طائر","Nest|קן|Nido|Гнездо|عش","Bee|דבורה|Abeja|Пчела|نحلة"],["Hive|כוורת|Colmena|Улей|خلية","Honey|דבש|Miel|Мёд|عسل","Flower|פרח|Flor|Цветок|زهرة","Wing|כנף|Ala|Крыло|جناح"]],
+["w142","ana",1,["Glove|כפפה|Guante|Перчатка|قفاز","Hand|יד|Mano|Рука|يد","Sock|גרב|Calcetín|Носок|جورب"],["Foot|כף רגל|Pie|Нога|قدم","Shoe|נעל|Zapato|Ботинок|حذاء","Wool|צמר|Lana|Шерсть|صوف","Knee|ברך|Rodilla|Колено|ركبة"]],
+["w143","ana",1,["Puppy|גור|Cachorro|Щенок|جرو","Dog|כלב|Perro|Собака|كلب","Kitten|חתלתול|Gatito|Котёнок|هريرة"],["Cat|חתול|Gato|Кошка|قط","Mouse|עכבר|Ratón|Мышь|فأر","Milk|חלב|Leche|Молоко|حليب","Tail|זנב|Cola|Хвост|ذيل"]],
+["w144","ana",1,["Eye|עין|Ojo|Глаз|عين","See|לראות|Ver|Видеть|يرى","Ear|אוזן|Oído|Ухо|أذن"],["Hear|לשמוע|Oír|Слышать|يسمع","Speak|לדבר|Hablar|Говорить|يتكلم","Sound|צליל|Sonido|Звук|صوت","Smell|להריח|Oler|Нюхать|يشم"]],
+["w145","ana",1,["Hungry|רעב|Hambriento|Голодный|جائع","Eat|לאכול|Comer|Есть|يأكل","Tired|עייף|Cansado|Усталый|متعب"],["Sleep|לישון|Dormir|Спать|ينام","Run|לרוץ|Correr|Бегать|يركض","Bed|מיטה|Cama|Кровать|سرير","Work|לעבוד|Trabajar|Работать|يعمل"]],
+["w146","ana",1,["Car|מכונית|Coche|Машина|سيارة","Road|כביש|Carretera|Дорога|طريق","Train|רכבת|Tren|Поезд|قطار"],["Rails|מסילה|Vía|Рельсы|سكة","Station|תחנה|Estación|Вокзал|محطة","Ticket|כרטיס|Billete|Билет|تذكرة","Engine|מנוע|Motor|Двигатель|محرك"]],
+["w147","ana",1,["Morning|בוקר|Mañana|Утро|صباح","Breakfast|ארוחת בוקר|Desayuno|Завтрак|فطور","Evening|ערב|Noche|Вечер|مساء"],["Dinner|ארוחת ערב|Cena|Ужин|عشاء","Lunch|ארוחת צהריים|Almuerzo|Обед|غداء","Moon|ירח|Luna|Луна|قمر","Pillow|כרית|Almohada|Подушка|وسادة"]],
+["w148","ana",1,["Bread|לחם|Pan|Хлеб|خبز","Bakery|מאפייה|Panadería|Булочная|مخبز","Medicine|תרופה|Medicina|Лекарство|دواء"],["Pharmacy|בית מרקחת|Farmacia|Аптека|صيدلية","Doctor|רופא|Médico|Врач|طبيب","Pill|כדור|Pastilla|Таблетка|حبة","Patient|מטופל|Paciente|Пациент|مريض"]],
+["w149","ana",1,["Cold|קור|Frío|Холод|برد","Coat|מעיל|Abrigo|Пальто|معطف","Rain|גשם|Lluvia|Дождь|مطر"],["Umbrella|מטרייה|Paraguas|Зонт|مظلّة","Cloud|ענן|Nube|Облако|غيمة","Puddle|שלולית|Charco|Лужа|بِركة ماء","Thunder|רעם|Trueno|Гром|رعد"]],
+["w161","odd",1,null,["Carrot|גזר|Zanahoria|Морковь|جزر","Apple|תפוח|Manzana|Яблоко|تفاح","Pear|אגס|Pera|Груша|كمثرى","Plum|שזיף|Ciruela|Слива|برقوق"]],
+["w162","odd",1,null,["April|אפריל|Abril|Апрель|أبريل","Monday|יום שני|Lunes|Понедельник|الإثنين","Friday|יום שישי|Viernes|Пятница|الجمعة","Sunday|יום ראשון|Domingo|Воскресенье|الأحد"]],
+["w163","odd",1,null,["Trumpet|חצוצרה|Trompeta|Труба|بوق","Violin|כינור|Violín|Скрипка|كمان","Guitar|גיטרה|Guitarra|Гитара|غيتار","Cello|צ'לו|Violonchelo|Виолончель|تشيلو"]],
+["w164","odd",1,null,["Wood|עץ|Madera|Дерево|خشب","Copper|נחושת|Cobre|Медь|نحاس","Iron|ברזל|Hierro|Железо|حديد","Silver|כסף|Plata|Серебро|فضة"]],
+["w165","odd",1,null,["Bat|עטלף|Murciélago|Летучая мышь|خفاش","Eagle|נשר|Águila|Орёл|نسر","Sparrow|דרור|Gorrión|Воробей|عصفور","Owl|ינשוף|Búho|Сова|بومة"]],
+["w166","odd",1,null,["Cube|קובייה|Cubo|Куб|مكعب","Square|ריבוע|Cuadrado|Квадрат|مربع","Triangle|משולש|Triángulo|Треугольник|مثلث","Circle|עיגול|Círculo|Круг|دائرة"]],
+["w167","odd",1,null,["Spoon|כף|Cuchara|Ложка|ملعقة","Chair|כיסא|Silla|Стул|كرسي","Table|שולחן|Mesa|Стол|طاولة","Sofa|ספה|Sofá|Диван|أريكة"]],
+["w171","def",1,"a person who controls an aircraft in flight|מי שמנווט מטוס באוויר|persona que maneja los mandos de un avión|человек, который управляет самолётом|شخص يقود الطائرة",["Pilot|טייס|Piloto|Пилот|طيار","Sailor|ימאי|Marinero|Моряк|بحّار","Driver|נהג|Conductor|Водитель|سائق","Baker|אופה|Panadero|Пекарь|خباز"]],
+["w172","def",1,"a doctor for animals|רופא של בעלי חיים|médico de animales|врач для животных|طبيب الحيوانات",["Vet|וטרינר|Veterinario|Ветеринар|بيطري","Dentist|רופא שיניים|Dentista|Стоматолог|طبيب أسنان","Farmer|חקלאי|Granjero|Фермер|مزارع","Judge|שופט|Juez|Судья|قاضٍ"]],
+["w173","def",1,"a book of words and their meanings|ספר של מילים ופירושיהן|libro de palabras y sus significados|книга слов и их значений|كتاب للكلمات ومعانيها",["Dictionary|מילון|Diccionario|Словарь|قاموس","Atlas|אטלס|Atlas|Атлас|أطلس","Diary|יומן|Diario|Дневник|مذكرات","Novel|רומן|Novela|Роман|رواية"]],
+["w174","def",1,"water turned into gas by heat|מים שהפכו לגז מחום|agua convertida en gas por el calor|вода, превращённая в газ нагревом|ماء تحوّل إلى غاز بالحرارة",["Steam|אדים|Vapor|Пар|بخار","Ice|קרח|Hielo|Лёд|جليد","Rain|גשם|Lluvia|Дождь|مطر","Salt|מלח|Sal|Соль|ملح"]],
+/* ---------- d:2 ---------- */
+["w201","syn",2,"Abandon|לנטוש|Abandonar|Покинуть|يهجر",["Desert|לזנוח|Desamparar|Бросить|يترك","Rescue|להציל|Rescatar|Спасти|ينقذ","Repair|לתקן|Reparar|Починить|يصلح","Visit|לבקר|Visitar|Навестить|يزور"]],
+["w202","syn",2,"Courteous|אדיב|Cortés|Учтивый|لبق",["Polite|מנומס|Educado|Вежливый|مهذّب","Rude|גס|Grosero|Грубый|فظ","Lazy|עצלן|Perezoso|Ленивый|كسول","Nervous|עצבני|Nervioso|Нервный|عصبي"]],
+["w203","syn",2,"Vanish|להתנדף|Desvanecerse|Исчезнуть|يتلاشى",["Disappear|להיעלם|Desaparecer|Пропасть|يختفي","Appear|להופיע|Aparecer|Появиться|يظهر","Shout|לצעוק|Gritar|Крикнуть|يصرخ","Gather|לאסוף|Reunir|Собрать|يجمع"]],
+["w204","syn",2,"Conceal|להסתיר|Ocultar|Скрывать|يُخفي",["Hide|להחביא|Esconder|Прятать|يخبّئ","Reveal|לחשוף|Revelar|Раскрывать|يكشف","Collect|לאסוף|Recoger|Собирать|يجمع","Repair|לתקן|Reparar|Чинить|يصلح"]],
+["w205","syn",2,"Diligent|שקדן|Diligente|Усердный|مجتهد",["Hardworking|חרוץ|Trabajador|Трудолюбивый|دؤوب","Lazy|עצלן|Perezoso|Ленивый|كسول","Lucky|בר מזל|Afortunado|Везучий|محظوظ","Clever|פיקח|Listo|Умный|ذكي"]],
+["w206","syn",2,"Feeble|רפה|Endeble|Немощный|واهن",["Weak|חלש|Débil|Слабый|ضعيف","Strong|חזק|Fuerte|Сильный|قوي","Cheap|זול|Barato|Дешёвый|رخيص","Late|מאוחר|Tardío|Поздний|متأخر"]],
+["w207","syn",2,"Inquire|לברר|Indagar|Осведомиться|يستفسر",["Ask|לשאול|Preguntar|Спросить|يسأل","Reply|להשיב|Responder|Ответить|يجيب","Forget|לשכוח|Olvidar|Забыть|ينسى","Arrive|להגיע|Llegar|Прибыть|يصل"]],
+["w208","syn",2,"Vacant|פנוי|Desocupado|Незанятый|شاغر",["Empty|ריק|Vacío|Пустой|فارغ","Crowded|צפוף|Abarrotado|Переполненный|مزدحم","Clean|נקי|Limpio|Чистый|نظيف","Narrow|צר|Estrecho|Узкий|ضيق"]],
+["w209","syn",2,"Ponder|להרהר|Reflexionar|Размышлять|يتأمل",["Reflect|לחשוב לעומק|Meditar|Обдумывать|يتفكّر","Ignore|להתעלם|Ignorar|Игнорировать|يتجاهل","Hurry|למהר|Apresurarse|Торопиться|يستعجل","Shout|לצעוק|Gritar|Кричать|يصرخ"]],
+["w210","syn",2,"Rigid|נוקשה|Rígido|Негибкий|جامد",["Stiff|קשיח|Tieso|Жёсткий|متصلّب","Flexible|גמיש|Flexible|Гибкий|مرن","Hollow|חלול|Hueco|Полый|أجوف","Warm|חמים|Tibio|Тёплый|دافئ"]],
+["w211","syn",2,"Precise|מדוקדק|Preciso|Выверенный|دقيق",["Exact|מדויק|Exacto|Точный|مضبوط","Vague|מעורפל|Vago|Расплывчатый|مبهم","Loud|רועש|Ruidoso|Громкий|صاخب","Recent|חדש|Reciente|Недавний|حديث"]],
+["w212","syn",2,"Wicked|מרושע|Malvado|Злобный|شرير",["Evil|רשע|Perverso|Злой|خبيث","Kind|טוב לב|Bondadoso|Добрый|طيب","Clever|פיקח|Listo|Умный|ذكي","Shy|ביישן|Tímido|Застенчивый|خجول"]],
+["w221","ant",2,"Expand|להתרחב|Expandirse|Расширяться|يتمدّد",["Contract|להתכווץ|Contraerse|Сжиматься|ينكمش","Grow|לגדול|Crecer|Расти|ينمو","Melt|להימס|Derretirse|Таять|يذوب","Travel|לנסוע|Viajar|Путешествовать|يسافر"]],
+["w222","ant",2,"Optimist|אופטימיסט|Optimista|Оптимист|متفائل",["Pessimist|פסימיסט|Pesimista|Пессимист|متشائم","Dreamer|חולם|Soñador|Мечтатель|حالم","Expert|מומחה|Experto|Эксперт|خبير","Tourist|תייר|Turista|Турист|سائح"]],
+["w223","ant",2,"Increase|להגדיל|Aumentar|Увеличивать|يزيد",["Decrease|להקטין|Disminuir|Уменьшать|يُنقص","Double|להכפיל|Duplicar|Удваивать|يضاعف","Measure|למדוד|Medir|Измерять|يقيس","Repeat|לחזור על|Repetir|Повторять|يكرر"]],
+["w224","ant",2,"Praise|לשבח|Elogiar|Хвалить|يمدح",["Criticize|לגנות|Criticar|Критиковать|ينتقد","Admire|להעריץ|Admirar|Восхищаться|يقدّر","Describe|לתאר|Describir|Описывать|يصف","Reward|לתגמל|Premiar|Награждать|يكافئ"]],
+["w225","ant",2,"Scarce|מועט|Escaso|Скудный|شحيح",["Plentiful|שופע|Abundante|Обильный|وفير","Rare|נדיר|Raro|Редкий|نادر","Limited|מוגבל|Limitado|Ограниченный|محدود","Costly|יקר|Costoso|Дорогой|باهظ"]],
+["w226","ant",2,"Humble|צנוע|Humilde|Скромный|متواضع",["Arrogant|יהיר|Arrogante|Высокомерный|متكبّر","Shy|ביישן|Tímido|Застенчивый|خجول","Gentle|עדין|Amable|Мягкий|لطيف","Poor|עני|Pobre|Бедный|فقير"]],
+["w227","ant",2,"Transparent|שקוף|Transparente|Прозрачный|شفاف",["Opaque|אטום|Opaco|Непрозрачный|معتم","Clear|צלול|Claro|Ясный|صافٍ","Thin|דק|Fino|Тонкий|رقيق","Shiny|מבריק|Brillante|Блестящий|لامع"]],
+["w228","ant",2,"Hostile|עוין|Hostil|Враждебный|عدائي",["Friendly|ידידותי|Amistoso|Дружелюбный|ودود","Angry|כועס|Enojado|Сердитый|غاضب","Foreign|זר|Extranjero|Чужой|أجنبي","Quiet|שקט|Callado|Тихий|هادئ"]],
+["w229","ant",2,"Rough|מחוספס|Áspero|Шершавый|خشن",["Smooth|חלק|Liso|Гладкий|أملس","Hard|קשה|Duro|Твёрдый|صلب","Sharp|חד|Afilado|Острый|حاد","Heavy|כבד|Pesado|Тяжёлый|ثقيل"]],
+["w230","ant",2,"Guilty|אשם|Culpable|Виновный|مذنب",["Innocent|חף מפשע|Inocente|Невиновный|بريء","Accused|נאשם|Acusado|Обвиняемый|متّهم","Honest|ישר|Honrado|Честный|أمين","Angry|כועס|Enojado|Сердитый|غاضب"]],
+["w231","ant",2,"Reward|תגמול|Recompensa|Награда|مكافأة",["Punishment|עונש|Castigo|Наказание|عقوبة","Prize|פרס|Premio|Приз|جائزة","Payment|תשלום|Pago|Плата|دفعة","Promise|הבטחה|Promesa|Обещание|وعد"]],
+["w241","ana",2,["Hammer|פטיש|Martillo|Молоток|مطرقة","Nail|מסמר|Clavo|Гвоздь|مسمار","Screwdriver|מברג|Destornillador|Отвёртка|مفك"],["Screw|בורג|Tornillo|Шуруп|برغي","Wrench|מפתח ברגים|Llave inglesa|Гаечный ключ|مفتاح ربط","Drill|מקדחה|Taladro|Дрель|مثقاب","Wood|עץ|Madera|Дерево|خشب"]],
+["w242","ana",2,["Ruler|סרגל|Regla|Линейка|مسطرة","Length|אורך|Longitud|Длина|طول","Clock|שעון|Reloj|Часы|ساعة"],["Time|זמן|Tiempo|Время|وقت","Wall|קיר|Pared|Стена|جدار","Alarm|מעורר|Alarma|Будильник|منبّه","Battery|סוללה|Pila|Батарейка|بطارية"]],
+["w243","ana",2,["Leaf|עלה|Hoja|Лист|ورقة","Tree|עץ|Árbol|Дерево|شجرة","Feather|נוצה|Pluma|Перо|ريشة"],["Bird|ציפור|Ave|Птица|طائر","Pillow|כרית|Almohada|Подушка|وسادة","Nest|קן|Nido|Гнездо|عش","Sky|שמיים|Cielo|Небо|سماء"]],
+["w244","ana",2,["Drought|בצורת|Sequía|Засуха|جفاف","Rain|גשם|Lluvia|Дождь|مطر","Famine|רעב|Hambruna|Голод|مجاعة"],["Food|מזון|Comida|Еда|طعام","Money|כסף|Dinero|Деньги|مال","War|מלחמה|Guerra|Война|حرب","Desert|מדבר|Desierto|Пустыня|صحراء"]],
+["w245","ana",2,["Calf|עגל|Ternero|Телёнок|عجل","Cow|פרה|Vaca|Корова|بقرة","Lamb|טלה|Cordero|Ягнёнок|حمل"],["Sheep|כבשה|Oveja|Овца|نعجة","Goat|עז|Cabra|Коза|ماعز","Wool|צמר|Lana|Шерсть|صوف","Farm|חווה|Granja|Ферма|مزرعة"]],
+["w246","ana",2,["Baker|אופה|Panadero|Пекарь|خبّاز","Bread|לחם|Pan|Хлеб|خبز","Tailor|חייט|Sastre|Портной|خيّاط"],["Suit|חליפה|Traje|Костюм|بدلة","Needle|מחט|Aguja|Иголка|إبرة","Shop|חנות|Tienda|Магазин|متجر","Fabric|בד|Tela|Ткань|قماش"]],
+["w247","ana",2,["Poet|משורר|Poeta|Поэт|شاعر","Poem|שיר|Poema|Стихотворение|قصيدة","Composer|מלחין|Compositor|Композитор|ملحّن"],["Symphony|סימפוניה|Sinfonía|Симфония|سيمفونية","Piano|פסנתר|Piano|Пианино|بيانو","Orchestra|תזמורת|Orquesta|Оркестр|أوركسترا","Singer|זמר|Cantante|Певец|مغنٍّ"]],
+["w261","odd",2,null,["Moon|ירח|Luna|Луна|القمر","Mercury|כוכב חמה|Mercurio|Меркурий|عطارد","Venus|נוגה|Venus|Венера|الزهرة","Mars|מאדים|Marte|Марс|المريخ"]],
+["w262","odd",2,null,["Oak|אלון|Roble|Дуб|بلوط","Tulip|צבעוני|Tulipán|Тюльпан|توليب","Rose|ורד|Rosa|Роза|وردة","Daisy|חיננית|Margarita|Ромашка|أقحوان"]],
+["w263","odd",2,null,["Sphere|כדור|Esfera|Сфера|كرة","Hexagon|משושה|Hexágono|Шестиугольник|مسدّس","Pentagon|מחומש|Pentágono|Пятиугольник|مخمّس","Octagon|מתומן|Octágono|Восьмиугольник|مثمّن"]],
+["w264","odd",2,null,["Litre|ליטר|Litro|Литр|لتر","Inch|אינץ'|Pulgada|Дюйм|بوصة","Mile|מייל|Milla|Миля|ميل","Metre|מטר|Metro|Метр|متر"]],
+["w265","odd",2,null,["Sahara|סהרה|Sahara|Сахара|الصحراء الكبرى","Nile|נילוס|Nilo|Нил|النيل","Amazon|אמזונס|Amazonas|Амазонка|الأمازون","Danube|דנובה|Danubio|Дунай|الدانوب"]],
+["w266","odd",2,null,["Shark|כריש|Tiburón|Акула|قرش","Whale|לוויתן|Ballena|Кит|حوت","Dolphin|דולפין|Delfín|Дельфин|دلفين","Seal|כלב ים|Foca|Тюлень|فقمة"]],
+["w271","def",2,"a word with the same meaning as another word|מילה שמשמעותה זהה למילה אחרת|palabra con el mismo significado que otra|слово с тем же значением, что и другое слово|كلمة لها معنى كلمة أخرى نفسه",["Synonym|מילה נרדפת|Sinónimo|Синоним|مرادف","Antonym|מילה מנוגדת|Antónimo|Антоним|ضدّ","Homonym|הומונים|Homónimo|Омоним|مشترك لفظي","Acronym|ראשי תיבות|Acrónimo|Аббревиатура|اختصار"]],
+["w272","def",2,"a scientist who studies stars and planets|מדען שחוקר כוכבים וכוכבי לכת|científico que estudia las estrellas y los planetas|учёный, изучающий звёзды и планеты|عالِم يدرس النجوم والكواكب",["Astronomer|אסטרונום|Astrónomo|Астроном|فلكي","Geologist|גאולוג|Geólogo|Геолог|جيولوجي","Botanist|בוטנאי|Botánico|Ботаник|عالم نبات","Historian|היסטוריון|Historiador|Историк|مؤرخ"]],
+["w273","def",2,"to move something to a later time|להעביר משהו למועד מאוחר יותר|dejar algo para más tarde|перенести что-то на более позднее время|أن تجعل أمراً في وقت لاحق",["Postpone|לדחות|Aplazar|Отложить|يؤجّل","Cancel|לבטל|Cancelar|Отменить|يلغي","Hurry|למהר|Apresurar|Поторопить|يستعجل","Repeat|לחזור על|Repetir|Повторить|يكرّر"]],
+["w274","def",2,"active mainly at night|פעיל בעיקר בשעות החשכה|activo sobre todo de noche|активный в основном ночью|نشِط في الليل غالباً",["Nocturnal|לילי|Nocturno|Ночной|ليلي","Dormant|רדום|Latente|Спящий|خامل","Nomadic|נוודי|Nómada|Кочевой|رحّال","Diurnal|יומי|Diurno|Дневной|نهاري"]],
+/* ---------- d:3 ---------- */
+["w301","syn",3,"Laconic|לקוני|Lacónico|Лаконичный|مقتضب",["Concise|תמציתי|Conciso|Сжатый|موجز","Verbose|רב-מלל|Verboso|Многословный|مُسهب","Rude|גס|Grosero|Грубый|فظ","Cheerful|עליז|Alegre|Весёлый|مرح"]],
+["w302","syn",3,"Candid|גלוי לב|Franco|Откровенный|صريح",["Frank|כן|Sincero|Искренний|صادق","Secretive|חשאי|Reservado|Скрытный|كتوم","Clumsy|מגושם|Torpe|Неуклюжий|أخرق","Bitter|מר|Amargo|Горький|مرير"]],
+["w303","syn",3,"Ominous|מבשר רעות|Ominoso|Зловещий|مشؤوم",["Threatening|מאיים|Amenazador|Угрожающий|مُنذِر بالخطر","Cheerful|עליז|Alegre|Весёлый|مرح","Ancient|עתיק|Antiguo|Древний|قديم","Fragrant|ריחני|Fragante|Душистый|عطِر"]],
+["w304","syn",3,"Meticulous|קפדני|Meticuloso|Дотошный|مُدقِّق",["Thorough|יסודי|Minucioso|Тщательный|متأنٍّ","Careless|רשלני|Descuidado|Небрежный|مهمل","Hasty|נמהר|Apresurado|Поспешный|متسرّع","Generous|נדיב|Generoso|Щедрый|كريم"]],
+["w305","syn",3,"Obstinate|עקשן|Obstinado|Неуступчивый|متصلّب",["Stubborn|קשה עורף|Terco|Упрямый|عنيد","Flexible|גמיש|Flexible|Гибкий|مرن","Anxious|חרד|Ansioso|Тревожный|قلق","Graceful|חינני|Grácil|Изящный|رشيق"]],
+["w306","syn",3,"Pragmatic|פרגמטי|Pragmático|Прагматичный|براغماتي",["Practical|מעשי|Práctico|Практичный|عملي","Idealistic|אידיאליסטי|Idealista|Идеалистичный|مثالي","Nervous|עצבני|Nervioso|Нервный|عصبي","Elegant|אלגנטי|Elegante|Элегантный|أنيق"]],
+["w307","syn",3,"Ambiguous|דו-משמעי|Ambiguo|Двусмысленный|ملتبس",["Unclear|עמום|Equívoco|Неоднозначный|غامض","Obvious|ברור מאליו|Obvio|Очевидный|واضح","Polite|מנומס|Cortés|Вежливый|مؤدّب","Formal|רשמי|Formal|Официальный|رسمي"]],
+["w308","syn",3,"Futile|עקר|Fútil|Тщетный|عقيم",["Pointless|חסר טעם|Inútil|Бесполезный|عديم الجدوى","Fruitful|פורה|Fructífero|Плодотворный|مثمر","Urgent|דחוף|Urgente|Срочный|عاجل","Simple|פשוט|Sencillo|Простой|بسيط"]],
+["w309","syn",3,"Adversary|אויב|Adversario|Противник|خصم",["Opponent|יריב|Contrincante|Соперник|غريم","Ally|בעל ברית|Aliado|Союзник|حليف","Referee|שופט|Árbitro|Судья|حَكَم","Neighbour|שכן|Vecino|Сосед|جار"]],
+["w310","syn",3,"Tenacious|עיקש|Tenaz|Цепкий|متشبّث",["Persistent|נחוש|Perseverante|Настойчивый|مثابر","Fickle|הפכפך|Voluble|Непостоянный|متقلّب","Gentle|עדין|Delicado|Мягкий|لطيف","Proud|גאה|Orgulloso|Гордый|فخور"]],
+["w311","syn",3,"Arduous|מפרך|Arduo|Изнурительный|مُضنٍ",["Strenuous|מתיש|Agotador|Тяжёлый|شاقّ","Effortless|קליל|Fácil|Лёгкий|سهل","Distant|רחוק|Lejano|Далёкий|بعيد","Pleasant|נעים|Agradable|Приятный|لطيف"]],
+["w312","syn",3,"Mundane|שגרתי|Anodino|Обыденный|مألوف",["Ordinary|רגיל|Corriente|Заурядный|عادي","Extraordinary|יוצא דופן|Extraordinario|Необычайный|استثنائي","Sacred|קדוש|Sagrado|Священный|مقدّس","Hidden|נסתר|Oculto|Скрытый|خفي"]],
+["w313","syn",3,"Prudent|שקול|Prudente|Благоразумный|حصيف",["Careful|זהיר|Cauteloso|Осмотрительный|حذِر","Reckless|פזיז|Imprudente|Безрассудный|متهوّر","Generous|נדיב|Generoso|Щедрый|كريم","Famous|מפורסם|Famoso|Знаменитый|مشهور"]],
+["w314","syn",3,"Benevolent|מיטיב|Benévolo|Благосклонный|خيّر",["Kind|טוב לב|Bondadoso|Добрый|طيّب القلب","Malicious|זדוני|Malicioso|Злонамеренный|خبيث النية","Timid|הססן|Tímido|Робкий|هيّاب","Wealthy|אמיד|Adinerado|Состоятельный|ثري"]],
+["w321","ant",3,"Benign|שפיר|Benigno|Доброкачественный|حميد",["Malignant|ממאיר|Maligno|Злокачественный|خبيث","Harmless|לא מזיק|Inofensivo|Безвредный|غير ضار","Chronic|כרוני|Crónico|Хронический|مزمن","Contagious|מדבק|Contagioso|Заразный|معدٍ"]],
+["w322","ant",3,"Frugal|חסכן|Frugal|Бережливый|مقتصد",["Wasteful|בזבזן|Derrochador|Расточительный|مبذّر","Thrifty|חסכוני|Ahorrativo|Экономный|موفّر","Wealthy|עשיר|Rico|Богатый|غني","Honest|ישר|Honesto|Честный|أمين"]],
+["w323","ant",3,"Zenith|שיא|Cénit|Зенит|ذروة",["Nadir|שפל|Nadir|Надир|حضيض","Summit|פסגה|Cumbre|Вершина|قمّة","Horizon|אופק|Horizonte|Горизонт|أفق","Orbit|מסלול|Órbita|Орбита|مدار"]],
+["w324","ant",3,"Lucid|צלול|Lúcido|Ясный|صافي الذهن",["Muddled|מבולבל|Confuso|Путаный|مشوّش","Bright|בהיר|Brillante|Яркий|لامع","Calm|רגוע|Tranquilo|Спокойный|هادئ","Gentle|עדין|Suave|Мягкий|لطيف"]],
+["w325","ant",3,"Alleviate|להקל|Aliviar|Облегчать|يخفّف",["Aggravate|להחמיר|Agravar|Усугублять|يفاقم","Soothe|להרגיע|Calmar|Успокаивать|يهدّئ","Delay|לעכב|Retrasar|Задерживать|يؤخّر","Measure|למדוד|Medir|Измерять|يقيس"]],
+["w326","ant",3,"Prosperity|שגשוג|Prosperidad|Процветание|ازدهار",["Poverty|עוני|Pobreza|Бедность|فقر","Wealth|עושר|Riqueza|Богатство|ثراء","Progress|קדמה|Progreso|Прогресс|تقدّم","Silence|שקט|Silencio|Тишина|صمت"]],
+["w327","ant",3,"Novice|טירון|Novato|Новичок|مبتدئ",["Expert|מומחה|Experto|Знаток|خبير","Beginner|מתחיל|Principiante|Начинающий|مستجدّ","Student|תלמיד|Estudiante|Ученик|طالب","Rival|יריב|Rival|Соперник|منافس"]],
+["w328","ant",3,"Hasten|להחיש|Apresurar|Торопить|يعجّل",["Delay|לעכב|Demorar|Задерживать|يؤخّر","Hurry|למהר|Acelerar|Подгонять|يسرّع","Arrive|להגיע|Llegar|Прибывать|يصل","Shorten|לקצר|Acortar|Сокращать|يقصّر"]],
+["w329","ant",3,"Taciturn|שתקן|Taciturno|Молчаливый|صموت",["Talkative|פטפטן|Hablador|Болтливый|ثرثار","Silent|שותק|Callado|Безмолвный|صامت","Gloomy|קודר|Sombrío|Мрачный|كئيب","Clever|פיקח|Listo|Умный|ذكي"]],
+["w330","ant",3,"Concur|להסכים|Concordar|Соглашаться|يوافق",["Disagree|להתנגד|Discrepar|Возражать|يعارض","Approve|לאשר|Aprobar|Одобрять|يُقرّ","Repeat|לחזור על|Repetir|Повторять|يكرّر","Listen|להקשיב|Escuchar|Слушать|يستمع"]],
+["w331","ant",3,"Sporadic|ספורדי|Esporádico|Эпизодический|متقطّع",["Constant|מתמיד|Constante|Постоянный|مستمر","Occasional|מזדמן|Ocasional|Случайный|عَرَضي","Sudden|פתאומי|Repentino|Внезапный|مفاجئ","Loud|רועש|Ruidoso|Громкий|صاخب"]],
+["w341","ana",3,["Ornithology|אורניתולוגיה|Ornitología|Орнитология|الأورنيثولوجيا","Birds|ציפורים|Aves|Птицы|الطيور","Entomology|אנטומולוגיה|Entomología|Энтомология|الإنتومولوجيا"],["Insects|חרקים|Insectos|Насекомые|الحشرات","Plants|צמחים|Plantas|Растения|النباتات","Fossils|מאובנים|Fósiles|Окаменелости|الأحافير","Stars|כוכבים|Estrellas|Звёзды|النجوم"]],
+["w342","ana",3,["Prologue|פרולוג|Prólogo|Пролог|تمهيد","Novel|רומן|Novela|Роман|رواية","Overture|אוברטורה|Obertura|Увертюра|افتتاحية"],["Opera|אופרה|Ópera|Опера|أوبرا","Finale|פינאלה|Final|Финал|خاتمة","Orchestra|תזמורת|Orquesta|Оркестр|أوركسترا","Conductor|מנצח|Director de orquesta|Дирижёр|مايسترو"]],
+["w343","ana",3,["Carnivore|טורף|Carnívoro|Хищник|لاحم","Meat|בשר|Carne|Мясо|لحم","Herbivore|אוכל עשב|Herbívoro|Травоядное|عاشب"],["Plants|צמחים|Plantas|Растения|نباتات","Insects|חרקים|Insectos|Насекомые|حشرات","Water|מים|Agua|Вода|ماء","Fish|דגים|Peces|Рыба|سمك"]],
+["w344","ana",3,["Insomnia|נדודי שינה|Insomnio|Бессонница|الأرق","Sleep|שינה|Sueño|Сон|النوم","Amnesia|אמנזיה|Amnesia|Амнезия|الأمنيزيا"],["Memory|זיכרון|Memoria|Память|الذاكرة","Pain|כאב|Dolor|Боль|الألم","Brain|מוח|Cerebro|Мозг|الدماغ","Speech|דיבור|Habla|Речь|الكلام"]],
+["w345","ana",3,["Archipelago|ארכיפלג|Archipiélago|Архипелаг|أرخبيل","Island|אי|Isla|Остров|جزيرة","Constellation|קונסטלציה|Constelación|Созвездие|كوكبة"],["Star|כוכב|Estrella|Звезда|نجم","Planet|כוכב לכת|Planeta|Планета|كوكب","Galaxy|גלקסיה|Galaxia|Галактика|مجرّة","Telescope|טלסקופ|Telescopio|Телескоп|مقراب"]],
+["w346","ana",3,["Mason|בנאי|Cantero|Каменщик|بنّاء","Stone|אבן|Piedra|Камень|حجر","Carpenter|נגר|Carpintero|Плотник|نجّار"],["Wood|עץ|Madera|Дерево|خشب","Saw|מסור|Sierra|Пила|منشار","Furniture|רהיטים|Muebles|Мебель|أثاث","Nail|מסמר|Clavo|Гвоздь|مسمار"]],
+["w347","ana",3,["Cartographer|קרטוגרף|Cartógrafo|Картограф|رسّام الخرائط","Map|מפה|Mapa|Карта|خريطة","Lexicographer|לקסיקוגרף|Lexicógrafo|Лексикограф|مؤلّف المعاجم"],["Dictionary|מילון|Diccionario|Словарь|معجم","Grammar|דקדוק|Gramática|Грамматика|قواعد","Alphabet|אלפבית|Alfabeto|Алфавит|أبجدية","Novel|רומן|Novela|Роман|رواية"]],
+["w361","odd",3,null,["Sonata|סונטה|Sonata|Соната|سوناتا","Sonnet|סונט|Soneto|Сонет|سونيت","Haiku|הייקו|Haiku|Хайку|هايكو","Limerick|לימריק|Limerick|Лимерик|ليمريك"]],
+["w362","odd",3,null,["Sirius|סיריוס|Sirio|Сириус|الشعرى اليمانية","Saturn|שבתאי|Saturno|Сатурн|زحل","Jupiter|צדק|Júpiter|Юпитер|المشتري","Neptune|נפטון|Neptuno|Нептун|نبتون"]],
+["w363","odd",3,null,["Newton|ניוטון|Newton|Ньютон|نيوتن","Celsius|צלזיוס|Celsius|Цельсий|سلسيوس","Fahrenheit|פרנהייט|Fahrenheit|Фаренгейт|فهرنهايت","Kelvin|קלווין|Kelvin|Кельвин|كلفن"]],
+["w364","odd",3,null,["Adverb|תואר הפועל|Adverbio|Наречие|ظرف","Simile|דימוי|Símil|Сравнение|تشبيه","Metaphor|מטפורה|Metáfora|Метафора|استعارة","Hyperbole|הגזמה|Hipérbole|Гипербола|مبالغة"]],
+["w371","def",3,"a fear of heights|פחד גבהים|miedo a las alturas|боязнь высоты|الخوف من المرتفعات",["Acrophobia|אקרופוביה|Acrofobia|Акрофобия|أكروفوبيا","Claustrophobia|קלסטרופוביה|Claustrofobia|Клаустрофобия|كلوستروفوبيا","Arachnophobia|ארכנופוביה|Aracnofobia|Арахнофобия|أراكنوفوبيا","Agoraphobia|אגורפוביה|Agorafobia|Агорафобия|أغورافوبيا"]],
+["w372","def",3,"a word or phrase that reads the same backwards|מילה או צירוף שנקראים אותו דבר גם מהסוף להתחלה|palabra o frase que se lee igual al revés|слово или фраза, которые одинаково читаются в обе стороны|كلمة أو عبارة تُقرأ بالطريقة نفسها من الجهتين",["Palindrome|פלינדרום|Palíndromo|Палиндром|باليندروم","Anagram|אנגרמה|Anagrama|Анаграмма|أناغرام","Acronym|ראשי תיבות|Acrónimo|Аббревиатура|اختصار","Synonym|מילה נרדפת|Sinónimo|Синоним|مرادف"]],
+["w373","def",3,"rule by a small group of powerful people|שלטון של קבוצה קטנה ובעלת עוצמה|gobierno de un pequeño grupo de poderosos|власть небольшой группы влиятельных людей|حكم مجموعة صغيرة من أصحاب النفوذ",["Oligarchy|אוליגרכיה|Oligarquía|Олигархия|أوليغارشية","Monarchy|מונרכיה|Monarquía|Монархия|ملكية","Democracy|דמוקרטיה|Democracia|Демократия|ديمقراطية","Anarchy|אנרכיה|Anarquía|Анархия|فوضوية"]],
+["w374","def",3,"excessive pride|גאווה מופרזת|orgullo desmedido|чрезмерная гордость|كبرياء مفرطة",["Hubris|יוהרה|Soberbia|Гордыня|غطرسة","Humility|ענווה|Humildad|Смирение|تواضع","Envy|קנאה|Envidia|Зависть|حسد","Apathy|אדישות|Apatía|Апатия|لامبالاة"]],
+["w375","def",3,"the study of where words come from|חקר מקורן של מילים|estudio del origen de las palabras|наука о происхождении слов|دراسة أصول الكلمات",["Etymology|אטימולוגיה|Etimología|Этимология|التأثيل","Entomology|אנטומולוגיה|Entomología|Энтомология|الإنتومولوجيا","Ecology|אקולוגיה|Ecología|Экология|علم البيئة","Geology|גאולוגיה|Geología|Геология|الجيولوجيا"]]
 ];
-WORD_SETS.push(
-  {q:{en:'Which word means "to make clear"?',he:'איזו מילה פירושה "להבהיר"?',es:'¿Qué palabra significa "aclarar"?',ru:'Какое слово означает «прояснить»?',ar:'أي كلمة تعني "يوضح"؟'},
-   o:[{en:'Clarify',he:'להבהיר',es:'Aclarar',ru:'Прояснить',ar:'يوضح'},{en:'Obscure',he:'לטשטש',es:'Oscurecer',ru:'Затемнить',ar:'يعتم'},{en:'Conceal',he:'להסתיר',es:'Ocultar',ru:'Скрыть',ar:'يخفي'},{en:'Distort',he:'לעוות',es:'Distorsionar',ru:'Исказить',ar:'يشوه'}]},
-  {q:{en:'Which word is closest to "resilient"?',he:'מהי המילה הקרובה ביותר ל"עמיד"?',es:'¿Cuál es más cercana a "resiliente"?',ru:'Какое слово ближе всего к «стойкий»?',ar:'أي كلمة أقرب لـ"صامد"؟'},
-   o:[{en:'Tough',he:'קשוח',es:'Fuerte',ru:'Крепкий',ar:'قوي'},{en:'Fragile',he:'שביר',es:'Frágil',ru:'Хрупкий',ar:'هش'},{en:'Timid',he:'ביישן',es:'Tímido',ru:'Робкий',ar:'خجول'},{en:'Weary',he:'עייף',es:'Cansado',ru:'Уставший',ar:'متعب'}]},
-  {q:{en:'Which word does not belong?',he:'איזו מילה לא שייכת?',es:'¿Qué palabra no pertenece?',ru:'Какое слово лишнее?',ar:'أي كلمة لا تنتمي؟'},
-   o:[{en:'Triangle',he:'משולש',es:'Triángulo',ru:'Треугольник',ar:'مثلث'},{en:'Circle',he:'עיגול',es:'Círculo',ru:'Круг',ar:'دائرة'},{en:'Square',he:'ריבוע',es:'Cuadrado',ru:'Квадрат',ar:'مربع'},{en:'River',he:'נהר',es:'Río',ru:'Река',ar:'نهر'}]},
-  {q:{en:'Idea is to Thought as Emotion is to ___?',he:'רעיון הוא למחשבה כמו רגש הוא ל___?',es:'Idea es a Pensamiento como Emoción es a ___?',ru:'Идея относится к Мысли, как Эмоция к ___?',ar:'فكرة إلى تفكير كما عاطفة إلى ___؟'},
-   o:[{en:'Feeling',he:'תחושה',es:'Sentimiento',ru:'Чувство',ar:'شعور'},{en:'Logic',he:'לוגיקה',es:'Lógica',ru:'Логика',ar:'منطق'},{en:'Number',he:'מספר',es:'Número',ru:'Число',ar:'رقم'},{en:'Fact',he:'עובדה',es:'Hecho',ru:'Факт',ar:'حقيقة'}]},
-  {q:{en:'Which word means "unavoidable"?',he:'איזו מילה פירושה "בלתי נמנע"?',es:'¿Qué palabra significa "inevitable"?',ru:'Какое слово означает «неизбежный»?',ar:'أي كلمة تعني "حتمي"؟'},
-   o:[{en:'Inevitable',he:'בלתי נמנע',es:'Inevitable',ru:'Неизбежный',ar:'حتمي'},{en:'Optional',he:'אופציונלי',es:'Opcional',ru:'Необязательный',ar:'اختياري'},{en:'Uncertain',he:'לא ודאי',es:'Incierto',ru:'Неопределённый',ar:'غير مؤكد'},{en:'Rare',he:'נדיר',es:'Raro',ru:'Редкий',ar:'نادر'}]},
-  {q:{en:'Key is to Lock as Password is to ___?',he:'מפתח הוא למנעול כמו סיסמה היא ל___?',es:'Llave es a Cerradura como Contraseña es a ___?',ru:'Ключ относится к Замку, как Пароль к ___?',ar:'مفتاح إلى قفل كما كلمة مرور إلى ___؟'},
-   o:[{en:'Account',he:'חשבון',es:'Cuenta',ru:'Учётная запись',ar:'حساب'},{en:'Letter',he:'מכתב',es:'Carta',ru:'Письмо',ar:'رسالة'},{en:'Book',he:'ספר',es:'Libro',ru:'Книга',ar:'كتاب'},{en:'Window',he:'חלון',es:'Ventana',ru:'Окно',ar:'نافذة'}]},
-  {q:{en:'Which word means "to reject firmly"?',he:'איזו מילה פירושה "לדחות בתוקף"?',es:'¿Qué palabra significa "rechazar con firmeza"?',ru:'Какое слово означает «твёрдо отвергнуть»?',ar:'أي كلمة تعني "يرفض بحزم"؟'},
-   o:[{en:'Refute',he:'להפריך',es:'Refutar',ru:'Опровергнуть',ar:'يدحض'},{en:'Accept',he:'לקבל',es:'Aceptar',ru:'Принять',ar:'يقبل'},{en:'Endorse',he:'לאשר',es:'Respaldar',ru:'Одобрить',ar:'يؤيد'},{en:'Suggest',he:'להציע',es:'Sugerir',ru:'Предложить',ar:'يقترح'}]},
-  {q:{en:'Which word means "showing great care and thoroughness"?',he:'איזו מילה פירושה "מפורט ויסודי מאוד"?',es:'¿Qué palabra significa "muy cuidadoso y detallado"?',ru:'Какое слово означает «очень тщательный»?',ar:'أي كلمة تعني "دقيق للغاية"؟'},
-   o:[{en:'Rigorous',he:'קפדני',es:'Riguroso',ru:'Строгий',ar:'صارم'},{en:'Sloppy',he:'רשלני',es:'Descuidado',ru:'Неряшливый',ar:'مهمل'},{en:'Casual',he:'אגבי',es:'Casual',ru:'Небрежный',ar:'عرضي'},{en:'Lazy',he:'עצלן',es:'Perezoso',ru:'Ленивый',ar:'كسول'}]},
-  {q:{en:'Which word is the opposite of "transparent"?',he:'איזו מילה הפוכה ל"שקוף"?',es:'¿Qué palabra es opuesta a "transparente"?',ru:'Какое слово противоположно «прозрачный»?',ar:'أي كلمة عكس "شفاف"؟'},
-   o:[{en:'Opaque',he:'אטום',es:'Opaco',ru:'Непрозрачный',ar:'معتم'},{en:'Clear',he:'צלול',es:'Claro',ru:'Ясный',ar:'واضح'},{en:'Visible',he:'נראה',es:'Visible',ru:'Видимый',ar:'مرئي'},{en:'Bright',he:'בהיר',es:'Brillante',ru:'Яркий',ar:'مشرق'}]},
-  {q:{en:'Which word means "a strong desire to know"?',he:'איזו מילה פירושה "סקרנות עזה"?',es:'¿Qué palabra significa "gran deseo de saber"?',ru:'Какое слово означает «сильное желание знать»?',ar:'أي كلمة تعني "رغبة قوية في المعرفة"؟'},
-   o:[{en:'Curiosity',he:'סקרנות',es:'Curiosidad',ru:'Любопытство',ar:'فضول'},{en:'Apathy',he:'אדישות',es:'Apatía',ru:'Апатия',ar:'لامبالاة'},{en:'Boredom',he:'שעמום',es:'Aburrimiento',ru:'Скука',ar:'ملل'},{en:'Fatigue',he:'עייפות',es:'Fatiga',ru:'Усталость',ar:'إرهاق'}]},
-  {q:{en:'Which word means "existing everywhere at once"?',he:'איזו מילה פירושה "קיים בכל מקום בו-זמנית"?',es:'¿Qué palabra significa "presente en todas partes"?',ru:'Какое слово означает «повсюду одновременно»?',ar:'أي كلمة تعني "موجود في كل مكان"؟'},
-   o:[{en:'Ubiquitous',he:'כל-נוכח',es:'Ubicuo',ru:'Вездесущий',ar:'منتشر'},{en:'Scarce',he:'נדיר',es:'Escaso',ru:'Скудный',ar:'نادر'},{en:'Local',he:'מקומי',es:'Local',ru:'Локальный',ar:'محلي'},{en:'Hidden',he:'נסתר',es:'Oculto',ru:'Скрытый',ar:'مخفي'}]}
-);
-
+const _wwW=s=>{ const a=s.split('|'); const o={}; WW_LANGS.forEach((l,i)=>o[l]=a[i]); return o; };
+const _wwFill=(key,vars)=>{ const o={}; WW_LANGS.forEach(l=>{ let s=(T[l]&&T[l][key])||T.en[key]||key;
+  Object.keys(vars||{}).forEach(k=>{ s=s.replace('{'+k+'}',vars[k][l]); }); o[l]=s; }); return o; };
+/* Builds the playable question for one bank row. */
+function wwQuestion(row){
+  const [id,kind,d,stem,opts]=row;
+  const q={id,d:['easy','medium','hard'][d-1],ww:kind,opts:opts.map(w=>({val:_wwW(w)})),ans:0};
+  if(kind==='ana'){
+    const [a,b,c]=stem.map(_wwW);
+    q.prompt=_wwFill('ww.ana'); q.sub=_wwFill('ww.anasub',{a,b,c});
+  } else if(kind==='odd'){
+    q.prompt=_wwFill('ww.odd');
+  } else {
+    q.prompt=_wwFill('ww.'+kind,{w:_wwW(stem)});
+  }
+  return q;
+}
+/* Level bands → how many items of each difficulty a level draws. */
+function wwMix(lvl){
+  if(lvl<=12) return {1:6};
+  if(lvl<=20) return {1:3,2:3};
+  if(lvl<=30) return {1:1,2:4,3:1};
+  if(lvl<=40) return {2:2,3:4};
+  return {2:1,3:5};
+}
+const WW_RECENT=30;
 function genWord(lvl){
-  const sets=pick(WORD_SETS,6);
-  return sets.map(s=>shuffleOpts({prompt:s.q,opts:s.o.map(x=>({val:x})),ans:0}));
+  const m=gMeta(), recent=(m.seen.ww||[]).slice(-WW_RECENT), rset=new Set(recent);
+  const out=[], mix=wwMix(lvl);
+  Object.keys(mix).forEach(d=>{
+    const tier=WW.filter(r=>r[2]===+d);
+    const fresh=gShuffle(tier.filter(r=>!rset.has(r[0])));
+    /* if the tier is exhausted, fall back to the least recently seen */
+    const stale=tier.filter(r=>rset.has(r[0])).sort((a,b)=>recent.indexOf(a[0])-recent.indexOf(b[0]));
+    out.push(...fresh.concat(stale).slice(0,mix[d]));
+  });
+  m.seen.ww=(m.seen.ww||[]).concat(out.map(r=>r[0])).slice(-WW_RECENT*2);
+  saveProgress();
+  return gShuffle(out).map(r=>shuffleOpts(wwQuestion(r)));
 }
 
 /* ==================== GAMES SELF-CHECK ====================
@@ -5639,7 +5772,9 @@ function genWord(lvl){
               distinct positive integers; speedVerify() (every fitting rule
               family predicts the key and nothing else).
      spatial  options render differently and are distinct by pose signature;
-              exactly one option satisfies the item's rule (spVerify).      */
+              exactly one option satisfies the item's rule (spVerify).
+     word     static bank audit (wwAudit) plus n generated levels: six
+              distinct items per level, none repeated inside the window. */
 function gamesSelfCheck(n){
   n=n||500;
   const rep={speed:{items:0,bad:[]},spatial:{items:0,bad:[]}};
@@ -5658,7 +5793,52 @@ function gamesSelfCheck(n){
         rep.speed.bad.push({lvl,rule:q.rule,seq:q.seq.join(','),opts:vals.join(','),key:q.key});
     });
   }
+  rep.word=wwAudit();
+  const m=gMeta(), keep=(m.seen.ww||[]).slice();
+  m.seen.ww=[];
+  let last=[];
+  for(let k=0;k<n;k++){
+    const lvl=1+(k%LEVELS_PER_GAME), qs=genWord(lvl), ids=qs.map(q=>q.id);
+    rep.word.items+=qs.length;
+    if(qs.length!==6 || new Set(ids).size!==6) rep.word.bad.push({lvl,why:'level size/dupes',ids});
+    const window=last.slice(-WW_RECENT);
+    const rep2=ids.filter(id=>window.includes(id));
+    /* every tier is larger than the window, so nothing may repeat inside it */
+    if(rep2.length) rep.word.bad.push({lvl,why:'repeat inside window',ids:rep2});
+    last=last.concat(ids);
+  }
+  m.seen.ww=keep;
   return rep;
+}
+/* Static audit of the Word Wit bank, in every language. */
+function wwAudit(){
+  const bad=[], ids=new Set();
+  /* key words of the free test: the English answer of every verbal item, plus the memory word */
+  const qbKeys=new Set();
+  try{ const L=lang; lang='en';
+    QB().forEach(q=>{ if(q.cat==='verbal'&&q.opts&&q.opts[q.ans]&&q.opts[q.ans].val) qbKeys.add(String(loc(q.opts[q.ans].val)).toLowerCase()); });
+    lang=L; }catch(e){}
+  ['lantern','ephemeral','enduring','short-lived','slow','fast','museum','painting','library'].forEach(w=>qbKeys.add(w));
+  WW.forEach(r=>{
+    const [id,kind,d,stem,opts]=r;
+    if(ids.has(id)) bad.push({id,why:'duplicate id'}); ids.add(id);
+    if(!['syn','ant','ana','odd','def'].includes(kind)) bad.push({id,why:'kind'});
+    if(![1,2,3].includes(d)) bad.push({id,why:'difficulty tag'});
+    if(!opts||opts.length!==4) bad.push({id,why:'needs 4 options'});
+    const stems = kind==='ana' ? stem : (stem?[stem]:[]);
+    if(kind!=='odd' && !stems.length) bad.push({id,why:'missing stem'});
+    WW_LANGS.forEach((l,li)=>{
+      const o=opts.map(w=>(w.split('|')[li]||'').trim());
+      const st=stems.map(w=>(w.split('|')[li]||'').trim());
+      if(o.some(x=>!x)||st.some(x=>!x)) bad.push({id,l,why:'empty string'});
+      if(new Set(o.map(x=>x.toLowerCase())).size!==4) bad.push({id,l,why:'two options read the same',o});
+      if(kind!=='def' && st.some(x=>o.map(y=>y.toLowerCase()).includes(x.toLowerCase()))) bad.push({id,l,why:'stem word offered as an option',o});
+      if(opts.some(w=>w.split('|').length!==5)) bad.push({id,why:'needs exactly 5 languages'});
+    });
+    const en=[...stems,opts[0]].map(w=>w.split('|')[0].toLowerCase());
+    en.forEach(w=>{ if(qbKeys.has(w)) bad.push({id,why:'reuses a free-test key: '+w}); });
+  });
+  return {bank:WW.length,tiers:[1,2,3].map(d=>WW.filter(r=>r[2]===d).length),items:0,bad};
 }
 
 /* ==================== GAMES CATALOG ==================== */
