@@ -245,3 +245,107 @@ The footer disclaimer says so on every screen, Bob says so when asked, and no
 copy anywhere describes it as clinically validated. Hardcore is inspired by the
 published description of what advanced matrix tests measure; it is not a
 Raven's assessment and is not presented as one.
+
+---
+
+## 7. Research basis for the October 2026 Free Test rebuild
+
+Read in October 2026, before any item in the new bank was written. Everything
+below describes how established instruments are built. No item, figure, option
+set or key from any of them was copied, paraphrased or traced; ICAR's public
+sample items were not used even as templates.
+
+### 7.1 How established tests structure their items
+
+| Instrument | Structure that matters for us | Source |
+|---|---|---|
+| **Raven's SPM / APM** | SPM: 60 items in five sets (A–E) of 12, each set rising in difficulty. Answer choices: six in the early sets, eight in the later ones. APM: Set I (12 items) and Set II (36), aimed at above-average adults, eight choices. | Raven, Raven & Court, *Manual for Raven's Progressive Matrices and Vocabulary Scales* (2000/2003), Section 3; summary at <https://en.wikipedia.org/wiki/Raven%27s_Progressive_Matrices> |
+| **Matrix rules** | Carpenter, Just & Shell found that nearly every APM item can be built from five rule types: *constant in a row*, *quantitative pairwise progression*, *figure addition or subtraction*, *distribution of three values* and *distribution of two values*. Difficulty rises with the **number of rule tokens** held at once, and the high scorers are the ones who manage that goal load in working memory. | Carpenter, Just & Shell (1990), *Psychological Review* 97(3), 404–431, <https://doi.org/10.1037/0033-295X.97.3.404>; Lovett et al. (2010), <https://qrg.northwestern.edu/papers/Files/QRG_Dist_Files/QRG_2010/Lovett_CogSci10_Ravens_Final.pdf> |
+| **WAIS-IV / WAIS-5** | Five primary indexes. WAIS-5: *Verbal Comprehension* (Similarities, Vocabulary), *Visual Spatial* (Block Design, **Visual Puzzles**), *Fluid Reasoning* (**Matrix Reasoning**, **Figure Weights**; Set Relations is new), *Working Memory* (Digit Sequencing, Running Digits) and *Processing Speed* (Coding, **Symbol Search**). Arithmetic, Digits Backward and Letter–Number Sequencing are secondary. Visual Puzzles asks which three pieces rebuild a figure, Figure Weights asks what balances a scale, and both have item time limits. The seven-subtest FSIQ takes about 45 minutes. | Pearson, *WAIS-5 overview brochure* (2024), <https://www.pearsonassessments.com/content/dam/school/global/clinical/us/assets/wais-5/wais-5-overview-brochure.pdf>; Pearson, *WAIS-IV telepractice guidance*, <https://pearsonclinical.com.au/content/dam/school/global/clinical/uk-clinical/files/wais-iv-telepractice-table-1.pdf> |
+| **ICAR** (public domain) | Four item types: letter-and-number series (9), 3×3 matrix reasoning (11), verbal reasoning (16; logic, vocabulary, general knowledge) and 3-D cube rotation (24). Series and matrix items have **six** choices. Items were **untimed** online. The 16-item sample test reached α = .81 and the 60-item set α = .93. Mean proportion correct ran from .19 (rotation) to .64 (verbal), so rotation was by far the hardest type. | Condon & Revelle (2014), *Intelligence* 43, 52–64, <https://personality-project.org/revelle/publications/condon.icar.14.pdf>; project page <https://www.psychometrics.cam.ac.uk/research/the-international-cognitive-ability-resource-icar> |
+| **Cattell Culture Fair (CFIT)** | Four short, strictly timed non-verbal subtests: Series, Classification, Matrices and Conditions (topology). It is highly speeded. | Cattell (1940), *J. Educational Psychology* 31, 161–179; SAGE *Encyclopedia of Measurement and Statistics*, <https://methods.sagepub.com/ency/edvol/embed/encyclopedia-of-measurement-and-statistics/chpt/culture-fair-intelligence-test> |
+| **Mensa online practice test** (Norway) | 35 matrix items with a 25-minute limit, in rising difficulty, and expressly *not* an admission test. | <https://test.mensa.no>; description at <https://practicetestgeeks.com/mensa/mensa-norway-iq-test> |
+
+### 7.2 Design questions and what the evidence says
+
+* **Ordering.** Every instrument above orders items easy to hard. Hard items
+  early cause frustration; hard items late meet fatigue, but the easy-to-hard
+  convention is the safer default (Hambleton & Traub, 1974, *J. Experimental
+  Education* 43, 40–46, <https://doi.org/10.1080/00220973.1974.10806302>;
+  review: Leary & Dorans, ETS 1982,
+  <https://www.ets.org/research/policy_research_reports/publications/report/1982/hwcw.html>).
+  → We keep four bands in order (7 easy, 8 medium, 8 hard, 7 extreme). Within
+  a band, the rule count rises.
+* **Answer position.** Item writers tend to hide the key in the middle
+  positions, and test-takers tend to guess there too (Attali & Bar-Hillel,
+  2003, *J. Educational Measurement* 40(2), 109–128,
+  <https://doi.org/10.1111/j.1745-3984.2003.tb01099.x>). The standard rule is
+  to "vary the location of the right answer according to the number of
+  choices" (Haladyna, Downing & Rodriguez, 2002, *Applied Measurement in
+  Education* 15(3), 309–334, <https://doi.org/10.1207/S15324818AME1503_5>).
+  → Options are shuffled uniformly per item at test start. A sitting where
+  one letter would carry a lopsided share of keys is redrawn (see §8).
+* **Number of options.** For verbal and numeric items, three to four
+  functioning options are as good as more (Rodriguez, 2005, *EM:IP* 24(2), 3–13,
+  <https://doi.org/10.1111/j.1745-3992.2005.00006.x>). Figural matrices are
+  different: few options make **response elimination** easy, which means
+  rejecting distractors on surface features without solving the item.
+  Formats that block it measure g better (Arendasy & Sommer, 2013,
+  *Intelligence* 41, 234–243; Becker et al., 2016, *J. Intelligence* 4(1), 2,
+  <https://doi.org/10.3390/jintelligence4010002>). → Free-test items carry four
+  options when easy and five when medium. Hard figural items and every
+  extreme item get six. The exceptions are the two items whose answer is a
+  verdict on a conclusion, which keep three, and the truth-teller puzzle,
+  which has four: three names plus "no consistent answer".
+* **Distractor construction.** If every distractor is the key with one
+  attribute changed, the key is the per-attribute *mode* of the options, and
+  it can be picked without looking at the matrix. This is the "answer-set
+  bias" that I-RAVEN removed by building option sets as a balanced bisection
+  tree (Hu et al., 2021, AAAI, <https://arxiv.org/abs/2002.06838>). → Each
+  attribute of a figural item splits the option set as evenly as it can, and
+  the QA script fails any item whose key is the unique top scorer under the
+  mode heuristic. Every distractor must also fail the rule in a way we can
+  name, and that reason is recorded per item.
+* **Time limits.** Practice varies: ICAR is untimed, CFIT is strictly speeded,
+  Raven's is usually given untimed or with a generous overall limit, and
+  Mensa's practice test runs 35 items in 25 minutes. A single generous overall
+  limit keeps the free test a *power* test rather than a speed test.
+  → Keep 30 items and 22 minutes (about 44 s per item). That is in line with
+  Mensa's practice pace and leaves the two timed memory exposures, 4 s and 6 s,
+  negligible.
+* **Scoring to an IQ-style scale.** A real deviation IQ (mean 100, SD 15)
+  needs a norm sample. We have none, so any mapping is a transparent linear
+  transform of the weighted proportion correct, anchored at chance and at the
+  ceiling. The classical standard error of measurement is
+  SEM = SD·√(1 − r). For a 30-item test with α around .80–.85 that gives
+  roughly 6–7 points, which is why the displayed range is ±6. Correcting for
+  guessing (formula scoring) is the classic alternative (Frary, 1988, *EM:IP*
+  7(2), 33–38, NCME ITEMS module 4,
+  <https://ncme.org/wp-content/uploads/2025/10/Module-4-Formula-Scoring-of-Multiple-choice-Tests-1.pdf>). We
+  check instead that pure guessing lands at IQ 80–90 (see §8).
+* **Cultural and language bias.** Bias can sit in the construct, the method or
+  the single item (van de Vijver & Tanzer, 2004, *European Review of Applied
+  Psychology* 54(2), 119–135,
+  <https://research.tilburguniversity.edu/en/publications/bias-and-equivalence-in-cross-cultural-assessment-an-overview-2/>).
+  Translated items need checking for equivalence, not just wording (ITC
+  *Guidelines for Translating and Adapting Tests*, 2nd ed., 2017/2018,
+  *Int. J. Testing* 18(2), 101–134,
+  <https://doi.org/10.1080/15305058.2017.1398166>). Even Raven's scores
+  move with schooling across countries and decades (Brouwers, Van de Vijver &
+  Van Hemert, 2009, *Learning and Individual Differences* 19(3), 330–338;
+  Flynn, 1987, *Psychological Bulletin* 101(2), 171–191). → The bank leans
+  non-verbal: 21 of 30 slots need no reading beyond a shared instruction. We
+  use no letter series at all, because alphabets differ and Hebrew and Arabic
+  run right to left. Verbal items use only everyday, near-universal concepts
+  (day/night, eye/see, seed/tree) and were checked to have exactly one correct
+  option *in each language*. Syllogisms use neutral content (boxes, stones)
+  so prior belief cannot carry the answer (belief bias: Evans, Barston &
+  Pollard, 1983, *Memory & Cognition* 11(3), 295–306). No rule is carried by
+  colour.
+* **Spatial and working-memory items.** Mental-rotation items must use chiral
+  figures, so that a mirror image can never equal a rotation (Shepard &
+  Metzler, 1971; Vandenberg & Kuse, 1978, *Perceptual and Motor Skills* 47,
+  599–604). Working memory is tested the way span tasks do it: present, hide,
+  then respond (Baddeley, 2003). Showing digits *next to* the options would
+  turn a memory item into a matching item. → The digit items hide the options
+  until the digits have been shown and withdrawn.
