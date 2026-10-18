@@ -5336,7 +5336,7 @@ function submitEmailGate(){ renderTeaser(); showScreen('screen-results'); startU
 
 function renderTeaser(){
   const {iq,cats}=window._reportData;
-  document.getElementById('range-number').textContent=`${iq-6}–${iq+6}`;
+  document.getElementById('range-number').textContent=`${Math.max(68,iq-6)}–${Math.min(148,iq+6)}`;
   const ranked=[...CAT_KEYS].sort((a,b)=>cats[b]-cats[a]);
   const free=new Set(ranked.slice(0,2));
   document.getElementById('category-list-teaser').innerHTML=CAT_KEYS.map(c=>{
@@ -7772,6 +7772,7 @@ function loadPuzzleLevel(lvl){
   gSyncSoundChips();
   gComboChip('pz-combo',0);
 
+  pzState.renderTarget=()=>{
   let swatch='';
   if(showRuleColor && target!==null){
     swatch=` <span class="pz-swatch" style="background:${TILE_COLORS[target]};color:${PZ_INK[target]}">${pzShapeSVG(target)}</span>`+
@@ -7781,6 +7782,8 @@ function loadPuzzleLevel(lvl){
   }
   document.getElementById('pz-target').innerHTML=
     `${pzRuleText(cfg.mode,extra)}${swatch} <b class="pz-count">(${targets.length})</b>`;
+  };
+  pzState.renderTarget();
 
   const msg=document.getElementById('pz-msg');
   msg.textContent=''; msg.className='puzzle-msg';
@@ -9177,6 +9180,12 @@ function setLanguage(l){
   if(document.getElementById('screen-games').classList.contains('active')) renderGamesHub();
   if(document.getElementById('screen-levelmap').classList.contains('active')) openLevelMap(currentGameKey);
   if(document.getElementById('screen-quiz').classList.contains('active')) rerenderQuestionText();
+  if(document.getElementById('screen-memorize').classList.contains('active'))
+    document.getElementById('memorize-word').textContent=memWord();
+  if(document.getElementById('screen-memmatrix').classList.contains('active') && mmState && mmState.phase==='recall')
+    document.getElementById('mm-status').textContent=mmRecallText();
+  if(document.getElementById('screen-puzzle-play').classList.contains('active') && pzState && pzState.renderTarget)
+    pzState.renderTarget();
   if(document.getElementById('screen-report').classList.contains('active')) renderReport();
   const tk=document.getElementById('ticker-text'); if(tk && TICKER[ti]) tk.innerHTML=tickerHTML(TICKER[ti]);
   if(document.getElementById('screen-results').classList.contains('active')){ renderTeaser(); selectPlan(selectedPlan); }
