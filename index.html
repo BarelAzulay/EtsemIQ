@@ -1156,14 +1156,25 @@
     .bob-fab{animation:none !important;}
   }
 </style>
+<style id="fixes-a11y">
+  /* Keyboard focus: one clear ring everywhere, both themes. */
+  :focus-visible{outline:3px solid var(--accent);outline-offset:2px;}
+  .gate-input:focus-visible,.form-input:focus-visible,.bob-input:focus-visible,.cert-name-input:focus-visible{
+    box-shadow:0 0 0 3px var(--accent-soft);}
+  .sr-only{position:absolute !important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;}
+  /* The logo, the nav links and the avatar chip became real links: keep their old look. */
+  a.logo,a.avatar-chip{color:inherit;text-decoration:none;}
+  .nav-links a:where([href]){color:inherit;}
+</style>
 </head>
 <body>
 <div class="ticker-bar"><span class="ticker-dot"></span><span id="ticker-text"></span></div>
 
 <div class="topnav-sticky">
   <div class="topnav">
-    <div class="logo" onclick="goHome()">
-      <svg class="logo-mark" viewBox="0 0 44 44">
+    <a class="logo" href="#" onclick="goHome();return false;" data-i18n-aria="nav.home">
+      <svg class="logo-mark" viewBox="0 0 44 44" aria-hidden="true">
         <defs><linearGradient id="lg" x1="0" y1="0" x2="44" y2="44">
           <stop offset="0" stop-color="#C9AFFF"/><stop offset="55%" stop-color="#7C4DFF"/><stop offset="1" stop-color="#FF4D9D"/>
         </linearGradient></defs>
@@ -1173,10 +1184,10 @@
         <circle cx="22" cy="18.4" r="2.3" fill="#7C4DFF"/>
       </svg>
       <span class="logo-text">Etsem<span class="logo-dot">.</span>IQ</span>
-    </div>
+    </a>
     <div class="nav-links">
-      <a onclick="openHow()" data-i18n="nav.how"></a>
-      <a onclick="openPricing()" data-i18n="nav.pricing"></a>
+      <a href="#how" onclick="openHow();return false;" data-i18n="nav.how"></a>
+      <a href="#pricing" onclick="openPricing();return false;" data-i18n="nav.pricing"></a>
       <button class="nav-games-btn" onclick="openGamesHub()" data-i18n="nav.games"></button>
       <div class="pref-cluster">
         <button class="pref-btn" id="btn-theme" onclick="toggleTheme()"><span id="theme-icon"></span></button>
@@ -1192,7 +1203,7 @@
         </button>
       </div>
       <div class="lang-wrap">
-        <button class="lang-btn" onclick="toggleLangMenu(event)">
+        <button class="lang-btn" onclick="toggleLangMenu(event)" data-i18n-aria="nav.lang" aria-haspopup="true">
           <span id="lang-flag">🇺🇸</span><span id="lang-code">EN</span>
           <svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5l3 3 3-3"/></svg>
         </button>
@@ -1213,7 +1224,7 @@
     <div class="nav-mobile">
       <button class="nav-games-btn compact" onclick="navTo(openGamesHub)" data-i18n="nav.games"></button>
       <button class="mnav-btn" id="mnav-toggle" onclick="toggleMobileMenu()"
-              aria-expanded="false" aria-controls="msheet" aria-label="Menu and settings">
+              aria-expanded="false" aria-controls="msheet" aria-label="Menu and settings" data-i18n-aria="m.menu">
         <span class="mnav-dot" id="mnav-dot"></span>
         <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7"
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1231,7 +1242,7 @@
   <div class="msheet-grab"></div>
   <div class="msheet-head">
     <h3 id="msheet-title" data-i18n="m.menu"></h3>
-    <button class="msheet-close" onclick="closeMobileMenu()" aria-label="Close menu">&times;</button>
+    <button class="msheet-close" onclick="closeMobileMenu()" aria-label="Close menu" data-i18n-aria="m.close">&times;</button>
   </div>
   <div class="msheet-body" id="msheet-body"></div>
 </aside>
@@ -1429,7 +1440,7 @@
     <h2 data-i18n="ana.title"></h2>
     <p style="color:var(--muted);font-size:14.5px;" data-i18n="ana.sub"></p>
     <div class="analyzing-fill-track"><div class="analyzing-fill" id="analyzing-fill"></div></div>
-    <ul class="analyzing-list" id="analyzing-list"></ul>
+    <ul class="analyzing-list" id="analyzing-list" aria-live="polite"></ul>
   </div>
 </section>
 
@@ -1438,7 +1449,8 @@
   <div class="center-shell">
     <h2 data-i18n="gate.title"></h2>
     <p style="color:var(--muted);font-size:14.5px;margin-bottom:26px;" data-i18n="gate.sub"></p>
-    <input type="email" class="gate-input" id="gate-email" placeholder="you@example.com">
+    <label class="sr-only" for="gate-email" data-i18n="gate.emaillabel"></label>
+    <input type="email" class="gate-input" id="gate-email" placeholder="you@example.com" autocomplete="email">
     <div><button class="btn-primary" onclick="submitEmailGate()" data-i18n="btn.continue"></button></div>
     <div class="quick-stats-row" id="quick-stats-row"></div>
   </div>
@@ -1609,7 +1621,8 @@
             <path d="M40 22 L43 28 L50 29 L45 34 L46 41 L40 37.5 L34 41 L35 34 L30 29 L37 28 Z" fill="var(--accent-ink)"/>
             <path d="M30 48 L26 66 L40 60 L54 66 L50 48" fill="none" stroke="var(--gold)" stroke-width="3" stroke-linejoin="round"/>
           </svg>
-          <input class="cert-name-input" id="cert-name" value="Your Name">
+          <label class="sr-only" for="cert-name" data-i18n="cert.namelabel"></label>
+          <input class="cert-name-input" id="cert-name" value="" placeholder="Your name" data-i18n-ph="cert.yourname">
           <p class="cert-body" data-i18n="rep.certbody"></p>
           <div class="cert-score" id="cert-score"></div>
           <div class="cert-subscores" id="cert-subscores"></div>
@@ -1851,23 +1864,24 @@
 </footer>
 
 <!-- BOB -->
-<button class="bob-fab" onclick="toggleBob()" aria-label="Open Bob, your training companion">
+<button class="bob-fab" onclick="toggleBob()" aria-label="Open Bob, your training companion" data-i18n-aria="bob.open" aria-controls="bob-panel" aria-expanded="false">
   <span class="notif" id="bob-notif"></span>
   <span class="bob-fab-mount" id="bob-fab-mount" data-bob="idle"></span>
 </button>
 
-<div class="bob-panel" id="bob-panel">
+<div class="bob-panel" id="bob-panel" role="dialog" data-i18n-aria="bob.panel">
   <div class="bob-header">
     <span class="bob-head-mount" id="bob-head-mount" data-bob="idle" data-bob-tone="deep"></span>
     <div><div class="nm">Bob</div><div class="st"><i></i><span data-i18n="bob.status"></span></div></div>
-    <button class="bob-close" onclick="toggleBob()">×</button>
+    <button class="bob-close" onclick="toggleBob()" aria-label="Close chat" data-i18n-aria="bob.close">×</button>
   </div>
-  <div class="bob-thread" id="bob-thread"></div>
+  <div class="bob-thread" id="bob-thread" role="log" aria-live="polite"></div>
   <div class="bob-chips" id="bob-chips"></div>
   <div class="bob-input-row">
+    <label class="sr-only" for="bob-input" data-i18n="bob.inputlabel"></label>
     <input class="bob-input" id="bob-input" onkeydown="if(event.key==='Enter')sendBob()">
-    <button class="bob-send" onclick="sendBob()">
-      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2L9 11M18 2l-6 16-3-7-7-3 16-6Z"/></svg>
+    <button class="bob-send" onclick="sendBob()" aria-label="Send" data-i18n-aria="bob.send">
+      <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2L9 11M18 2l-6 16-3-7-7-3 16-6Z"/></svg>
     </button>
   </div>
 </div>
@@ -4744,9 +4758,11 @@ const LANG_LABEL={en:'English',he:'עברית',es:'Español',ru:'Русский'
 function mSheetGo(fn){ closeMobileMenu(); setTimeout(fn,180); }
 function openMobileMenu(){
   const sh=document.getElementById('msheet'), sc=document.getElementById('msheet-scrim');
+  _msPrevFocus=document.activeElement;
   renderMobileMenu();
   sh.removeAttribute('hidden');
-  requestAnimationFrame(()=>{ sh.classList.add('open'); sc.classList.add('open'); });
+  requestAnimationFrame(()=>{ sh.classList.add('open'); sc.classList.add('open');
+    const f=sh.querySelector('.msheet-close'); if(f) f.focus(); });
   document.getElementById('mnav-toggle').setAttribute('aria-expanded','true');
   document.body.style.overflow='hidden';
 }
@@ -4757,12 +4773,35 @@ function closeMobileMenu(){
   document.getElementById('mnav-toggle').setAttribute('aria-expanded','false');
   document.body.style.overflow='';
   setTimeout(()=>{ if(!sh.classList.contains('open')) sh.setAttribute('hidden',''); },300);
+  const back=_msPrevFocus||document.getElementById('mnav-toggle'); _msPrevFocus=null;
+  if(back && back.focus){ try{ back.focus(); }catch(e){} }
 }
 function toggleMobileMenu(){
   document.getElementById('msheet').classList.contains('open')?closeMobileMenu():openMobileMenu();
 }
 /* Used by the mobile Games button so it goes through the same guard. */
 function navTo(fn){ fn(); }
+
+/* ==================== FOCUS TRAP + BACKGROUND TAB (fixes) ====================
+   While the dialog or the mobile sheet is open, Tab and Shift+Tab cycle inside
+   it; both already restore focus to their opener when they close. */
+let _msPrevFocus=null;
+const FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+function trapTab(e,root){
+  const f=[...root.querySelectorAll(FOCUSABLE)].filter(el=>el.getClientRects().length);
+  if(!f.length){ e.preventDefault(); return; }
+  const first=f[0], last=f[f.length-1], a=document.activeElement;
+  if(!root.contains(a)){ e.preventDefault(); (e.shiftKey?last:first).focus(); }
+  else if(e.shiftKey && a===first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && a===last){ e.preventDefault(); first.focus(); }
+}
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Tab') return;
+  const scrim=document.getElementById('dlg-scrim');
+  if(scrim && scrim.classList.contains('open')){ trapTab(e,document.getElementById('dlg-box')); return; }
+  const sh=document.getElementById('msheet');
+  if(sh && sh.classList.contains('open')) trapTab(e,sh);
+});
 
 /* ==================== SCREEN EFFECTS ====================
    Small, purposeful feedback only: a burst where the user actually tapped, a
@@ -5608,13 +5647,16 @@ function retryLevel(){ playLevel(currentGameKey,currentLevel); }
 let bobStarted=false;
 function toggleBob(){
   const p=document.getElementById('bob-panel');
+  const wasInside=p.contains(document.activeElement);
   p.classList.toggle('open');
+  const fab=document.querySelector('.bob-fab');
+  if(fab) fab.setAttribute('aria-expanded',p.classList.contains('open')?'true':'false');
   if(p.classList.contains('open')){
     document.getElementById('bob-notif').style.display='none';
     if(!bobStarted){ bobStarted=true; bobGreet(); }
     else setBobState(document.getElementById('bob-head-mount'),'greeting',1600);
     setTimeout(()=>document.getElementById('bob-input').focus(),200);
-  }
+  } else if(wasInside && fab) fab.focus();
 }
 /* Logout: the next person starts with an empty thread. */
 function resetBobThread(){
