@@ -3874,13 +3874,18 @@ function runAnalyzing(){
   list.innerHTML=CAT_KEYS.map(c=>`<li><span class="chk"></span>${catName(c)}</li>`).join('');
   document.getElementById('analyzing-fill').style.width='0%';
   const items=list.querySelectorAll('li');
-  items.forEach((li,i)=>setTimeout(()=>{
+  cancelAnalyzing();
+  items.forEach((li,i)=>_anaTimers.push(setTimeout(()=>{
     li.classList.add('done');
     li.querySelector('.chk').innerHTML='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 10l4 4 8-8"/></svg>';
     document.getElementById('analyzing-fill').style.width=`${Math.round(((i+1)/items.length)*100)}%`;
-  },480*(i+1)));
-  setTimeout(()=>{ buildResults(); showEmailGate(); },480*(items.length+1)+300);
+  },480*(i+1))));
+  _anaTimers.push(setTimeout(()=>{ _anaTimers=[]; buildResults(); showEmailGate(); },480*(items.length+1)+300));
 }
+/* The analysing sequence belongs to its screen: leaving it cancels the
+   pending steps, so the email gate can no longer pop up over another page. */
+let _anaTimers=[];
+function cancelAnalyzing(){ _anaTimers.forEach(clearTimeout); _anaTimers=[]; }
 
 function showEmailGate(){
   const r=window._reportData, used=engine.used||0;
@@ -3913,6 +3918,12 @@ function renderTeaser(){
 let urgencyInt=null,urgencySec=599;
 function startUrgency(){
   clearInterval(urgencyInt); urgencySec=599; updUrgency();
+  urgencyInt=setInterval(()=>{urgencySec=Math.max(0,urgencySec-1);updUrgency();},1000);
+}
+/* Coming back to the results page (e.g. from checkout) picks the countdown up
+   where it stopped; showScreen() stops it whenever the page is left. */
+function resumeUrgency(){
+  clearInterval(urgencyInt);
   urgencyInt=setInterval(()=>{urgencySec=Math.max(0,urgencySec-1);updUrgency();},1000);
 }
 function updUrgency(){
@@ -6584,6 +6595,10 @@ function showScreen(id,opts){
   }
   clearInterval(engine.timer);
   hideBobMoment();
+  /* Screen-owned timers stop the moment their screen is left. */
+  if(id!=='screen-analyzing') cancelAnalyzing();
+  if(id!=='screen-results') clearInterval(urgencyInt);
+  else if(urgencySec<599) resumeUrgency();
   if(id==='screen-report') renderReport();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el=document.getElementById(id);
@@ -6838,13 +6853,20 @@ function tickerHTML(e){
   const verb = {en:'just scored',he:'קיבל/ה זה עתה',es:'acaba de sacar',ru:'только что набрал',ar:'حصل للتو على'}[lang]||'just scored';
   return `${e.n} ${verb} <b class="${rare?'ticker-rare':''}">${e.iq} IQ</b>${rare?' ✨':''}`;
 }
-let ti=0;
-setInterval(()=>{
+let ti=0, tickerInt=null;
+function tickerStep(){
   ti=(ti+1)%TICKER.length;
   const e=document.getElementById('ticker-text'); if(!e)return;
   e.style.opacity=0;
   setTimeout(()=>{e.innerHTML=tickerHTML(TICKER[ti]);e.style.opacity=1;},250);
-},4200);
+}
+/* The ticker only runs while the tab is visible. */
+function syncTicker(){
+  if(document.hidden){ clearInterval(tickerInt); tickerInt=null; }
+  else if(!tickerInt) tickerInt=setInterval(tickerStep,4200);
+}
+document.addEventListener('visibilitychange',syncTicker);
+syncTicker();
 
 /* ==================== THEME (day / night) ====================
    Three states: explicit light, explicit dark, or follow the system until the
