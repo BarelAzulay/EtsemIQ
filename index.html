@@ -3666,10 +3666,10 @@ function persistProgress(){
 function renderAuthNav(){
   const el=document.getElementById('auth-nav');
   if(currentUser){
-    el.innerHTML=`<div class="avatar-chip" onclick="openSettings()" style="cursor:pointer;">
-        <span class="avatar-circle">${currentUser.name.charAt(0).toUpperCase()}</span>
-        <span>${currentUser.name.split(' ')[0]}</span>
-      </div>
+    el.innerHTML=`<a class="avatar-chip" href="#settings" onclick="openSettings();return false;" title="${escapeHTML(t('set.title'))}">
+        <span class="avatar-circle" aria-hidden="true">${escapeHTML(currentUser.name.charAt(0).toUpperCase())}</span>
+        <span>${escapeHTML(currentUser.name.split(' ')[0])}</span>
+      </a>
       <button class="btn-ghost" onclick="doLogout()">${t('auth.logout')}</button>`;
   } else {
     el.innerHTML=`<button class="btn-ghost" onclick="showScreen('screen-login')">${t('auth.login')}</button>`;
@@ -4094,6 +4094,12 @@ const T_FIX={
       'bob.close':'إغلاق المحادثة','bob.send':'إرسال الرسالة','bob.inputlabel':'رسالة إلى بوب'}
 };
 Object.keys(T_FIX).forEach(l=>{ if(T[l]) Object.assign(T[l], T_FIX[l]); });
+
+/* Anything a person typed (their name, a chat message) goes through this
+   before it can reach innerHTML. */
+function escapeHTML(s){
+  return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
 
 /* Percentile on the IQ scale: the normal CDF with mean 100 and SD 15
    (Abramowitz–Stegun 7.1.26 for erf, |error| < 1.5e-7), clamped to 1..99. */
@@ -4743,7 +4749,7 @@ function renderMobileMenu(){
   /* --- account --- */
   html+=`<div class="msheet-group"><div class="msheet-label">${t('set.account')}</div>`;
   if(logged){
-    html+=row(I.user,currentUser.name||'',currentUser.email||'',"mSheetGo(openSettings)");
+    html+=row(I.user,escapeHTML(currentUser.name||''),escapeHTML(currentUser.email||''),"mSheetGo(openSettings)");
     html+=row(I.out,t('auth.logout'),'',"mSheetGo(doLogout)");
   } else {
     html+=row(I.user,t('auth.login'),'',"mSheetGo(()=>showScreen('screen-login'))");
@@ -5669,8 +5675,11 @@ function resetBobThread(){
 function openBob(){ const p=document.getElementById('bob-panel'); if(!p.classList.contains('open')) toggleBob(); }
 function bobNudge(){ document.getElementById('bob-notif').style.display='block'; }
 
+/* Bob's own replies are trusted markup; whatever the person typed is shown as
+   plain text and never parsed. */
 function bobBubble(html,who){
-  const b=document.createElement('div'); b.className='bubble '+who; b.innerHTML=html;
+  const b=document.createElement('div'); b.className='bubble '+who;
+  if(who==='user') b.textContent=html; else b.innerHTML=html;
   const th=document.getElementById('bob-thread'); th.appendChild(b); th.scrollTop=th.scrollHeight;
 }
 function bobTyping(on){
