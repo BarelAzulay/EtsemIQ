@@ -1,9 +1,10 @@
 # Etsem.IQ — architecture notes
 
-The product is one file, `index.html`, served as a static asset (Cloudflare
-Workers assets via `wrangler.jsonc`, deployed through Whop). There is no
-server of our own and no build step for the app itself. Everything below is a
-consequence of that.
+The product is one file, `index.html`. GitHub Pages serves it at etsemiq.com,
+and Whop deploys it as a Whop app through Cloudflare Workers assets
+(`wrangler.jsonc`). There is no build step for the app itself. The only server
+code is the small sign-in Worker in `api/` (see PLUS below and
+`docs/WHOP-AUTH-SETUP.md`).
 
 ```
 index.html
@@ -14,9 +15,47 @@ index.html
 ├── <script> 3  core            storage, accounts, quiz engine, scoring, plans
 ├── <script> 4  Bob + UI kit    mascot renderer, voice, dialog, exit guard,
 │                               mobile sheet, screen effects
-└── <script> 5  app             games, level maps, Hardcore run, Bob's brain,
-                                language, nav, settings, theme, music, boot
+├── <script> 5  app             games, level maps, Hardcore run, Bob's brain,
+│                               language, nav, settings, theme, music, boot
+└── <script id="newgames">      Brain Bites (trivia) + Brain Twins (pass the
+                                phone); registers itself with CATALOG.push
 ```
+
+Feature CSS lives in its own `<style id="…">` block before `</head>`:
+`fixes-a11y`, `whop-auth-css`, `games-v2`, `ft-items` and `newgames`. All of
+them read the theme tokens in the main `<style>`, so a palette change reaches
+every screen. The sign-in client is `<script id="whop-auth">`, placed just
+before script 3.
+
+## Games
+
+`CATALOG` lists the 8 games. An entry can carry these optional fields:
+
+- `launch()`: the card calls `launchGame(key)`, which does the PLUS check and
+  then calls `launch()` instead of opening a level map;
+- `metaText()` and `progressText()`;
+- `free:true`.
+
+The hub renders `CATALOG` each time it opens, so a block that loads later can
+add a game. Delayed steps (flashes, hide timers, auto-advance) run on a run
+token tied to their screen (`gLater`), so a Restart or leaving the screen
+cancels the old run.
+
+Progress lives in `gameProgress`, in localStorage, per account:
+
+- stars per level;
+- the personal best per game and level;
+- `_meta`: XP, player level, the day streak and achievements.
+
+Self-checks, callable from the console:
+
+- `gamesSelfCheck(n)` generates n items per generator and asserts the key is
+  right, the options are distinct, and only one option fits the rule.
+- `ngSelfCheck()` checks that every trivia question has all 5 languages,
+  4 unique options and a valid key.
+- `auditSelfCheck()` checks the free test.
+
+Run the whole browser suite with `npm run test:e2e` (see `tests/e2e/README.md`).
 
 Script blocks are parsed in order but only the last one runs anything at load
 (the boot IIFE), so cross-block calls are all resolved by the time they happen.
@@ -38,6 +77,17 @@ Every Bob on the site — the floating button, the chat header, the lobby card,
 the quiz stage, the dialogs, the Hardcore banner — comes from this one function
 at the same 64×64 viewBox, which is why he is recognisably the same character
 everywhere.
+
+**The October 2026 redesign** changed Bob's look but kept the API:
+
+- He has blinking eyes, cheeks, a highlight and an idle bounce.
+- New states: `wave`, `cheer` and `thinkingHard`.
+- `bobSVG(state, {size:'xl'})`, or `data-bob-size="xl"` on a mount, gives the
+  large hero and end-of-round Bob.
+- On desktop his eyes follow the cursor. That is off on touch screens and with
+  reduced motion.
+- `celebrate()` is the one shared burst, and it reuses `fxBurst` and the games'
+  confetti.
 
 **Adding a state** is one entry in `BOB_STATES` plus, if it needs new movement,
 one `@keyframes` rule and one `.bob--<name> .bob-body{animation:…}` line. No
@@ -227,9 +277,15 @@ There is now one small backend, the `api/` Worker, and it handles only
 sign-in and entitlement. These still need more server work, and are **not**
 done here:
 
-* **A real language model for Bob.** Requires a server to hold the API key. The
-  local engine is a genuine intent system, but it cannot answer questions
-  outside its knowledge base and says so rather than guessing.
+* **A real language model for Bob.** The `api/` Worker can now hold an API key,
+  so this is possible. It is planned as its own PR:
+  * add a `POST /bob/chat` route on the Worker, calling Claude Haiku 5.5 with
+    Bob's persona as a cached system prompt;
+  * PLUS sessions only, with a daily per-user cap and the rate limiter;
+  * the local engine stays as the fallback for free users, offline use and
+    errors.
+
+  `bobAnswer()` is still the only function that would change on the page.
 * **Server-held PLUS content.** Payments and the PLUS/admin entitlement are now
   real and server-verified (Whop checkout + the `api/` Worker). But the game
   code and the report logic still ship in this static page, so a technical user
