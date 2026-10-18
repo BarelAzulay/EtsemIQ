@@ -8,7 +8,8 @@
     "dev": "vite",
     "deploy": "whop apps deploy",
     "typecheck": "tsc --noEmit",
-    "build": "vite build"
+    "build": "vite build",
+    "test:e2e": "node tests/e2e/run-all.mjs"
   },
   "repository": {
     "type": "git",
