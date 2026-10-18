@@ -1,0 +1,30 @@
+// Worker for https://api.etsemiq.com. It is separate from the root
+// wrangler.jsonc, which deploys the Whop app. Setup: docs/WHOP-AUTH-SETUP.md
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "etsemiq-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-18",
+  "workers_dev": true,
+
+  // This needs etsemiq.com to be a zone in this Cloudflare account (see the
+  // guide, step 6). Comment the block out to deploy to *.workers.dev only.
+  "routes": [
+    { "pattern": "api.etsemiq.com", "custom_domain": true }
+  ],
+
+  // Non-secret settings. Secrets are NOT here. Set them with
+  //   npx wrangler secret put WHOP_CLIENT_ID   (and the others in the guide)
+  "vars": {
+    "PUBLIC_URL": "https://api.etsemiq.com",
+    // One extra allowed origin for local testing, e.g. "http://localhost:8080". Empty = none.
+    "EXTRA_ORIGIN": "",
+    // "true": team members of your Whop business (access_level "admin") get Admin.
+    "WHOP_TEAM_IS_ADMIN": "true",
+    "SESSION_TTL_SECONDS": "43200",
+    "REVERIFY_AFTER_SECONDS": "3600",
+    "WHOP_SCOPES": "openid profile"
+  },
+
+  "observability": { "enabled": true }
+}

@@ -1,0 +1,9 @@
+# Copy to .dev.vars for `npx wrangler dev`. Never commit .dev.vars.
+PUBLIC_URL=http://localhost:8787
+EXTRA_ORIGIN=http://localhost:8080
+WHOP_CLIENT_ID=app_xxxxxxxxxxxxxx
+WHOP_CLIENT_SECRET=replace-me
+WHOP_API_KEY=replace-me
+WHOP_PRODUCT_ID=prod_xxxxxxxxxxxxxx
+SESSION_SECRET=replace-with-the-output-of-openssl-rand-base64-48
+ADMIN_WHOP_USER_IDS=
