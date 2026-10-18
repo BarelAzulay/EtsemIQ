@@ -1,0 +1,15 @@
+{
+  "name": "etsemiq-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sign in with Whop + PLUS/admin entitlement for etsemiq.com (Cloudflare Worker).",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.135.0"
+  }
+}
