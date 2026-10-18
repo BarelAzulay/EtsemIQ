@@ -6573,11 +6573,23 @@ function openHardcoreIntro(){
 
 function startHardcore(){
   const bank=HARDCORE_BANK();
-  /* Draw without replacement, then shuffle each item's options so the key
-     never sits in the same slot twice. */
-  const qs=pick(bank,Math.min(HC_ITEMS,bank.length)).map(q=>shuffleOpts(Object.assign({},q,{opts:q.opts.slice()})));
+  /* Prefer items not seen in the last two runs (the bank has 31, a run uses
+     10, so two runs back still leaves 11 fresh). When there are not enough,
+     the least recently seen fill in.
+     Ordering easy → hard is skipped on purpose: the bank has no difficulty
+     signal (every item is top-band, tagged only by construct), and inventing
+     one would order the run on a guess. */
+  const m=gMeta(), recent=(m.seen.hc||[]).slice(-HC_ITEMS*2);
+  const fresh=gShuffle(bank.filter(q=>!recent.includes(q.id)));
+  const stale=bank.filter(q=>recent.includes(q.id)).sort((a,b)=>recent.indexOf(a.id)-recent.indexOf(b.id));
+  const drawn=fresh.concat(stale).slice(0,Math.min(HC_ITEMS,bank.length));
+  m.seen.hc=(m.seen.hc||[]).concat(drawn.map(q=>q.id)).slice(-HC_ITEMS*4);
+  saveProgress();
+  /* Shuffle each item's options so the key never sits in the same slot twice. */
+  const qs=gShuffle(drawn).map(q=>shuffleOpts(Object.assign({},q,{opts:q.opts.slice()})));
+  gNewRun();
   engine={mode:'hardcore',qs,cur:0,answers:[],sel:null,timer:null,
-          left:HC_SECONDS,limit:HC_SECONDS,streak:0,bestStreak:0,correct:0};
+          left:HC_SECONDS,limit:HC_SECONDS,streak:0,bestStreak:0,correct:0,runXp:0};
   hcRun={started:Date.now()};
   currentGameKey='hardcore';
   armActivity('game');
@@ -6588,23 +6600,34 @@ function startHardcore(){
   setBobState(document.getElementById('quiz-bob'),'hardcore',0,'hardcore');
 }
 
-function hcBestText(){ const b=bestFor('hardcore'); return b?b+'%':'—'; }
+const _hcClock=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+/* Best score, and the fastest time at that score. */
+function hcBest(){ const m=gMeta(); const b=m.hc||{}; const legacy=bestFor('hardcore');
+  return (b.pct||0)>=legacy ? b : {pct:legacy}; }
+function hcBestText(){
+  const b=hcBest();
+  if(!b.pct) return '—';
+  return b.secs!==undefined ? t('hc.bestat',{p:b.pct,t:_hcClock(b.secs)}) : b.pct+'%';
+}
 function finishHardcore(){
+  gStopRun();
   disarmActivity();
   const qs=engine.qs, total=qs.length||1;
   const correct=engine.answers.filter(Boolean).length;
   const pct=Math.round(correct/total*100);
   const used=engine.limit-Math.max(0,engine.left);
-  const prevBest=bestFor('hardcore');
-  const beat=recordBest('hardcore',pct);
+  const m=gMeta(), prev=hcBest();
+  /* A record is a higher score, or the same score in less time. */
+  const beat = prev.pct>0 && (pct>prev.pct || (pct===prev.pct && prev.secs!==undefined && used<prev.secs));
+  if(!prev.pct || pct>prev.pct || (pct===prev.pct && (prev.secs===undefined || used<prev.secs))) m.hc={pct,secs:used};
+  recordBest('hardcore',pct);
 
   document.getElementById('hc-score-val').textContent='';
   animateNumber(document.getElementById('hc-score-val'),pct,900,v=>Math.round(v)+'%');
   document.getElementById('hc-correct').textContent=`${correct}/${total}`;
   document.getElementById('hc-correct2').textContent=`${correct}/${total}`;
-  document.getElementById('hc-time').textContent=
-    `${Math.floor(used/60)}:${String(used%60).padStart(2,'0')}`;
-  document.getElementById('hc-bestval').textContent=(beat?pct:Math.max(prevBest,pct))+'%';
+  document.getElementById('hc-time').textContent=_hcClock(used);
+  document.getElementById('hc-bestval').textContent=hcBestText();
   document.getElementById('hc-streak').textContent=engine.bestStreak||0;
 
   const rank = pct>=90?3:(pct>=70?2:(pct>=40?1:0));
@@ -6618,13 +6641,18 @@ function finishHardcore(){
       <span><b>${q.id} · ${catName(q.cat)}</b><br>${loc(q.ex)}</span></div>`;
   }).join('');
 
+  const booked=gBookRun({xp:(engine.runXp||0)+(rank>=2?20:0),combo:engine.bestStreak||0});
+  _gFails.hardcore = rank>0 ? 0 : (_gFails.hardcore||0)+1;
   const state = beat?'newRecord':(rank>=2?'highScore':(rank===0?'encouraging':'celebrate'));
   showScreen('screen-hcresult',{force:true});
   bobSetStage('hc-bob',state,
-    beat?bobLine('newRecord'):(rank>=2?bobLine('hardcoreDone'):bobLine('levelFail')),
+    beat?bobLine('newRecord'):(rank>=2?bobLine('hardcoreDone'):(_gFails.hardcore>=2?bobLine('failTwice'):bobLine('levelFail'))),
     beat?'hot':(rank>=2?'good':'warm'));
-  playChime(rank>0);
+  if(rank===3) gSfx('fanfare'); else playChime(rank>0);
   if(rank>=2||beat) setTimeout(()=>fxBurst('#hc-score-val',{count:beat?28:18,spread:beat?160:110}),260);
+  if(rank===3) setTimeout(gConfetti,300);
+  if(booked.xp) setTimeout(()=>fxPop('#hc-score-val',t('lr.xp',{n:booked.xp}),'gold'),700);
+  gAfterBooking(booked);
 }
 
 /* ==================== GAMES v2 — rewards ====================
