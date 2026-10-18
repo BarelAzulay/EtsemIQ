@@ -1230,6 +1230,125 @@
   .wa-manage:hover{background:var(--danger-soft);}
   .wa-wide{width:100%;margin-top:10px;}
 </style>
+<style id="games-v2">
+  /* ============ GAMES v2 — feedback, rewards, a11y ============
+     Additive only: every rule here is scoped to elements the games own.
+     Movement is transform/opacity; reduced motion keeps colour + text cues. */
+
+  /* shared chips */
+  .gx-combo-row{display:flex;justify-content:center;gap:8px;min-height:26px;margin:-6px 0 10px;flex-wrap:wrap;}
+  .gx-combo[hidden],.gx-mode[hidden]{display:none !important;}
+  .gx-mode{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);font-size:12px;}
+  .gx-snd{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--white);
+    color:var(--muted);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;}
+  .gx-snd svg{width:20px;height:20px;}
+  .gx-snd[aria-pressed="true"]{color:var(--accent-ink);border-color:var(--accent);background:var(--accent-soft);}
+  .levelmap-head .gx-snd{margin-top:14px;margin-inline-start:8px;vertical-align:middle;}
+  .gx-snd:focus-visible,.mm-cell:focus-visible,.grid-tile:focus-visible,.gx-player summary:focus-visible{
+    outline:3px solid var(--accent);outline-offset:3px;}
+
+  /* Memory Matrix cells are real buttons now */
+  button.mm-cell{font:inherit;padding:0;cursor:pointer;color:var(--ink);min-width:0;min-height:0;}
+  button.mm-cell[aria-disabled="true"]{cursor:default;}
+  .mm-cell.seqlit{background:linear-gradient(145deg,#A985FF,var(--accent));border-color:var(--accent);
+    transform:scale(1.06);box-shadow:0 6px 22px rgba(124,77,255,.5);}
+  .mm-cell.picked{color:#04241E;}
+  .mm-cell .ord{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;}
+  .mm-cell.strike{background:var(--chip-ext-bg);border-color:var(--reveal);color:var(--chip-ext-ink);animation:shake .35s;}
+  .mm-cell.reveal{outline:3px dashed var(--accent);outline-offset:-5px;}
+  .mm-status.count{font-size:34px;color:var(--accent-ink);animation:gxBeat .45s ease-out;}
+  @keyframes gxBeat{0%{transform:scale(.6);opacity:0;}60%{transform:scale(1.12);opacity:1;}100%{transform:scale(1);}}
+  .mm-grid.mirror-hint{position:relative;}
+  .mm-grid.mirror-hint::after{content:'';position:absolute;top:-6px;bottom:-6px;left:50%;width:0;
+    border-left:2px dashed var(--accent);opacity:.55;pointer-events:none;}
+
+  /* Logic Quest tiles: label colour per fill, shape cue per colour */
+  .grid-tile{flex-direction:column;gap:2px;line-height:1;position:relative;}
+  .grid-tile .pz-shape{width:56%;height:56%;}
+  .grid-tile .pz-shape.mini{position:absolute;top:6%;inset-inline-start:6%;width:30%;height:30%;opacity:.95;}
+  .grid-tile .pz-num{font-size:clamp(15px,4.6vw,21px);font-weight:700;}
+  .grid-tile.hid{border:2px dashed var(--line);}
+  .grid-tile.is-miss{background:var(--chip-ext-bg) !important;color:var(--chip-ext-ink) !important;
+    box-shadow:inset 0 0 0 2px var(--reveal);animation:shake .35s;}
+  .pz-swatch{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;
+    vertical-align:-7px;margin:0 6px;box-shadow:0 2px 6px rgba(0,0,0,.18);}
+  .pz-swatch svg{width:18px;height:18px;}
+  .pz-swatch.q{background:var(--bg-soft);color:var(--ink);font-weight:700;border:1.5px dashed var(--accent);}
+  .pz-swname{font-weight:600;color:var(--ink);}
+  .pz-count{color:var(--accent-ink);}
+
+  /* quiz games: pop on a right answer */
+  .option.is-correct .option-letter,.option.is-wrong .option-letter{color:inherit;}
+  .option.gx-pop{animation:gxPop .38s cubic-bezier(.2,1.5,.4,1),okPulse .45s ease-out;}
+  @keyframes gxPop{0%{transform:scale(1);}45%{transform:scale(1.045);}100%{transform:scale(1);}}
+  .option .gx-mark{margin-inline-start:auto;font-weight:700;font-size:16px;}
+
+  /* level result extras */
+  .lr-extra{min-height:8px;margin:-14px auto 22px;max-width:440px;}
+  .gx-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:10px;}
+  .gx-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:5px 12px;
+    border-radius:14px;background:var(--bg-soft);color:var(--ink);border:1px solid var(--line);}
+  .gx-chip.xp{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent);}
+  /* "+12 XP ×2" must not be reordered by an RTL page */
+  .gx-chip,.fx-pop,.gx-combo{unicode-bidi:plaintext;}
+  .gx-chip.up{background:var(--teal-soft);color:var(--teal-ink);border-color:var(--teal);}
+  .gx-chip.rec{background:#FFF5DF;color:#8A5B00;border-color:var(--gold);}
+  :root[data-theme="dark"] .gx-chip.rec{background:#3A2B08;color:#FFD98A;}
+  @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .gx-chip.rec{background:#3A2B08;color:#FFD98A;} }
+  .gx-nudge{font-size:14px;color:var(--accent-ink);font-weight:600;margin:0;}
+
+  /* achievement toast */
+  .gx-toast{position:fixed;z-index:70;top:calc(var(--nav-h) + 12px);left:50%;
+    transform:translate(-50%,-16px);opacity:0;pointer-events:none;transition:opacity .28s,transform .28s;
+    display:flex;align-items:center;gap:12px;background:var(--white);border:1.5px solid var(--gold);
+    border-radius:16px;padding:12px 18px;box-shadow:var(--shadow-lift);max-width:min(380px,calc(100vw - 32px));}
+  .gx-toast.show{opacity:1;transform:translate(-50%,0);}
+  .gx-toast .gx-trophy{width:38px;height:38px;flex-shrink:0;}
+  .gx-toast small{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;}
+  .gx-toast b{display:block;font-family:'Space Grotesk',sans-serif;font-size:16px;color:var(--ink);}
+  .gx-toast span{display:block;font-size:12.5px;color:var(--muted);}
+
+  /* confetti (three stars) */
+  .gx-conf{position:absolute;top:-14px;width:8px;height:12px;border-radius:2px;opacity:0;will-change:transform,opacity;
+    animation-name:gxFall;animation-timing-function:cubic-bezier(.25,.6,.4,1);animation-fill-mode:forwards;}
+  @keyframes gxFall{0%{opacity:1;transform:translate(0,0) rotate(0);}
+    85%{opacity:1;}100%{opacity:0;transform:translate(var(--dx),78vh) rotate(var(--rot));}}
+
+  /* games hub: player panel */
+  .gx-player{display:grid;grid-template-columns:auto 1fr;gap:16px 18px;align-items:center;background:var(--white);
+    border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin-bottom:24px;box-shadow:var(--shadow-card);}
+  .gx-lvl{width:62px;height:62px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:linear-gradient(145deg,#A985FF,var(--accent-btn));color:#fff;font-family:'Space Grotesk',sans-serif;line-height:1;}
+  .gx-lvl b{font-size:24px;} .gx-lvl small{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;opacity:.9;margin-top:2px;}
+  .gx-pinfo{min-width:0;}
+  .gx-pinfo .ttl{font-weight:700;font-size:15px;margin-bottom:6px;}
+  .gx-xpbar{height:8px;border-radius:4px;background:var(--bg-soft);overflow:hidden;margin-bottom:6px;}
+  .gx-xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--reveal));border-radius:4px;}
+  .gx-pinfo .sub{font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px;}
+  .gx-pinfo .sub .on{color:var(--accent-ink);font-weight:600;}
+  .gx-player details{grid-column:1 / -1;border-top:1px solid var(--line);padding-top:12px;}
+  .gx-player summary{cursor:pointer;font-weight:600;font-size:13.5px;min-height:44px;display:flex;align-items:center;gap:8px;}
+  .gx-player summary .gx-trophy{width:22px;height:22px;flex-shrink:0;}
+  .gx-achs{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .gx-achs li{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;background:var(--bg-soft);font-size:12.5px;min-width:0;}
+  .gx-achs li .gx-trophy{width:26px;height:26px;flex-shrink:0;}
+  .gx-achs li.locked .gx-trophy{filter:grayscale(1);opacity:.35;}
+  .gx-achs li b{display:block;font-size:13px;color:var(--ink);}
+  .gx-achs li span{color:var(--muted);}
+  .level-label .gx-tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--accent-ink);background:var(--accent-soft);border-radius:8px;padding:1px 7px;margin-inline-start:6px;}
+
+  @media (max-width:560px){
+    .gx-achs{grid-template-columns:1fr;}
+    .gx-player{padding:16px;gap:12px 14px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .gx-conf{display:none;}
+    .gx-toast{transition:opacity .2s;transform:translate(-50%,0);}
+    .mm-status.count,.option.gx-pop,.grid-tile.is-miss,.mm-cell.strike{animation:none !important;}
+    .mm-cell.seqlit,.mm-cell.lit{transform:none;}
+  }
+</style>
 </head>
 <body>
 <div class="ticker-bar"><span class="ticker-dot"></span><span id="ticker-text"></span></div>
@@ -1668,6 +1787,7 @@
       <h2 id="lm-title"></h2>
       <p id="lm-sub"></p>
       <div class="stars-total"><span class="s">★</span> <span id="lm-stars">0</span></div>
+      <button class="gx-snd" type="button" onclick="gToggleSound()"></button>
     </div>
     <div class="level-path" id="level-path"></div>
   </div>
@@ -1680,10 +1800,12 @@
       <button class="back-link" style="margin:0;" onclick="openLevelMap(currentGameKey)" data-i18n="btn.levels"></button>
       <span class="pill"><span data-i18n="game.level"></span> <b id="mm-level"></b></span>
       <span class="pill"><span data-i18n="game.round"></span> <b id="mm-round"></b></span>
+      <button class="gx-snd" type="button" onclick="gToggleSound()"></button>
     </div>
     <div class="bob-stage quiet" id="mm-bob" style="justify-content:center" aria-live="polite"></div>
+    <div class="gx-combo-row"><span class="pill gx-mode" id="mm-mode" hidden></span><span class="streak-chip gx-combo" id="mm-combo" hidden></span></div>
     <div class="mm-round-dots" id="mm-dots"></div>
-    <div class="mm-status" id="mm-status"></div>
+    <div class="mm-status" id="mm-status" aria-live="polite"></div>
     <div class="mm-grid" id="mm-grid"></div>
     <div class="puzzle-actions">
       <button class="btn-secondary" onclick="startMemMatrix(currentLevel)" data-i18n="btn.restart"></button>
@@ -1698,11 +1820,13 @@
       <button class="back-link" style="margin:0;" onclick="openLevelMap('puzzle')" data-i18n="btn.levels"></button>
       <span class="pill"><span data-i18n="game.level"></span> <b id="pz-level"></b></span>
       <span class="pill"><span data-i18n="game.moves"></span> <b id="pz-moves"></b></span>
+      <button class="gx-snd" type="button" onclick="gToggleSound()"></button>
     </div>
     <div class="bob-stage quiet" id="pz-bob" style="justify-content:center" aria-live="polite"></div>
+    <div class="gx-combo-row"><span class="streak-chip gx-combo" id="pz-combo" hidden></span></div>
     <div class="puzzle-target" id="pz-target"></div>
     <div class="grid-board" id="pz-board"></div>
-    <div class="puzzle-msg" id="pz-msg"></div>
+    <div class="puzzle-msg" id="pz-msg" aria-live="polite"></div>
     <div class="puzzle-actions">
       <button class="btn-secondary" onclick="loadPuzzleLevel(currentLevel)" data-i18n="btn.restart"></button>
     </div>
@@ -1828,9 +1952,10 @@
     <div class="bob-stage quiet" id="lr-bob" style="justify-content:center" aria-live="polite"></div>
     <div class="kicker" id="lr-kicker"></div>
     <div class="pass-tag" id="lr-passtag"></div>
-    <div class="win-stars" id="lr-stars"></div>
+    <div class="win-stars" id="lr-stars" role="img"></div>
     <div class="mini-score" id="lr-score"></div>
     <div class="mini-blurb" id="lr-blurb"></div>
+    <div class="lr-extra" id="lr-extra" aria-live="polite"></div>
     <div class="mini-actions">
       <button class="btn-primary" id="lr-next" onclick="advanceLevel()"></button>
       <button class="btn-secondary" id="lr-retry" onclick="retryLevel()"></button>
@@ -4089,7 +4214,10 @@ function runTimer(){
 }
 function updateTimer(){
   const m=Math.floor(engine.left/60),s=engine.left%60;
-  document.getElementById('timer-label').textContent=`${m}:${String(s).padStart(2,'0')}`;
+  const el=document.getElementById('timer-label');
+  el.textContent=`${m}:${String(s).padStart(2,'0')}`;
+  /* Game modes pulse through the last ten seconds; the scored test never does. */
+  el.classList.toggle('low', engine.mode!=='main' && engine.left<=10);
 }
 
 function renderQuestion(){
@@ -4170,7 +4298,8 @@ function renderStreakChip(){
   const st=engine.streak||0;
   if(st<2 || engine.mode==='main'){ chip.style.display='none'; return; }
   chip.style.display='';
-  chip.textContent='🔥 '+st;
+  const mult=gMult(st);
+  chip.textContent='🔥 '+st+(mult>1?' · '+t('gx.combo',{m:mult}):'');
   chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump');
 }
 
@@ -4183,7 +4312,15 @@ function selectOption(i){
   document.getElementById('btn-next').classList.add('enabled');
   /* Training games mark the answer immediately. The scored test does not:
      showing the key mid-assessment would let the score be gamed. */
-  if(engine.mode!=='main') markAnswer(el,i);
+  if(engine.mode!=='main'){
+    const ok=markAnswer(el,i);
+    /* Game quizzes then move on by themselves — quickly after a right answer,
+       longer after a wrong one so the correct option can be read. Next still
+       works as a skip; the guard stops a double advance. */
+    const run=engine, cur=engine.cur;
+    gLater(()=>{ if(engine===run && engine.cur===cur && engine.sel!==null) nextQuestion(); },
+           ok?700:1400,'screen-quiz');
+  }
 }
 
 /* Shared correct/wrong treatment for every game-mode question. */
@@ -4196,23 +4333,30 @@ function markAnswer(el,i){
     const right=document.querySelector(`.option[data-i="${q.ans}"]`);
     if(right) right.classList.add('is-correct');
   }
+  /* a non-colour cue on top of the green/pink */
+  const mark=(node,ch)=>{ if(node && !node.querySelector('.gx-mark')) node.insertAdjacentHTML('beforeend',`<span class="gx-mark" aria-hidden="true">${ch}</span>`); };
   if(ok){
     engine.streak=(engine.streak||0)+1;
     engine.bestStreak=Math.max(engine.bestStreak||0,engine.streak);
     engine.correct=(engine.correct||0)+1;
+    const mult=gMult(engine.streak), gain=(engine.mode==='hardcore'?5:2)*mult;
+    engine.runXp=(engine.runXp||0)+gain;
+    el.classList.add('gx-pop'); mark(el,'✓');
     fxBurst(el,{count:10,spread:62});
-    fxPop(el,'+1');
+    gXpFloat(el,gain,mult);
     renderStreakChip();
-    if(engine.streak===3) bobReact('streak3');
-    else if(engine.streak>=5 && engine.streak%5===0) bobReact('streak5');
-    else bobReact('correct');
-    playChime(true);
+    if(engine.streak===3){ bobReact('streak3'); gSfx('combo',2); }
+    else if(engine.streak===6){ bobReact('streak3',{text:bobLine('combo')}); gSfx('combo',3); }
+    else if(engine.streak>=5 && engine.streak%5===0){ bobReact('streak5'); playChime(true); }
+    else { bobReact('correct'); playChime(true); }
   } else {
     engine.streak=0;
+    mark(el,'✕'); mark(document.querySelector(`.option[data-i="${q.ans}"]`),'✓');
     renderStreakChip();
     bobReact('wrong');
     playChime(false);
   }
+  return ok;
 }
 
 function nextQuestion(){
@@ -5205,6 +5349,348 @@ function recordBest(key,pct){
   return prev>0;
 }
 
+/* ==================== GAMES v2 — strings ====================
+   Every string the reworked games add, in all five languages. Merged into T
+   the same way T_EXT is, so t() finds them. */
+const T_GAMES2={
+en:{
+  'gx.levels':'{n} levels','gx.play':'Play',
+  'gx.goal.memmatrix':'Rebuild the pattern you saw.',
+  'gx.goal.speed':'Spot the rule, then the next number — against the clock.',
+  'gx.goal.spatial':'Turn and flip shapes in your head.',
+  'gx.goal.wordrecall':'Pick the one word that fits exactly.',
+  'gx.goal.puzzle':'Follow the rule, tap the right tiles, waste no moves.',
+  'gx.goal.hardcore':'Ten hard items. Find every rule.',
+  'gx.goal.default':'Clear each level to unlock the next.',
+  'gx.soundon':'Sound on','gx.soundoff':'Sound off',
+  'gx.mm.seq':'Sequence','gx.mm.mirror':'Mirror',
+  'mm.seqwatch':'Watch the order…','mm.seqrecall':'Tap them in the same order',
+  'mm.mirrorrecall':'Tap the MIRROR image — left and right swapped',
+  'mm.strike':'One slip allowed — keep going.','mm.cell':'Row {r}, column {c}',
+  'mm.intro.seq':'Sequence level: tiles light up one at a time. Repeat the order.',
+  'mm.intro.mirror':'Mirror level: rebuild the pattern flipped left to right.',
+  'pz.hidden':'Board hidden — go from memory!','pz.wrongorder':'Wrong order — costs a move.',
+  'pz.hiddentile':'Hidden tile','pz.foundtile':'Found','pz.mostoften':'most common colour',
+  'gx.col.0':'purple','gx.col.1':'teal','gx.col.2':'blue','gx.col.3':'yellow','gx.col.4':'pink','gx.col.5':'sky blue','gx.col.6':'green',
+  'gx.shp.0':'circle','gx.shp.1':'square','gx.shp.2':'triangle','gx.shp.3':'diamond','gx.shp.4':'star','gx.shp.5':'hexagon','gx.shp.6':'cross',
+  'lr.outofmoves':'Out of moves — {f} of {n} found. Find every target to pass.',
+  'lr.nudge1':'1 more correct for {s}','lr.nudgen':'{n} more correct for {s}',
+  'lr.nudgemiss':'Wrong taps allowed for {s}: {m}','lr.nudgeclean':'Finish without a wrong tap for {s}',
+  'lr.best':'Your best on this level: {p}%','lr.record':'New record — up from {p}%',
+  'lr.xp':'+{n} XP','lr.levelup':'Player level {n}!',
+  'gx.player':'Player level {n}','gx.xpto':'{a} / {b} XP to level {n}',
+  'gx.daystreak':'{n}-day streak','gx.daystreak1':'Day 1 of a streak — come back tomorrow','gx.daystreak0':'Play today to start a streak',
+  'gx.achs':'Achievements','gx.achcount':'{a} of {b} unlocked','gx.achunlocked':'Achievement unlocked',
+  'gx.combo':'Combo ×{m}',
+  'ach.first.n':'First clear','ach.first.d':'Pass any level.',
+  'ach.three.n':'Flawless','ach.three.d':'Earn 3 stars on a level.',
+  'ach.ten.n':'Warming up','ach.ten.d':'Clear 10 levels.',
+  'ach.fifty.n':'Committed','ach.fifty.d':'Clear 50 levels.',
+  'ach.stars100.n':'Star collector','ach.stars100.d':'Collect 100 stars.',
+  'ach.allfive.n':'All-rounder','ach.allfive.d':'Clear a level in all five level games.',
+  'ach.combo10.n':'In the zone','ach.combo10.d':'Get a 10× combo in one run.',
+  'ach.hc70.n':'Hardened','ach.hc70.d':'Score 70% or more in Hardcore.',
+  'ach.streak5.n':'Habit','ach.streak5.d':'Play 5 days in a row.',
+  'ach.lvl30.n':'Deep end','ach.lvl30.d':'Clear level 30 in any game.',
+  'sp.mirrorturn':'Which option is a mirror image of this shape? It may also be turned.',
+  'sp.notrot':'Three of these are the same shape, only turned. Which one is NOT?',
+  'sp.accel':'Each turn is bigger than the last by the same amount. Which comes next?',
+  'ww.name':'Word Wit',
+  'ww.desc':'Synonyms, opposites, analogies and odd-ones-out, rising in difficulty with the level. One exact answer each.',
+  'ww.syn':'Which word is closest in meaning to “{w}”?',
+  'ww.ant':'Which word means the opposite of “{w}”?',
+  'ww.def':'Which word means “{w}”?',
+  'ww.odd':'Which word does not belong with the other three?',
+  'ww.ana':'Which word completes the analogy?',
+  'ww.anasub':'{a} is to {b} as {c} is to …',
+  'hc.bestat':'{p}% in {t}'
+},
+he:{
+  'gx.levels':'{n} שלבים','gx.play':'שחקו',
+  'gx.goal.memmatrix':'שחזרו את הדפוס שראיתם.',
+  'gx.goal.speed':'מצאו את החוק ואז את המספר הבא — נגד השעון.',
+  'gx.goal.spatial':'סובבו והפכו צורות בראש.',
+  'gx.goal.wordrecall':'בחרו את המילה היחידה שמתאימה בדיוק.',
+  'gx.goal.puzzle':'עקבו אחרי החוק, לחצו על המשבצות הנכונות, בלי לבזבז מהלכים.',
+  'gx.goal.hardcore':'עשר שאלות קשות. מצאו כל חוק.',
+  'gx.goal.default':'עברו כל שלב כדי לפתוח את הבא.',
+  'gx.soundon':'צליל פועל','gx.soundoff':'צליל כבוי',
+  'gx.mm.seq':'רצף','gx.mm.mirror':'מראה',
+  'mm.seqwatch':'עקבו אחרי הסדר…','mm.seqrecall':'לחצו עליהן באותו סדר',
+  'mm.mirrorrecall':'לחצו על תמונת המראה — ימין ושמאל מתחלפים',
+  'mm.strike':'טעות אחת מותרת — ממשיכים.','mm.cell':'שורה {r}, עמודה {c}',
+  'mm.intro.seq':'שלב רצף: המשבצות נדלקות אחת אחרי השנייה. חזרו על הסדר.',
+  'mm.intro.mirror':'שלב מראה: שחזרו את הדפוס הפוך מימין לשמאל.',
+  'pz.hidden':'הלוח מוסתר — מהזיכרון!','pz.wrongorder':'סדר שגוי — עולה מהלך.',
+  'pz.hiddentile':'משבצת מוסתרת','pz.foundtile':'נמצאה','pz.mostoften':'הצבע הנפוץ ביותר',
+  'gx.col.0':'סגול','gx.col.1':'טורקיז','gx.col.2':'כחול','gx.col.3':'צהוב','gx.col.4':'ורוד','gx.col.5':'תכלת','gx.col.6':'ירוק',
+  'gx.shp.0':'עיגול','gx.shp.1':'ריבוע','gx.shp.2':'משולש','gx.shp.3':'מעוין','gx.shp.4':'כוכב','gx.shp.5':'משושה','gx.shp.6':'צלב',
+  'lr.outofmoves':'נגמרו המהלכים — נמצאו {f} מתוך {n}. כדי לעבור צריך למצוא את כולן.',
+  'lr.nudge1':'עוד תשובה נכונה אחת ל-{s}','lr.nudgen':'עוד {n} תשובות נכונות ל-{s}',
+  'lr.nudgemiss':'לחיצות שגויות מותרות ל-{s}: {m}','lr.nudgeclean':'סיימו בלי לחיצה שגויה ל-{s}',
+  'lr.best':'השיא שלכם בשלב הזה: {p}%','lr.record':'שיא חדש — עלייה מ-{p}%',
+  'lr.xp':'+{n} XP','lr.levelup':'רמת שחקן {n}!',
+  'gx.player':'רמת שחקן {n}','gx.xpto':'{a} / {b} XP לרמה {n}',
+  'gx.daystreak':'רצף של {n} ימים','gx.daystreak1':'יום ראשון ברצף — חזרו מחר','gx.daystreak0':'שחקו היום כדי להתחיל רצף',
+  'gx.achs':'הישגים','gx.achcount':'{a} מתוך {b} נפתחו','gx.achunlocked':'הישג חדש נפתח',
+  'gx.combo':'קומבו ×{m}',
+  'ach.first.n':'צעד ראשון','ach.first.d':'עברו שלב כלשהו.',
+  'ach.three.n':'ללא רבב','ach.three.d':'השיגו 3 כוכבים בשלב.',
+  'ach.ten.n':'מתחממים','ach.ten.d':'עברו 10 שלבים.',
+  'ach.fifty.n':'מחויבים','ach.fifty.d':'עברו 50 שלבים.',
+  'ach.stars100.n':'אספני כוכבים','ach.stars100.d':'אספו 100 כוכבים.',
+  'ach.allfive.n':'רב-גוניים','ach.allfive.d':'עברו שלב בכל חמשת משחקי השלבים.',
+  'ach.combo10.n':'בשוונג','ach.combo10.d':'הגיעו לקומבו ×10 בסבב אחד.',
+  'ach.hc70.n':'מחושלים','ach.hc70.d':'קבלו 70% ומעלה בהארדקור.',
+  'ach.streak5.n':'הרגל','ach.streak5.d':'שחקו 5 ימים ברצף.',
+  'ach.lvl30.n':'למים העמוקים','ach.lvl30.d':'עברו את שלב 30 במשחק כלשהו.',
+  'sp.mirrorturn':'איזו אפשרות היא תמונת ראי של הצורה? ייתכן שהיא גם מסובבת.',
+  'sp.notrot':'שלוש מאלה הן אותה צורה, רק מסובבת. איזו לא?',
+  'sp.accel':'כל סיבוב גדול מהקודם באותה כמות. מה בא אחר כך?',
+  'ww.name':'חדות מילים',
+  'ww.desc':'מילים נרדפות, הפכים, אנלוגיות ויוצא דופן — הקושי עולה עם השלב. תשובה מדויקת אחת לכל שאלה.',
+  'ww.syn':'איזו מילה הכי קרובה במשמעותה ל„{w}”?',
+  'ww.ant':'איזו מילה הפוכה במשמעותה ל„{w}”?',
+  'ww.def':'איזו מילה פירושה „{w}”?',
+  'ww.odd':'איזו מילה לא שייכת לשלוש האחרות?',
+  'ww.ana':'איזו מילה משלימה את האנלוגיה?',
+  'ww.anasub':'{a} ל{b} כמו {c} ל…',
+  'hc.bestat':'{p}% ב-{t}'
+},
+es:{
+  'gx.levels':'{n} niveles','gx.play':'Jugar',
+  'gx.goal.memmatrix':'Reconstruye el patrón que viste.',
+  'gx.goal.speed':'Descubre la regla y luego el siguiente número, contra el reloj.',
+  'gx.goal.spatial':'Gira y refleja figuras mentalmente.',
+  'gx.goal.wordrecall':'Elige la única palabra que encaja exactamente.',
+  'gx.goal.puzzle':'Sigue la regla, toca las casillas correctas y no malgastes movimientos.',
+  'gx.goal.hardcore':'Diez ítems difíciles. Encuentra todas las reglas.',
+  'gx.goal.default':'Supera cada nivel para desbloquear el siguiente.',
+  'gx.soundon':'Sonido activado','gx.soundoff':'Sonido desactivado',
+  'gx.mm.seq':'Secuencia','gx.mm.mirror':'Espejo',
+  'mm.seqwatch':'Fíjate en el orden…','mm.seqrecall':'Tócalas en el mismo orden',
+  'mm.mirrorrecall':'Toca la imagen en ESPEJO: izquierda y derecha invertidas',
+  'mm.strike':'Se permite un fallo: sigue.','mm.cell':'Fila {r}, columna {c}',
+  'mm.intro.seq':'Nivel de secuencia: las casillas se encienden de una en una. Repite el orden.',
+  'mm.intro.mirror':'Nivel espejo: reconstruye el patrón invertido de izquierda a derecha.',
+  'pz.hidden':'Tablero oculto: ¡de memoria!','pz.wrongorder':'Orden incorrecto: cuesta un movimiento.',
+  'pz.hiddentile':'Casilla oculta','pz.foundtile':'Encontrada','pz.mostoften':'el color más frecuente',
+  'gx.col.0':'morado','gx.col.1':'turquesa','gx.col.2':'azul','gx.col.3':'amarillo','gx.col.4':'rosa','gx.col.5':'celeste','gx.col.6':'verde',
+  'gx.shp.0':'círculo','gx.shp.1':'cuadrado','gx.shp.2':'triángulo','gx.shp.3':'rombo','gx.shp.4':'estrella','gx.shp.5':'hexágono','gx.shp.6':'cruz',
+  'lr.outofmoves':'Sin movimientos: encontraste {f} de {n}. Para superarlo hay que encontrarlas todas.',
+  'lr.nudge1':'1 acierto más para {s}','lr.nudgen':'{n} aciertos más para {s}',
+  'lr.nudgemiss':'Toques erróneos permitidos para {s}: {m}','lr.nudgeclean':'Termina sin ningún toque erróneo para {s}',
+  'lr.best':'Tu mejor marca en este nivel: {p}%','lr.record':'Nuevo récord: antes {p}%',
+  'lr.xp':'+{n} XP','lr.levelup':'¡Nivel de jugador {n}!',
+  'gx.player':'Nivel de jugador {n}','gx.xpto':'{a} / {b} XP para el nivel {n}',
+  'gx.daystreak':'Racha de {n} días','gx.daystreak1':'Día 1 de racha: vuelve mañana','gx.daystreak0':'Juega hoy para empezar una racha',
+  'gx.achs':'Logros','gx.achcount':'{a} de {b} desbloqueados','gx.achunlocked':'Logro desbloqueado',
+  'gx.combo':'Combo ×{m}',
+  'ach.first.n':'Primer paso','ach.first.d':'Supera cualquier nivel.',
+  'ach.three.n':'Impecable','ach.three.d':'Consigue 3 estrellas en un nivel.',
+  'ach.ten.n':'Calentando','ach.ten.d':'Supera 10 niveles.',
+  'ach.fifty.n':'Constancia','ach.fifty.d':'Supera 50 niveles.',
+  'ach.stars100.n':'Coleccionista','ach.stars100.d':'Reúne 100 estrellas.',
+  'ach.allfive.n':'Todoterreno','ach.allfive.d':'Supera un nivel en los cinco juegos por niveles.',
+  'ach.combo10.n':'En racha','ach.combo10.d':'Logra un combo ×10 en una partida.',
+  'ach.hc70.n':'Curtido','ach.hc70.d':'Saca un 70% o más en Hardcore.',
+  'ach.streak5.n':'Hábito','ach.streak5.d':'Juega 5 días seguidos.',
+  'ach.lvl30.n':'A fondo','ach.lvl30.d':'Supera el nivel 30 en cualquier juego.',
+  'sp.mirrorturn':'¿Qué opción es una imagen especular de esta figura? Puede que además esté girada.',
+  'sp.notrot':'Tres de estas son la misma figura, solo que girada. ¿Cuál NO lo es?',
+  'sp.accel':'Cada giro es mayor que el anterior en la misma cantidad. ¿Cuál sigue?',
+  'ww.name':'Ingenio verbal',
+  'ww.desc':'Sinónimos, antónimos, analogías y la palabra que sobra, con dificultad creciente según el nivel. Una sola respuesta exacta en cada una.',
+  'ww.syn':'¿Qué palabra tiene el significado más cercano a «{w}»?',
+  'ww.ant':'¿Qué palabra significa lo contrario de «{w}»?',
+  'ww.def':'¿Qué palabra significa «{w}»?',
+  'ww.odd':'¿Qué palabra no encaja con las otras tres?',
+  'ww.ana':'¿Qué palabra completa la analogía?',
+  'ww.anasub':'{a} es a {b} como {c} es a …',
+  'hc.bestat':'{p}% en {t}'
+},
+ru:{
+  'gx.levels':'Уровней: {n}','gx.play':'Играть',
+  'gx.goal.memmatrix':'Восстановите узор, который увидели.',
+  'gx.goal.speed':'Найдите правило, затем следующее число — на время.',
+  'gx.goal.spatial':'Поворачивайте и отражайте фигуры в уме.',
+  'gx.goal.wordrecall':'Выберите единственное точно подходящее слово.',
+  'gx.goal.puzzle':'Следуйте правилу, нажимайте нужные клетки и не тратьте ходы зря.',
+  'gx.goal.hardcore':'Десять трудных заданий. Найдите все правила.',
+  'gx.goal.default':'Пройдите уровень, чтобы открыть следующий.',
+  'gx.soundon':'Звук включён','gx.soundoff':'Звук выключен',
+  'gx.mm.seq':'Порядок','gx.mm.mirror':'Зеркало',
+  'mm.seqwatch':'Следите за порядком…','mm.seqrecall':'Нажмите их в том же порядке',
+  'mm.mirrorrecall':'Нажмите ЗЕРКАЛЬНЫЙ узор — лево и право меняются местами',
+  'mm.strike':'Одна ошибка прощается — продолжайте.','mm.cell':'Ряд {r}, столбец {c}',
+  'mm.intro.seq':'Уровень на порядок: клетки загораются по одной. Повторите последовательность.',
+  'mm.intro.mirror':'Зеркальный уровень: восстановите узор, отражённый слева направо.',
+  'pz.hidden':'Доска скрыта — по памяти!','pz.wrongorder':'Неверный порядок — минус ход.',
+  'pz.hiddentile':'Скрытая клетка','pz.foundtile':'Найдено','pz.mostoften':'самый частый цвет',
+  'gx.col.0':'фиолетовый','gx.col.1':'бирюзовый','gx.col.2':'синий','gx.col.3':'жёлтый','gx.col.4':'розовый','gx.col.5':'голубой','gx.col.6':'зелёный',
+  'gx.shp.0':'круг','gx.shp.1':'квадрат','gx.shp.2':'треугольник','gx.shp.3':'ромб','gx.shp.4':'звезда','gx.shp.5':'шестиугольник','gx.shp.6':'крест',
+  'lr.outofmoves':'Ходы закончились — найдено {f} из {n}. Чтобы пройти, найдите все цели.',
+  'lr.nudge1':'До {s} не хватает одного верного ответа','lr.nudgen':'До {s} не хватает верных ответов: {n}',
+  'lr.nudgemiss':'Для {s} допускается ошибочных нажатий: {m}','lr.nudgeclean':'Для {s}: ни одного ошибочного нажатия',
+  'lr.best':'Ваш рекорд на этом уровне: {p}%','lr.record':'Новый рекорд — было {p}%',
+  'lr.xp':'+{n} XP','lr.levelup':'Уровень игрока {n}!',
+  'gx.player':'Уровень игрока {n}','gx.xpto':'{a} / {b} XP до уровня {n}',
+  'gx.daystreak':'Дней подряд: {n}','gx.daystreak1':'Первый день серии — возвращайтесь завтра','gx.daystreak0':'Сыграйте сегодня, чтобы начать серию',
+  'gx.achs':'Достижения','gx.achcount':'Открыто: {a} из {b}','gx.achunlocked':'Новое достижение',
+  'gx.combo':'Комбо ×{m}',
+  'ach.first.n':'Первый шаг','ach.first.d':'Пройдите любой уровень.',
+  'ach.three.n':'Безупречно','ach.three.d':'Получите 3 звезды на уровне.',
+  'ach.ten.n':'Разминка','ach.ten.d':'Пройдите 10 уровней.',
+  'ach.fifty.n':'Упорство','ach.fifty.d':'Пройдите 50 уровней.',
+  'ach.stars100.n':'Коллекционер','ach.stars100.d':'Соберите 100 звёзд.',
+  'ach.allfive.n':'Универсал','ach.allfive.d':'Пройдите уровень во всех пяти играх с уровнями.',
+  'ach.combo10.n':'В потоке','ach.combo10.d':'Наберите комбо ×10 за один заход.',
+  'ach.hc70.n':'Закалка','ach.hc70.d':'Наберите 70% или больше в Хардкоре.',
+  'ach.streak5.n':'Привычка','ach.streak5.d':'Играйте 5 дней подряд.',
+  'ach.lvl30.n':'На глубине','ach.lvl30.d':'Пройдите 30-й уровень в любой игре.',
+  'sp.mirrorturn':'Какой вариант — зеркальное отражение этой фигуры? Оно может быть ещё и повёрнуто.',
+  'sp.notrot':'Три из них — одна и та же фигура, только повёрнутая. Какая — НЕТ?',
+  'sp.accel':'Каждый поворот больше предыдущего на одну и ту же величину. Что дальше?',
+  'ww.name':'Игра слов',
+  'ww.desc':'Синонимы, антонимы, аналогии и лишнее слово — сложность растёт с уровнем. В каждом задании один точный ответ.',
+  'ww.syn':'Какое слово ближе всего по смыслу к слову «{w}»?',
+  'ww.ant':'Какое слово противоположно по смыслу слову «{w}»?',
+  'ww.def':'Какое слово означает «{w}»?',
+  'ww.odd':'Какое слово не подходит к остальным трём?',
+  'ww.ana':'Какое слово завершает аналогию?',
+  'ww.anasub':'{a} — {b}, как {c} — …',
+  'hc.bestat':'{p}% за {t}'
+},
+ar:{
+  'gx.levels':'{n} مستوى','gx.play':'العب',
+  'gx.goal.memmatrix':'أعد بناء النمط الذي رأيته.',
+  'gx.goal.speed':'اكتشف القاعدة ثم الرقم التالي — في سباق مع الوقت.',
+  'gx.goal.spatial':'أدِر الأشكال واقلبها في ذهنك.',
+  'gx.goal.wordrecall':'اختر الكلمة الوحيدة التي تناسب تماماً.',
+  'gx.goal.puzzle':'اتبع القاعدة، واضغط المربعات الصحيحة، ولا تُهدر الحركات.',
+  'gx.goal.hardcore':'عشرة أسئلة صعبة. اكتشف كل قاعدة.',
+  'gx.goal.default':'اجتز كل مستوى لتفتح التالي.',
+  'gx.soundon':'الصوت مفعّل','gx.soundoff':'الصوت متوقف',
+  'gx.mm.seq':'تسلسل','gx.mm.mirror':'مرآة',
+  'mm.seqwatch':'راقب الترتيب…','mm.seqrecall':'اضغطها بالترتيب نفسه',
+  'mm.mirrorrecall':'اضغط صورة المرآة — اليمين واليسار متبادلان',
+  'mm.strike':'مسموح بخطأ واحد — واصل.','mm.cell':'الصف {r}، العمود {c}',
+  'mm.intro.seq':'مستوى تسلسل: تضيء المربعات واحداً تلو الآخر. أعد الترتيب نفسه.',
+  'mm.intro.mirror':'مستوى المرآة: أعد بناء النمط مقلوباً من اليسار إلى اليمين.',
+  'pz.hidden':'اللوحة مخفية — من الذاكرة!','pz.wrongorder':'ترتيب خاطئ — يكلّف حركة.',
+  'pz.hiddentile':'مربع مخفي','pz.foundtile':'تم إيجاده','pz.mostoften':'اللون الأكثر تكراراً',
+  'gx.col.0':'بنفسجي','gx.col.1':'فيروزي','gx.col.2':'أزرق','gx.col.3':'أصفر','gx.col.4':'وردي','gx.col.5':'سماوي','gx.col.6':'أخضر',
+  'gx.shp.0':'دائرة','gx.shp.1':'مربع','gx.shp.2':'مثلث','gx.shp.3':'معيّن','gx.shp.4':'نجمة','gx.shp.5':'مسدّس','gx.shp.6':'صليب',
+  'lr.outofmoves':'نفدت الحركات — وجدت {f} من {n}. لتجتاز المستوى يجب أن تجدها كلها.',
+  'lr.nudge1':'إجابة صحيحة واحدة أخرى للحصول على {s}','lr.nudgen':'ينقصك {n} من الإجابات الصحيحة للحصول على {s}',
+  'lr.nudgemiss':'الضغطات الخاطئة المسموح بها للحصول على {s}: {m}','lr.nudgeclean':'أنهِ دون أي ضغطة خاطئة للحصول على {s}',
+  'lr.best':'أفضل نتيجة لك في هذا المستوى: {p}%','lr.record':'رقم قياسي جديد — بعد {p}%',
+  'lr.xp':'+{n} XP','lr.levelup':'مستوى اللاعب {n}!',
+  'gx.player':'مستوى اللاعب {n}','gx.xpto':'{a} / {b} XP للمستوى {n}',
+  'gx.daystreak':'أيام متتالية: {n}','gx.daystreak1':'اليوم الأول من السلسلة — عُد غداً','gx.daystreak0':'العب اليوم لتبدأ سلسلة',
+  'gx.achs':'الإنجازات','gx.achcount':'{a} من {b} مفتوحة','gx.achunlocked':'إنجاز جديد',
+  'gx.combo':'كومبو ×{m}',
+  'ach.first.n':'الخطوة الأولى','ach.first.d':'اجتز أي مستوى.',
+  'ach.three.n':'بلا أخطاء','ach.three.d':'احصل على 3 نجوم في مستوى.',
+  'ach.ten.n':'الإحماء','ach.ten.d':'اجتز 10 مستويات.',
+  'ach.fifty.n':'مثابر','ach.fifty.d':'اجتز 50 مستوى.',
+  'ach.stars100.n':'جامع النجوم','ach.stars100.d':'اجمع 100 نجمة.',
+  'ach.allfive.n':'متعدد المواهب','ach.allfive.d':'اجتز مستوى في كل ألعاب المستويات الخمس.',
+  'ach.combo10.n':'في أوج التركيز','ach.combo10.d':'حقق كومبو ×10 في جولة واحدة.',
+  'ach.hc70.n':'صلب','ach.hc70.d':'احصل على 70% أو أكثر في هاردكور.',
+  'ach.streak5.n':'عادة','ach.streak5.d':'العب 5 أيام متتالية.',
+  'ach.lvl30.n':'في العمق','ach.lvl30.d':'اجتز المستوى 30 في أي لعبة.',
+  'sp.mirrorturn':'أي خيار هو صورة مرآتية لهذا الشكل؟ قد يكون مُداراً أيضاً.',
+  'sp.notrot':'ثلاثة من هذه هي الشكل نفسه لكن مُدار. أيها ليس كذلك؟',
+  'sp.accel':'كل دورة أكبر من السابقة بالمقدار نفسه. ما التالي؟',
+  'ww.name':'براعة الكلمات',
+  'ww.desc':'مرادفات وأضداد وتناظرات والكلمة الدخيلة، وتزداد الصعوبة مع المستوى. إجابة دقيقة واحدة لكل سؤال.',
+  'ww.syn':'أي كلمة هي الأقرب في المعنى إلى «{w}»؟',
+  'ww.ant':'أي كلمة تعني عكس «{w}»؟',
+  'ww.def':'أي كلمة تعني «{w}»؟',
+  'ww.odd':'أي كلمة لا تنتمي إلى الكلمات الثلاث الأخرى؟',
+  'ww.ana':'أي كلمة تكمل التناظر؟',
+  'ww.anasub':'{a} بالنسبة إلى {b} مثل {c} بالنسبة إلى …',
+  'hc.bestat':'{p}% في {t}'
+}
+};
+Object.keys(T_GAMES2).forEach(l=>{ if(T[l]) Object.assign(T[l], T_GAMES2[l]); });
+
+/* New Bob beats for the games, merged into his per-language pools. */
+const BOB_LINES_G2={
+en:{failTwice:["Two misses on this one. Slow the first round down — the rule is new, not beyond you.",
+               "Twice short. Try reading the rule out loud before you start.",
+               "That's two. Take ten seconds, then go again — fresh eyes help."],
+    dayStreak:["Day {n} in a row. Habits are what make training stick.","{n} days straight. That's how it works.",
+               "Streak: {n} days. I like the consistency."],
+    combo:["Combo's building. Keep the rhythm.","That's a run — stay with it.","You're in the zone. Don't think, read."],
+    levelUp:["New player level. You've earned it.","Level up. The work is showing."]},
+he:{failTwice:["פעמיים בשלב הזה. האטו בסבב הראשון — החוק חדש, לא מעבר ליכולת שלכם.",
+               "פעמיים חסר. נסו לקרוא את החוק בקול לפני שמתחילים.",
+               "זו הפעם השנייה. עשר שניות הפסקה ואז שוב — עיניים רעננות עוזרות."],
+    dayStreak:["יום {n} ברצף. הרגלים הם מה שגורם לאימון להחזיק.","{n} ימים ברציפות. ככה זה עובד.",
+               "רצף: {n} ימים. אני אוהב את העקביות."],
+    combo:["הקומבו נבנה. תשמרו על הקצב.","זה רצף — הישארו איתו.","אתם בשוונג. לא לחשוב, לקרוא."],
+    levelUp:["רמת שחקן חדשה. הרווחתם אותה.","עליתם רמה. העבודה ניכרת."]},
+es:{failTwice:["Dos intentos fallidos aquí. Baja el ritmo en la primera ronda: la regla es nueva, no imposible.",
+               "Dos veces cerca. Prueba a leer la regla en voz alta antes de empezar.",
+               "Van dos. Tómate diez segundos y vuelve: la vista fresca ayuda."],
+    dayStreak:["Día {n} seguido. Los hábitos son lo que hace que el entrenamiento funcione.","{n} días seguidos. Así se hace.",
+               "Racha: {n} días. Me gusta esa constancia."],
+    combo:["El combo crece. Mantén el ritmo.","Eso es una racha: no la sueltes.","Estás en tu punto. No pienses, lee."],
+    levelUp:["Nuevo nivel de jugador. Te lo has ganado.","Subes de nivel. Se nota el trabajo."]},
+ru:{failTwice:["Здесь уже две неудачи. Первый раунд — помедленнее: правило новое, но вам по силам.",
+               "Дважды чуть-чуть не хватило. Прочитайте правило вслух перед стартом.",
+               "Это вторая. Десять секунд паузы — и снова, свежим взглядом."],
+    dayStreak:["{n}-й день подряд. Привычка — вот что делает тренировку рабочей.","Уже {n}-й день подряд. Так это и работает.",
+               "Серия продолжается: {n}-й день. Нравится такая регулярность."],
+    combo:["Комбо растёт. Держите ритм.","Это серия — не отпускайте.","Вы в потоке. Не думайте — читайте."],
+    levelUp:["Новый уровень игрока. Заслуженно.","Уровень повышен. Работа видна."]},
+ar:{failTwice:["محاولتان هنا. تمهّل في الجولة الأولى — القاعدة جديدة وليست فوق قدرتك.",
+               "نقصك القليل مرتين. جرّب قراءة القاعدة بصوت عالٍ قبل أن تبدأ.",
+               "هذه الثانية. خذ عشر ثوانٍ ثم أعد — العين المرتاحة تساعد."],
+    dayStreak:["اليوم {n} على التوالي. العادات هي ما يجعل التدريب يثمر.","أيام متتالية: {n}. هكذا تنجح.",
+               "السلسلة مستمرة لليوم {n}. تعجبني هذه المواظبة."],
+    combo:["الكومبو يكبر. حافظ على الإيقاع.","هذه سلسلة — ابقَ معها.","أنت في أوج تركيزك. لا تفكر، اقرأ."],
+    levelUp:["مستوى لاعب جديد. تستحقه.","ارتفع مستواك. الجهد واضح."]}
+};
+Object.keys(BOB_LINES_G2).forEach(l=>{ if(BOB_LINES[l]) Object.assign(BOB_LINES[l], BOB_LINES_G2[l]); });
+
+/* ==================== GAMES v2 — run plumbing ====================
+   One token per game run. Every delayed step of a run (a flash, a hide, an
+   auto-advance) is scheduled through gLater() and dropped if the run has been
+   restarted or abandoned, or if its screen is no longer showing — so an old
+   run can never reach into a new one. */
+const _gRun={tok:0,ids:new Set()};
+function gNewRun(){ _gRun.ids.forEach(clearTimeout); _gRun.ids.clear(); return ++_gRun.tok; }
+function gStopRun(){ gNewRun(); }
+function gLater(fn,ms,screenId){
+  const tok=_gRun.tok;
+  const id=setTimeout(()=>{
+    _gRun.ids.delete(id);
+    if(tok!==_gRun.tok) return;
+    if(screenId){ const s=document.getElementById(screenId); if(!s||!s.classList.contains('active')){ gStopRun(); return; } }
+    fn();
+  },ms);
+  _gRun.ids.add(id);
+  return id;
+}
+function gRand(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
+function gShuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+const SND_ON='<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.6v4.8h3.2L11 17V5L7.2 8.6Z"/><path d="M14.4 8.2a4 4 0 0 1 0 5.6M16.8 6a7 7 0 0 1 0 10"/></svg>';
+const SND_OFF='<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.6v4.8h3.2L11 17V5L7.2 8.6Z"/><path d="M14.5 8.5l5 5M19.5 8.5l-5 5"/></svg>';
+/* In-game sound switch: the same preference as Settings → Click sounds. */
+function gSyncSoundChips(){
+  document.querySelectorAll('.gx-snd').forEach(b=>{
+    b.innerHTML=sfxOn?SND_ON:SND_OFF;
+    b.setAttribute('aria-pressed',sfxOn?'true':'false');
+    b.setAttribute('aria-label',t('set.sfx'));
+    b.title=t(sfxOn?'gx.soundon':'gx.soundoff');
+  });
+}
+function gToggleSound(){ toggleSfx(); gSyncSoundChips(); }
+function gEsc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
 /* ==================== GAME BANKS (quiz-style games) ==================== */
 const GAME_BANKS={
   speed:{
@@ -5215,7 +5701,7 @@ const GAME_BANKS={
       ru:'Быстрые последовательности на время. Скорость обработки — один из показателей, который чаще всего улучшается.',
       ar:'تسلسلات سريعة ضد الوقت. سرعة المعالجة من أكثر المجالات تحسناً.'}[lang]),
     icon:'<circle cx="26" cy="26" r="22" fill="#DCF3EE" stroke="var(--teal)" stroke-width="3"/><path d="M26 14v12l8 6" stroke="var(--teal)" stroke-width="3.2" fill="none" stroke-linecap="round"/>',
-    secsPerLevel:60, gen:(lvl)=>genSpeed(lvl)
+    secsPerLevel:60, secs:(lvl)=>Math.round(70-(Math.min(lvl,50)-1)*20/49), gen:(lvl)=>genSpeed(lvl)
   },
   spatial:{
     name:()=>({en:'Spatial Reasoning',he:'חשיבה מרחבית',es:'Razonamiento espacial',ru:'Пространственное мышление',ar:'التفكير المكاني'}[lang]),
@@ -5225,15 +5711,13 @@ const GAME_BANKS={
       ru:'Задачи на поворот и отражение. Зрительно-пространственные задания тренируют рабочую память.',
       ar:'مسائل الدوران والانعكاس. المهام البصرية المكانية تبني الذاكرة العاملة.'}[lang]),
     icon:'<rect x="12" y="12" width="20" height="20" rx="3" fill="#FFE7D2" stroke="var(--accent)" stroke-width="3" transform="rotate(18 22 22)"/><rect x="24" y="24" width="17" height="17" rx="3" fill="none" stroke="var(--teal)" stroke-width="3"/>',
-    secsPerLevel:150, gen:(lvl)=>genSpatial(lvl)
+    secsPerLevel:150, secs:(lvl)=>Math.round(150-(Math.min(lvl,50)-1)*60/49), gen:(lvl)=>genSpatial(lvl)
   },
   wordrecall:{
-    name:()=>({en:'Word Recall',he:'שליפת מילים',es:'Recuerdo verbal',ru:'Словесная память',ar:'استرجاع الكلمات'}[lang]),
-    desc:()=>({en:'Clue-based verbal retrieval, in the spirit of crosswords — a format linked to improved cognition in a 2022 trial.',
-      he:'שליפה מילולית מבוססת רמזים, ברוח תשבצים — פורמט שנקשר לשיפור קוגניטיבי במחקר מ-2022.',
-      es:'Recuperación verbal por pistas, al estilo de los crucigramas — un formato ligado a mejor cognición en un ensayo de 2022.',
-      ru:'Словесный поиск по подсказкам в духе кроссвордов — формат, связанный с улучшением когнитивных функций в исследовании 2022 года.',
-      ar:'استرجاع لفظي بالأدلة على غرار الكلمات المتقاطعة — نمط ارتبط بتحسن معرفي في دراسة 2022.'}[lang]),
+    /* Renamed from "Word Recall": it is synonyms, opposites and analogies,
+       not crossword-style recall, so the card no longer claims to be. */
+    name:()=>t('ww.name'),
+    desc:()=>t('ww.desc'),
     icon:'<rect x="9" y="14" width="34" height="24" rx="4" fill="#FFE0EA" stroke="var(--reveal)" stroke-width="3"/><path d="M16 23h20M16 30h13" stroke="var(--reveal)" stroke-width="3" stroke-linecap="round"/>',
     secsPerLevel:150, gen:(lvl)=>genWord(lvl)
   }
@@ -5248,101 +5732,553 @@ function shuffleOpts(q){
   return q;
 }
 
-function genSpeed(lvl){
-  const qs=[]; const capLvl=Math.min(lvl,16); const step=1+capLvl;
-  for(let i=0;i<6;i++){
-    const start=2+Math.floor(Math.random()*6), inc=step+Math.floor(Math.random()*capLvl);
-    const seq=[start,start+inc,start+inc*2,start+inc*3];
-    const ansV=start+inc*4;
-    /* build distractors that are guaranteed distinct from each other and the answer */
-    const used=new Set([ansV]);
-    const cand=[ansV+inc,ansV-inc,ansV+1,ansV-1,ansV+2,ansV-2,ansV+inc+1,ansV-inc-1,ansV*2,ansV+3];
-    const distractors=[];
-    for(const c of cand){
-      if(distractors.length>=3) break;
-      if(c>0 && !used.has(c)){ used.add(c); distractors.push(c); }
-    }
-    let pad=ansV+4;
-    while(distractors.length<3){ if(!used.has(pad)){used.add(pad);distractors.push(pad);} pad++; }
-    const q={num:true,prompt:p('nextnum'),seq,
-      opts:[{val:String(ansV)},...distractors.map(v=>({val:String(v)}))],ans:0};
-    qs.push(shuffleOpts(q));
-  }
-  return qs;
-}
+/* ==================== SPEED IQ — rule ladder ====================
+   Each level draws six series from a ladder of rules, newest rules most often:
+     1–5    +n                         25–32  squares, triangular numbers,
+     6–10   −n, mixed with +n                 growing differences
+     11–16  ×2 / ×3                    33–40  two interleaved series
+     17–24  alternating +a/−b, +a/+b   41–50  Fibonacci-like, ×p±q, and all of
+                                              the above at larger values
+   Within a band the numbers grow with the level, so nothing plateaus.
+   Distractors come from misreading the rule (one step off, wrong phase,
+   treating a product as a sum, skipping a step), not just ±1.
 
-function genSpatial(lvl){
-  const glyphs=['flag','ell','barb','drop'];
-  const qs=[];
-  for(let i=0;i<6;i++){
-    const g=glyphs[Math.floor(Math.random()*glyphs.length)];
-    const stepAng=lvl<4?90:(lvl<10?45:(lvl<22?30:(lvl<36?20:15)));
-    const base=Math.floor(Math.random()*4)*90;
-    if(i%2===0){
-      const seq=[0,1,2].map(k=>({glyph:g,rot:base+stepAng*k}));
-      const ansO={glyph:g,rot:base+stepAng*3};
-      const q={prompt:p('whichrotation'),seq,
-        opts:[ansO,{glyph:g,rot:base+stepAng*2},{glyph:g,rot:base+stepAng*4},{glyph:g,rot:base+stepAng*3,mir:true}],ans:0};
-      qs.push(shuffleOpts(q));
-    } else {
-      const r=base;
-      const q={prompt:p('mirror'),noQ:true,seq:[{glyph:g,rot:r}],
-        opts:[{glyph:g,rot:r,mir:true},{glyph:g,rot:r},{glyph:g,rot:(r+180)%360},{glyph:g,rot:(r+90)%360,mir:true}],ans:0};
-      qs.push(shuffleOpts(q));
-    }
-  }
-  return qs;
-}
-
-const WORD_SETS=[
-  {q:{en:'Which word means the opposite of "scarce"?',he:'איזו מילה הפוכה ל"נדיר"?',es:'¿Qué palabra es lo opuesto de "escaso"?',ru:'Какое слово противоположно «скудный»?',ar:'أي كلمة عكس "نادر"؟'},
-   o:[{en:'Abundant',he:'שופע',es:'Abundante',ru:'Обильный',ar:'وفير'},{en:'Rare',he:'נדיר',es:'Raro',ru:'Редкий',ar:'نادر'},{en:'Limited',he:'מוגבל',es:'Limitado',ru:'Ограниченный',ar:'محدود'},{en:'Sparse',he:'דליל',es:'Escaso',ru:'Разреженный',ar:'متناثر'}]},
-  {q:{en:'Which word means "to make less severe"?',he:'איזו מילה פירושה "להקל"?',es:'¿Qué palabra significa "hacer menos grave"?',ru:'Какое слово означает «смягчить»?',ar:'أي كلمة تعني "يخفف"؟'},
-   o:[{en:'Mitigate',he:'למתן',es:'Mitigar',ru:'Смягчить',ar:'يخفف'},{en:'Aggravate',he:'להחמיר',es:'Agravar',ru:'Усугубить',ar:'يفاقم'},{en:'Fabricate',he:'לזייף',es:'Fabricar',ru:'Сфабриковать',ar:'يختلق'},{en:'Delegate',he:'להאציל',es:'Delegar',ru:'Делегировать',ar:'يفوض'}]},
-  {q:{en:'Which word does not belong?',he:'איזו מילה לא שייכת?',es:'¿Qué palabra no pertenece?',ru:'Какое слово лишнее?',ar:'أي كلمة لا تنتمي؟'},
-   o:[{en:'Silence',he:'שתיקה',es:'Silencio',ru:'Тишина',ar:'صمت'},{en:'Whisper',he:'לחישה',es:'Susurro',ru:'Шёпот',ar:'همس'},{en:'Shout',he:'צעקה',es:'Grito',ru:'Крик',ar:'صراخ'},{en:'Murmur',he:'מלמול',es:'Murmullo',ru:'Бормотание',ar:'تمتمة'}]},
-  {q:{en:'Which is a synonym for "meticulous"?',he:'מהו מילה נרדפת ל"קפדני"?',es:'¿Cuál es sinónimo de "meticuloso"?',ru:'Какой синоним слова «дотошный»?',ar:'ما مرادف "دقيق"؟'},
-   o:[{en:'Thorough',he:'יסודי',es:'Minucioso',ru:'Тщательный',ar:'شامل'},{en:'Careless',he:'רשלני',es:'Descuidado',ru:'Небрежный',ar:'مهمل'},{en:'Hasty',he:'נחפז',es:'Apresurado',ru:'Поспешный',ar:'متسرع'},{en:'Vague',he:'מעורפל',es:'Vago',ru:'Расплывчатый',ar:'غامض'}]},
-  {q:{en:'Pen is to Write as Knife is to ___?',he:'עט הוא לכתוב כמו סכין הוא ל___?',es:'Pluma es a Escribir como Cuchillo es a ___?',ru:'Ручка к Писать, как Нож к ___?',ar:'قلم إلى يكتب كما سكين إلى ___؟'},
-   o:[{en:'Cut',he:'לחתוך',es:'Cortar',ru:'Резать',ar:'يقطع'},{en:'Sharp',he:'חד',es:'Afilado',ru:'Острый',ar:'حاد'},{en:'Kitchen',he:'מטבח',es:'Cocina',ru:'Кухня',ar:'مطبخ'},{en:'Blade',he:'להב',es:'Hoja',ru:'Лезвие',ar:'نصل'}]},
-  /* Swapped in the 2026 audit: this slot used to ask for "short-lived", whose
-     key word was also the answer to free-test item Q30. Seeing the same word
-     in both places let the test be answered from the game. */
-  {q:{en:'Which word means "happening at the same time"?',he:'איזו מילה פירושה "מתרחש בו-זמנית"?',es:'¿Qué palabra significa "que ocurre a la vez"?',ru:'Какое слово означает «происходящий одновременно»?',ar:'أي كلمة تعني "يحدث في الوقت نفسه"؟'},
-   o:[{en:'Simultaneous',he:'בו-זמני',es:'Simultáneo',ru:'Одновременный',ar:'متزامن'},{en:'Sequential',he:'עוקב',es:'Secuencial',ru:'Последовательный',ar:'متتابع'},{en:'Delayed',he:'מושהה',es:'Retrasado',ru:'Отложенный',ar:'مؤجل'},{en:'Occasional',he:'מזדמן',es:'Ocasional',ru:'Случайный',ar:'عرضي'}]},
-  {q:{en:'Doctor is to Hospital as Teacher is to ___?',he:'רופא הוא לבית חולים כמו מורה הוא ל___?',es:'Médico es a Hospital como Maestro es a ___?',ru:'Врач к Больнице, как Учитель к ___?',ar:'طبيب إلى مستشفى كما معلم إلى ___؟'},
-   o:[{en:'School',he:'בית ספר',es:'Escuela',ru:'Школа',ar:'مدرسة'},{en:'Book',he:'ספר',es:'Libro',ru:'Книга',ar:'كتاب'},{en:'Student',he:'תלמיד',es:'Estudiante',ru:'Ученик',ar:'طالب'},{en:'Chalk',he:'גיר',es:'Tiza',ru:'Мел',ar:'طباشير'}]},
-  {q:{en:'Which word means "widespread"?',he:'איזו מילה פירושה "נפוץ מאוד"?',es:'¿Qué palabra significa "extendido"?',ru:'Какое слово означает «повсеместный»?',ar:'أي كلمة تعني "واسع الانتشار"؟'},
-   o:[{en:'Prevalent',he:'רווח',es:'Prevalente',ru:'Распространённый',ar:'سائد'},{en:'Obscure',he:'סתום',es:'Oscuro',ru:'Неясный',ar:'غامض'},{en:'Isolated',he:'מבודד',es:'Aislado',ru:'Изолированный',ar:'معزول'},{en:'Minor',he:'זניח',es:'Menor',ru:'Незначительный',ar:'طفيف'}]}
+   Every item is checked before it is used: speedFits() fits every rule
+   family it knows to the shown terms, and an item is accepted only if each
+   family that fits predicts the same next number, that number is the key,
+   and no option other than the key is predicted by anything.            */
+const SPEED_BANDS=[
+  {from:1,  to:5,  mix:['add','add','add','add','add','add']},
+  {from:6,  to:10, mix:['sub','sub','sub','add','add','sub']},
+  {from:11, to:16, mix:['mul','mul','mul','add','sub','mul']},
+  {from:17, to:24, mix:['alt','alt','alt','mul','sub','alt']},
+  {from:25, to:32, mix:['sq','tri','inc','sq','alt','inc']},
+  {from:33, to:40, mix:['inter','inter','inter','inc','sq','alt']},
+  {from:41, to:50, mix:['fib','lin','lin','inter','inc','fib']}
 ];
-WORD_SETS.push(
-  {q:{en:'Which word means "to make clear"?',he:'איזו מילה פירושה "להבהיר"?',es:'¿Qué palabra significa "aclarar"?',ru:'Какое слово означает «прояснить»?',ar:'أي كلمة تعني "يوضح"؟'},
-   o:[{en:'Clarify',he:'להבהיר',es:'Aclarar',ru:'Прояснить',ar:'يوضح'},{en:'Obscure',he:'לטשטש',es:'Oscurecer',ru:'Затемнить',ar:'يعتم'},{en:'Conceal',he:'להסתיר',es:'Ocultar',ru:'Скрыть',ar:'يخفي'},{en:'Distort',he:'לעוות',es:'Distorsionar',ru:'Исказить',ar:'يشوه'}]},
-  {q:{en:'Which word is closest to "resilient"?',he:'מהי המילה הקרובה ביותר ל"עמיד"?',es:'¿Cuál es más cercana a "resiliente"?',ru:'Какое слово ближе всего к «стойкий»?',ar:'أي كلمة أقرب لـ"صامد"؟'},
-   o:[{en:'Tough',he:'קשוח',es:'Fuerte',ru:'Крепкий',ar:'قوي'},{en:'Fragile',he:'שביר',es:'Frágil',ru:'Хрупкий',ar:'هش'},{en:'Timid',he:'ביישן',es:'Tímido',ru:'Робкий',ar:'خجول'},{en:'Weary',he:'עייף',es:'Cansado',ru:'Уставший',ar:'متعب'}]},
-  {q:{en:'Which word does not belong?',he:'איזו מילה לא שייכת?',es:'¿Qué palabra no pertenece?',ru:'Какое слово лишнее?',ar:'أي كلمة لا تنتمي؟'},
-   o:[{en:'Triangle',he:'משולש',es:'Triángulo',ru:'Треугольник',ar:'مثلث'},{en:'Circle',he:'עיגול',es:'Círculo',ru:'Круг',ar:'دائرة'},{en:'Square',he:'ריבוע',es:'Cuadrado',ru:'Квадрат',ar:'مربع'},{en:'River',he:'נהר',es:'Río',ru:'Река',ar:'نهر'}]},
-  {q:{en:'Idea is to Thought as Emotion is to ___?',he:'רעיון הוא למחשבה כמו רגש הוא ל___?',es:'Idea es a Pensamiento como Emoción es a ___?',ru:'Идея относится к Мысли, как Эмоция к ___?',ar:'فكرة إلى تفكير كما عاطفة إلى ___؟'},
-   o:[{en:'Feeling',he:'תחושה',es:'Sentimiento',ru:'Чувство',ar:'شعور'},{en:'Logic',he:'לוגיקה',es:'Lógica',ru:'Логика',ar:'منطق'},{en:'Number',he:'מספר',es:'Número',ru:'Число',ar:'رقم'},{en:'Fact',he:'עובדה',es:'Hecho',ru:'Факт',ar:'حقيقة'}]},
-  {q:{en:'Which word means "unavoidable"?',he:'איזו מילה פירושה "בלתי נמנע"?',es:'¿Qué palabra significa "inevitable"?',ru:'Какое слово означает «неизбежный»?',ar:'أي كلمة تعني "حتمي"؟'},
-   o:[{en:'Inevitable',he:'בלתי נמנע',es:'Inevitable',ru:'Неизбежный',ar:'حتمي'},{en:'Optional',he:'אופציונלי',es:'Opcional',ru:'Необязательный',ar:'اختياري'},{en:'Uncertain',he:'לא ודאי',es:'Incierto',ru:'Неопределённый',ar:'غير مؤكد'},{en:'Rare',he:'נדיר',es:'Raro',ru:'Редкий',ar:'نادر'}]},
-  {q:{en:'Key is to Lock as Password is to ___?',he:'מפתח הוא למנעול כמו סיסמה היא ל___?',es:'Llave es a Cerradura como Contraseña es a ___?',ru:'Ключ относится к Замку, как Пароль к ___?',ar:'مفتاح إلى قفل كما كلمة مرور إلى ___؟'},
-   o:[{en:'Account',he:'חשבון',es:'Cuenta',ru:'Учётная запись',ar:'حساب'},{en:'Letter',he:'מכתב',es:'Carta',ru:'Письмо',ar:'رسالة'},{en:'Book',he:'ספר',es:'Libro',ru:'Книга',ar:'كتاب'},{en:'Window',he:'חלון',es:'Ventana',ru:'Окно',ar:'نافذة'}]},
-  {q:{en:'Which word means "to reject firmly"?',he:'איזו מילה פירושה "לדחות בתוקף"?',es:'¿Qué palabra significa "rechazar con firmeza"?',ru:'Какое слово означает «твёрдо отвергнуть»?',ar:'أي كلمة تعني "يرفض بحزم"؟'},
-   o:[{en:'Refute',he:'להפריך',es:'Refutar',ru:'Опровергнуть',ar:'يدحض'},{en:'Accept',he:'לקבל',es:'Aceptar',ru:'Принять',ar:'يقبل'},{en:'Endorse',he:'לאשר',es:'Respaldar',ru:'Одобрить',ar:'يؤيد'},{en:'Suggest',he:'להציע',es:'Sugerir',ru:'Предложить',ar:'يقترح'}]},
-  {q:{en:'Which word means "showing great care and thoroughness"?',he:'איזו מילה פירושה "מפורט ויסודי מאוד"?',es:'¿Qué palabra significa "muy cuidadoso y detallado"?',ru:'Какое слово означает «очень тщательный»?',ar:'أي كلمة تعني "دقيق للغاية"؟'},
-   o:[{en:'Rigorous',he:'קפדני',es:'Riguroso',ru:'Строгий',ar:'صارم'},{en:'Sloppy',he:'רשלני',es:'Descuidado',ru:'Неряшливый',ar:'مهمل'},{en:'Casual',he:'אגבי',es:'Casual',ru:'Небрежный',ar:'عرضي'},{en:'Lazy',he:'עצלן',es:'Perezoso',ru:'Ленивый',ar:'كسول'}]},
-  {q:{en:'Which word is the opposite of "transparent"?',he:'איזו מילה הפוכה ל"שקוף"?',es:'¿Qué palabra es opuesta a "transparente"?',ru:'Какое слово противоположно «прозрачный»?',ar:'أي كلمة عكس "شفاف"؟'},
-   o:[{en:'Opaque',he:'אטום',es:'Opaco',ru:'Непрозрачный',ar:'معتم'},{en:'Clear',he:'צלול',es:'Claro',ru:'Ясный',ar:'واضح'},{en:'Visible',he:'נראה',es:'Visible',ru:'Видимый',ar:'مرئي'},{en:'Bright',he:'בהיר',es:'Brillante',ru:'Яркий',ar:'مشرق'}]},
-  {q:{en:'Which word means "a strong desire to know"?',he:'איזו מילה פירושה "סקרנות עזה"?',es:'¿Qué palabra significa "gran deseo de saber"?',ru:'Какое слово означает «сильное желание знать»?',ar:'أي كلمة تعني "رغبة قوية في المعرفة"؟'},
-   o:[{en:'Curiosity',he:'סקרנות',es:'Curiosidad',ru:'Любопытство',ar:'فضول'},{en:'Apathy',he:'אדישות',es:'Apatía',ru:'Апатия',ar:'لامبالاة'},{en:'Boredom',he:'שעמום',es:'Aburrimiento',ru:'Скука',ar:'ملل'},{en:'Fatigue',he:'עייפות',es:'Fatiga',ru:'Усталость',ar:'إرهاق'}]},
-  {q:{en:'Which word means "existing everywhere at once"?',he:'איזו מילה פירושה "קיים בכל מקום בו-זמנית"?',es:'¿Qué palabra significa "presente en todas partes"?',ru:'Какое слово означает «повсюду одновременно»?',ar:'أي كلمة تعني "موجود في كل مكان"؟'},
-   o:[{en:'Ubiquitous',he:'כל-נוכח',es:'Ubicuo',ru:'Вездесущий',ar:'منتشر'},{en:'Scarce',he:'נדיר',es:'Escaso',ru:'Скудный',ar:'نادر'},{en:'Local',he:'מקומי',es:'Local',ru:'Локальный',ar:'محلي'},{en:'Hidden',he:'נסתר',es:'Oculto',ru:'Скрытый',ar:'مخفي'}]}
-);
+function speedBand(lvl){ return SPEED_BANDS.find(b=>lvl>=b.from&&lvl<=b.to)||SPEED_BANDS[SPEED_BANDS.length-1]; }
 
+/* One series of the given rule. f (0..1) is how far into its band the level is. */
+function speedMake(rule,lvl,f){
+  const R=gRand, big=lvl>=17;
+  let seq=[], ans, alt=[];
+  if(rule==='add'){
+    const d=big?R(7,14+Math.round(f*8)):R(1,Math.min(3+lvl,9)), a0=big?R(10,60):R(1,9+lvl);
+    seq=[0,1,2,3].map(k=>a0+d*k); ans=a0+4*d;
+    alt=[ans+1,ans-1,ans+d,ans+2*d,ans+10,ans-2];
+  } else if(rule==='sub'){
+    const d=big?R(6,13+Math.round(f*6)):R(2,4+Math.round(f*6)+Math.floor(lvl/6)), end=R(1,12);
+    ans=end; seq=[4,3,2,1].map(k=>end+d*k);
+    alt=[ans+1,ans-1,ans-d,ans+2*d,ans+10,ans-2].filter(v=>v>0);
+  } else if(rule==='mul'){
+    const r=Math.random()<0.6?2:3, a0=r===2?R(1,4+Math.round(f*4)):R(1,3);
+    seq=[0,1,2,3].map(k=>a0*Math.pow(r,k)); ans=a0*Math.pow(r,4);
+    const l=seq[3], pv=seq[2];
+    alt=[l+(l-pv), l+pv, l*(r===2?3:2), ans+r, ans-r, ans+l];
+  } else if(rule==='alt'){
+    const a=R(3,8+Math.round(f*6)), b=R(1,a-1), plus=Math.random()<0.4, a0=R(4,20);
+    const ds=[a,plus?b:-b];
+    seq=[a0]; for(let k=1;k<6;k++) seq.push(seq[k-1]+ds[(k-1)%2]);
+    ans=seq[5]+ds[1];
+    const l=seq[5];
+    alt=[l+ds[0], l+a+(plus?b:-b), ans+1, ans-1, l-(plus?b:-b)];
+  } else if(rule==='sq'){
+    const k0=R(1,4+Math.round(f*5)), c=lvl>=29?R(-3,6):0, n=f>0.5?5:4;
+    seq=[...Array(n).keys()].map(i=>(k0+i)*(k0+i)+c); ans=(k0+n)*(k0+n)+c;
+    const l=seq[n-1], pv=seq[n-2];
+    alt=[l+(l-pv), l+(l-pv)+1, (k0+n+1)*(k0+n+1)+c, ans+1, ans-1, ans+2];
+  } else if(rule==='tri'){
+    const T=n=>n*(n+1)/2, k0=R(1,5+Math.round(f*4));
+    seq=[0,1,2,3,4].map(i=>T(k0+i)); ans=T(k0+5);
+    const l=seq[4], pv=seq[3];
+    alt=[l+(l-pv), l+(l-pv)+2, ans+1, ans-1, T(k0+6)];
+  } else if(rule==='inc'){
+    const a0=R(1,15), d=R(1,5), s=lvl>=41?R(2,4):R(1,3);
+    seq=[a0]; for(let k=1;k<5;k++) seq.push(seq[k-1]+d+s*(k-1));
+    const ld=d+s*3; ans=seq[4]+ld+s;
+    alt=[seq[4]+ld, seq[4]+ld+2*s, ans+1, ans-1, ans+s+1];
+  } else if(rule==='inter'){
+    const A0=R(1,15), p=R(2,8), geo=lvl>=41&&Math.random()<0.5;
+    const B0=geo?R(1,3):R(30,60+Math.round(f*20)), q=R(2,6);
+    const A=k=>A0+p*k, B=k=>geo?B0*Math.pow(2,k):B0-q*k;
+    seq=[A(0),B(0),A(1),B(1),A(2),B(2),A(3)]; ans=B(3);
+    const l=seq[6];
+    alt=[A(4), B(2)+p, l+(l-seq[5]), ans+1, ans-1, geo?B(2)+B(1):B(2)-2*q];
+  } else if(rule==='fib'){
+    const a=R(1,5), b=R(a,a+6);
+    seq=[a,b]; for(let k=2;k<5;k++) seq.push(seq[k-1]+seq[k-2]);
+    ans=seq[4]+seq[3];
+    const l=seq[4], pv=seq[3];
+    alt=[l*2, l+(l-pv), ans+1, ans-1, l+pv+seq[2]];
+  } else if(rule==='lin'){
+    const p=Math.random()<0.65?2:3, q=[-3,-2,-1,1,2,3][R(0,5)], a0=R(2,6);
+    seq=[a0]; for(let k=1;k<(p===2?5:4);k++) seq.push(seq[k-1]*p+q);
+    const l=seq[seq.length-1]; ans=l*p+q;
+    alt=[l*p, l*p-q, l+(l-seq[seq.length-2]), ans+1, ans-1, l*(p+1)+q];
+  }
+  return {rule,seq,ans,alt};
+}
+
+/* Every family the checker knows. Each one only counts as a fit when the
+   shown terms over-determine it (at least one term beyond its parameters). */
+function speedFits(a){
+  const n=a.length, out=[];
+  const d=a.slice(1).map((v,i)=>v-a[i]);
+  const allEq=x=>x.length>0 && x.every(v=>v===x[0]);
+  const isInt=v=>Number.isInteger(v);
+  if(n>=3 && allEq(d)) out.push(['arith',a[n-1]+d[0]]);
+  if(n>=3 && a.every(v=>v!==0)){
+    const ok=a.slice(2).every((v,i)=>v*a[i]===a[i+1]*a[i+1]);
+    const nx=a[n-1]*a[n-1]/a[n-2];
+    if(ok && isInt(nx)) out.push(['geom',nx]);
+  }
+  if(n>=4){ const dd=d.slice(1).map((v,i)=>v-d[i]); if(allEq(dd)) out.push(['poly2',a[n-1]+d[n-2]+dd[0]]); }
+  if(n>=4 && a[1]!==a[0]){
+    const p=(a[2]-a[1])/(a[1]-a[0]), q=a[1]-p*a[0];
+    if(a.slice(1).every((v,i)=>Math.abs(v-(p*a[i]+q))<1e-9)){ const nx=p*a[n-1]+q; if(isInt(nx)) out.push(['linrec',nx]); }
+  }
+  if(n>=4 && a.slice(2).every((v,i)=>v===a[i]+a[i+1])) out.push(['fib',a[n-1]+a[n-2]]);
+  if(n>=5 && d.every((v,i)=>v===d[i%2])) out.push(['altdiff',a[n-1]+d[(n-1)%2]]);
+  if(n>=6){
+    const ev=a.filter((_,i)=>i%2===0), od=a.filter((_,i)=>i%2===1), sub=n%2===0?ev:od;
+    const other=n%2===0?od:ev;
+    const subFit=x=>{ const r=[]; const dx=x.slice(1).map((v,i)=>v-x[i]);
+      if(x.length>=3 && allEq(dx)) r.push(x[x.length-1]+dx[0]);
+      if(x.length>=3 && x.every(v=>v!==0) && x.slice(2).every((v,i)=>v*x[i]===x[i+1]*x[i+1])){
+        const nx=x[x.length-1]*x[x.length-1]/x[x.length-2]; if(isInt(nx)) r.push(nx); }
+      return r; };
+    const fitsOther=subFit(other).length>0;
+    if(fitsOther) subFit(sub).forEach(v=>out.push(['inter',v]));
+  }
+  return out;
+}
+/* true when the item has exactly one defensible next number: its key. */
+function speedVerify(seq,key,vals){
+  const fits=speedFits(seq);
+  if(!fits.length) return false;
+  const preds=new Set(fits.map(f=>f[1]));
+  if(preds.size!==1 || !preds.has(key)) return false;
+  if(new Set(vals).size!==vals.length) return false;
+  return vals.filter(v=>v===key).length===1 && vals.every(v=>Number.isInteger(v)&&v>0);
+}
+
+function genSpeed(lvl){
+  const band=speedBand(lvl), f=(lvl-band.from)/Math.max(1,band.to-band.from);
+  const qs=[], seen=new Set();
+  gShuffle(band.mix.slice()).forEach(rule=>{
+    let item=null;
+    for(let tries=0;tries<40 && !item;tries++){
+      const m=speedMake(rule,lvl,f);
+      if(m.ans<=0 || m.ans>999 || m.seq.some(v=>v<=0) || seen.has(m.seq.join(','))) continue;
+      const shown=new Set(m.seq);
+      const pool=gShuffle([...new Set(m.alt)].filter(v=>Number.isInteger(v)&&v>0&&v!==m.ans&&!shown.has(v)));
+      let pad=1;
+      while(pool.length<3){ const v=m.ans+(pad%2?1:-1)*(2+Math.floor(pad/2)); pad++; if(v>0&&v!==m.ans&&!shown.has(v)&&!pool.includes(v)) pool.push(v); }
+      const opts=[m.ans,...pool.slice(0,3)].map(v=>({val:String(v)}));
+      const q={num:true,prompt:p('nextnum'),seq:m.seq,opts,ans:0,key:m.ans,rule};
+      if(!speedVerify(m.seq,m.ans,opts.map(o=>+o.val))) continue;
+      item=shuffleOpts(q);
+    }
+    if(!item){   /* never reached in the self-check; a plain +n series as a safe floor */
+      const a0=gRand(2,9), d=gRand(2,9), seq=[0,1,2,3].map(k=>a0+d*k), ans=a0+4*d;
+      item=shuffleOpts({num:true,prompt:p('nextnum'),seq,opts:[ans,ans+1,ans-1,ans+d].map(v=>({val:String(v)})),ans:0,key:ans,rule:'add',fb:1});
+    }
+    seen.add(item.seq.join(','));
+    qs.push(item);
+  });
+  return qs;
+}
+
+function genSpatial(lvl){ return spGen(lvl); }
+
+/* ==================== SPATIAL — mental rotation and reflection ====================
+   Item types, introduced by level:
+     rot     a shape turns by a fixed angle; pick the next frame      (1+)
+     mirror  pick the one reflection among rotations                  (1+;
+             from 15 the reflection is also turned)
+     notrot  three rotations and one impostor: which is NOT the shape (11+)
+     accel   each turn is bigger than the last by the same amount     (44+)
+   Composite figures (a small second glyph fixed to the first) arrive at 26
+   and make up 4 of 6 items by 44; their distractors include "the small part
+   turned on its own". Step angles shrink 90 → 45 → 30/45/60 → 20/30/40 →
+   15/20/25/35, both directions from 6, and the time drops 150 → 90 s.
+
+   Exactly-one-answer check: every glyph is chiral, and a composite holds one
+   copy of a chiral glyph, so a figure's pose (glyph, composite part angle,
+   turn mod 360, mirrored) identifies its image uniquely. spVerify() checks
+   each option set on those signatures before the item is used.          */
+const SP_GLYPHS=['flag','ell','barb','drop'];
+const _spMod=v=>((v%360)+360)%360;
+function spComposite(A,B,k){
+  const key=`cx_${A}_${B}_${_spMod(k)}`;
+  if(!GLYPHS[key]) GLYPHS[key]=`<g transform="scale(.7)">${GLYPHS[A]}</g>`+
+    `<g transform="translate(15 15) scale(.5) rotate(${_spMod(k)} 16 16)">${GLYPHS[B]}</g>`;
+  return key;
+}
+function spParts(glyph){
+  const m=/^cx_(\w+?)_(\w+?)_(\d+)$/.exec(glyph);
+  return m?{A:m[1],B:m[2],k:+m[3]}:{A:glyph,B:'',k:0};
+}
+const spSig=o=>`${o.glyph}:${_spMod(o.rot||0)}:${o.mir?1:0}`;
+/* same figure up to a turn (a reflection turned is still a reflection) */
+const spSameShape=(a,b)=>a.glyph===b.glyph && !!a.mir===!!b.mir;
+function spPick(pool,n,avoid){
+  const seen=new Set(avoid), out=[];
+  gShuffle(pool.slice()).forEach(o=>{ const s=spSig(o); if(out.length<n && !seen.has(s)){ seen.add(s); out.push(o); } });
+  return out;
+}
+function spStep(lvl){
+  const R=a=>a[Math.floor(Math.random()*a.length)];
+  if(lvl<=5) return 90;
+  if(lvl<=12) return R([45,90]);
+  if(lvl<=22) return R([30,45,60]);
+  if(lvl<=35) return R([20,30,40]);
+  return R([15,20,25,35]);
+}
+function spFigure(comp){
+  const R=a=>a[Math.floor(Math.random()*a.length)];
+  const A=R(SP_GLYPHS);
+  if(!comp) return {key:A,comp:null};
+  const B=R(SP_GLYPHS.filter(x=>x!==A)), k=R([0,90,180,270]);
+  return {key:spComposite(A,B,k),comp:{A,B,k}};
+}
+/* the same composite with its small part turned on its own */
+const spInnerTurned=(fig,by)=>spComposite(fig.comp.A,fig.comp.B,fig.comp.k+by);
+
+function spRot(lvl,fig){
+  const s=spStep(lvl), dir=lvl<=5?1:(Math.random()<0.5?1:-1), base=gRand(0,7)*45;
+  const at=k=>({glyph:fig.key,rot:base+dir*s*k});
+  const ans=at(3);
+  const pool=[at(2),at(4),at(1),{glyph:fig.key,rot:ans.rot,mir:true},
+              {glyph:fig.key,rot:base-dir*s*3},{glyph:fig.key,rot:ans.rot+180}];
+  if(s>=30) pool.push({glyph:fig.key,rot:ans.rot+dir*s/2},{glyph:fig.key,rot:ans.rot-dir*s/2});
+  if(fig.comp) pool.push({glyph:spInnerTurned(fig,90),rot:ans.rot},{glyph:spInnerTurned(fig,180),rot:ans.rot});
+  return {sp:'rot',prompt:p('whichrotation'),seq:[at(0),at(1),at(2)],
+          opts:[ans,...spPick(pool,3,[spSig(ans)])],ans:0,key:ans};
+}
+function spAccel(lvl,fig){
+  const s=[15,20,25,30][gRand(0,3)], dir=Math.random()<0.5?1:-1, base=gRand(0,7)*45;
+  const at=c=>({glyph:fig.key,rot:base+dir*s*c});
+  const ans=at(10);                                      /* turns s, 2s, 3s → next 4s */
+  const pool=[at(9),at(12),at(8),{glyph:fig.key,rot:ans.rot,mir:true},{glyph:fig.key,rot:ans.rot+180}];
+  if(fig.comp) pool.push({glyph:spInnerTurned(fig,90),rot:ans.rot});
+  return {sp:'accel',prompt:t('sp.accel'),seq:[at(0),at(1),at(3),at(6)],
+          opts:[ans,...spPick(pool,3,[spSig(ans)])],ans:0,key:ans};
+}
+function spMirror(lvl,fig){
+  const unit=lvl<15?90:(lvl<30?45:30);
+  const r=gRand(0,7)*45, F={glyph:fig.key,rot:r};
+  const x=lvl<15?0:gRand(1,Math.floor(360/unit)-1)*unit;
+  const ans={glyph:fig.key,rot:r+x,mir:true};
+  const pool=[];
+  for(let a=0;a<360;a+=unit) pool.push({glyph:fig.key,rot:r+a});
+  if(fig.comp) pool.push({glyph:spInnerTurned(fig,90),rot:r+gRand(0,3)*90});
+  return {sp:'mirror',prompt:lvl<15?p('mirror'):t('sp.mirrorturn'),noQ:true,seq:[F],
+          opts:[ans,...spPick(pool,3,[spSig(ans)])],ans:0,base:F};
+}
+function spNotRot(lvl,fig){
+  const unit=lvl<26?45:30;
+  const r=gRand(0,7)*45, F={glyph:fig.key,rot:r};
+  const offs=gShuffle([...Array(Math.floor(360/unit)-1).keys()].map(i=>(i+1)*unit)).slice(0,3);
+  const rots=offs.map(a=>({glyph:fig.key,rot:r+a}));
+  const turn=gRand(0,Math.floor(360/unit)-1)*unit;
+  const odd = (fig.comp && Math.random()<0.5)
+    ? {glyph:spInnerTurned(fig,[90,180,270][gRand(0,2)]),rot:r+turn}
+    : {glyph:fig.key,rot:r+turn,mir:true};
+  return {sp:'notrot',prompt:t('sp.notrot'),noQ:true,seq:[F],opts:[odd,...rots],ans:0,base:F};
+}
+/* Exactly one option satisfies the item's rule, and it is the key. */
+function spVerify(q){
+  const sigs=q.opts.map(optSig);
+  if(new Set(sigs).size!==sigs.length) return false;
+  let good;
+  if(q.sp==='rot'||q.sp==='accel') good=q.opts.map(o=>spSig(o)===spSig(q.key));
+  else if(q.sp==='mirror') good=q.opts.map(o=>o.glyph===q.base.glyph && !!o.mir!==!!q.base.mir);
+  else good=q.opts.map(o=>!spSameShape(o,q.base));
+  return good.filter(Boolean).length===1 && good[q.ans]===true;
+}
+function spGen(lvl){
+  let plan;
+  if(lvl<=10)      plan=['rot','mirror','rot','mirror','rot','mirror'];
+  else if(lvl<=25) plan=['rot','mirror','notrot','rot','notrot','mirror'];
+  else if(lvl<=43) plan=['rot','notrot','mirror','rot','notrot','rot'];
+  else             plan=['accel','rot','notrot','mirror','notrot','rot'];
+  const nComp = lvl<26?0:(lvl<=35?2:(lvl<=43?3:4));
+  const comps=gShuffle(plan.map((_,i)=>i<nComp));
+  const make={rot:spRot,accel:spAccel,mirror:spMirror,notrot:spNotRot};
+  return gShuffle(plan.map((type,i)=>{
+    for(let tries=0;tries<30;tries++){
+      const q=make[type](lvl,spFigure(comps[i]));
+      if(q.opts.length===4 && spVerify(q)) return shuffleOpts(q);
+    }
+    return Object.assign(shuffleOpts(spRot(Math.min(lvl,5),spFigure(false))),{fb:1});   /* safe floor; the self-check flags it */
+  }));
+}
+
+/* ==================== WORD WIT (was "Word Recall") ====================
+   What the game really is: synonyms, opposites, analogies, odd-one-out and
+   definitions — so it is named and described for that. 124 items, each
+   tagged d:1 everyday / d:2 educated / d:3 advanced and drawn by level band.
+   Rules every item is held to, in all five languages:
+     • exactly one defensible answer; distractors are clearly wrong, and a
+       "trap" distractor (a synonym in an opposites item) is never itself
+       the answer to the question asked;
+     • no translation creates a second answer (checked by hand: e.g. no
+       option may translate to the stem word, as "Escaso" once did);
+     • no stem or answer reuses a key word of the free test (QB);
+     • a word is never offered twice in one item, in any language.
+   Format: [id, kind, d, stem, [answer, distractor, distractor, distractor]]
+   Words are "en|he|es|ru|ar". Analogy stems are three words; odd-one-out
+   items have no stem (the first option is the odd one); definition stems
+   are phrases. The options are shuffled when the item is drawn.           */
+const WW_LANGS=['en','he','es','ru','ar'];
+const WW=[
+/* ---------- d:1 ---------- */
+["w101","syn",1,"Happy|שמח|Feliz|Счастливый|سعيد",["Joyful|עליז|Alegre|Радостный|مسرور","Angry|כועס|Enojado|Сердитый|غاضب","Tired|עייף|Cansado|Усталый|متعب","Quiet|שקט|Callado|Тихий|هادئ"]],
+["w102","syn",1,"Smart|חכם|Inteligente|Умный|ذكي",["Clever|נבון|Listo|Сообразительный|نبيه","Lazy|עצלן|Perezoso|Ленивый|كسول","Rude|גס רוח|Grosero|Грубый|وقح","Shy|ביישן|Tímido|Застенчивый|خجول"]],
+["w103","syn",1,"Gift|מתנה|Regalo|Подарок|هدية",["Present|שי|Obsequio|Дар|عطية","Debt|חוב|Deuda|Долг|دَين","Ticket|כרטיס|Billete|Билет|تذكرة","Wall|קיר|Pared|Стена|جدار"]],
+["w104","syn",1,"Wealthy|אמיד|Adinerado|Состоятельный|ثري",["Rich|עשיר|Rico|Богатый|غني","Poor|עני|Pobre|Бедный|فقير","Brave|אמיץ|Valiente|Храбрый|شجاع","Sleepy|ישנוני|Somnoliento|Сонный|نعسان"]],
+["w105","syn",1,"Error|שגיאה|Error|Ошибка|خطأ",["Mistake|טעות|Equivocación|Промах|غلطة","Reward|פרס|Premio|Награда|مكافأة","Answer|תשובה|Respuesta|Ответ|جواب","Habit|הרגל|Costumbre|Привычка|عادة"]],
+["w106","syn",1,"Brave|אמיץ|Valiente|Храбрый|شجاع",["Courageous|נועז|Valeroso|Смелый|جريء","Cruel|אכזר|Cruel|Жестокий|قاسٍ","Clumsy|מגושם|Torpe|Неуклюжий|أخرق","Greedy|חמדן|Codicioso|Жадный|جشع"]],
+["w107","syn",1,"Shout|לצעוק|Gritar|Кричать|يصرخ",["Yell|לזעוק|Chillar|Орать|يصيح","Whisper|ללחוש|Susurrar|Шептать|يهمس","Sit|לשבת|Sentarse|Сидеть|يجلس","Sleep|לישון|Dormir|Спать|ينام"]],
+["w108","syn",1,"Help|לעזור|Ayudar|Помогать|يساعد",["Assist|לסייע|Auxiliar|Содействовать|يعاون","Hinder|להפריע|Estorbar|Мешать|يعرقل","Borrow|ללוות|Pedir prestado|Занимать|يستعير","Count|לספור|Contar|Считать|يعدّ"]],
+["w109","syn",1,"Journey|מסע|Viaje|Путешествие|رحلة",["Trip|נסיעה|Travesía|Поездка|سفر","Meal|ארוחה|Comida|Обед|وجبة","Story|סיפור|Cuento|Рассказ|قصة","Bridge|גשר|Puente|Мост|جسر"]],
+["w110","syn",1,"Quiet|שקט|Callado|Тихий|هادئ",["Silent|דומם|Silencioso|Безмолвный|صامت","Noisy|רועש|Ruidoso|Шумный|صاخب","Bright|בהיר|Brillante|Яркий|ساطع","Hungry|רעב|Hambriento|Голодный|جائع"]],
+["w111","syn",1,"Sad|עצוב|Triste|Грустный|حزين",["Unhappy|אומלל|Desdichado|Печальный|كئيب","Cheerful|עליז|Alegre|Весёлый|مرح","Strict|קפדן|Estricto|Строгий|صارم","Late|מאוחר|Tardío|Поздний|متأخر"]],
+["w121","ant",1,"Hot|חם|Caliente|Горячий|حار",["Cold|קר|Frío|Холодный|بارد","Warm|חמים|Tibio|Тёплый|دافئ","Dry|יבש|Seco|Сухой|جاف","Loud|רועש|Ruidoso|Громкий|صاخب"]],
+["w122","ant",1,"Early|מוקדם|Temprano|Рано|مبكراً",["Late|מאוחר|Tarde|Поздно|متأخراً","Soon|בקרוב|Pronto|Скоро|قريباً","Often|תכופות|A menudo|Часто|غالباً","Long|ארוך|Largo|Долго|طويلاً"]],
+["w123","ant",1,"Open|פתוח|Abierto|Открытый|مفتوح",["Closed|סגור|Cerrado|Закрытый|مغلق","Empty|ריק|Vacío|Пустой|فارغ","Broken|שבור|Roto|Сломанный|مكسور","Wide|רחב|Ancho|Широкий|واسع"]],
+["w124","ant",1,"Heavy|כבד|Pesado|Тяжёлый|ثقيل",["Light|קל|Ligero|Лёгкий|خفيف","Strong|חזק|Fuerte|Сильный|قوي","Full|מלא|Lleno|Полный|ممتلئ","Thick|עבה|Grueso|Толстый|سميك"]],
+["w125","ant",1,"Inside|בפנים|Dentro|Внутри|داخل",["Outside|בחוץ|Fuera|Снаружи|خارج","Above|מעל|Encima|Сверху|فوق","Behind|מאחור|Detrás|Сзади|خلف","Near|קרוב|Cerca|Рядом|قرب"]],
+["w126","ant",1,"Arrive|להגיע|Llegar|Прибывать|يصل",["Leave|לעזוב|Partir|Отбывать|يغادر","Wait|לחכות|Esperar|Ждать|ينتظر","Return|לחזור|Volver|Возвращаться|يعود","Carry|לסחוב|Cargar|Нести|يحمل"]],
+["w127","ant",1,"Victory|ניצחון|Victoria|Победа|نصر",["Defeat|תבוסה|Derrota|Поражение|هزيمة","Battle|קרב|Batalla|Битва|معركة","Prize|פרס|Premio|Приз|جائزة","Effort|מאמץ|Esfuerzo|Усилие|جهد"]],
+["w128","ant",1,"Buy|לקנות|Comprar|Покупать|يشتري",["Sell|למכור|Vender|Продавать|يبيع","Pay|לשלם|Pagar|Платить|يدفع","Borrow|ללוות|Pedir prestado|Занимать|يستعير","Spend|להוציא|Gastar|Тратить|ينفق"]],
+["w129","ant",1,"Ancient|עתיק|Antiguo|Древний|قديم",["Modern|מודרני|Moderno|Современный|حديث","Old|ישן|Viejo|Старый|عتيق","Famous|מפורסם|Famoso|Знаменитый|مشهور","Broken|שבור|Roto|Сломанный|مكسور"]],
+["w130","ant",1,"Generous|נדיב|Generoso|Щедрый|كريم",["Stingy|קמצן|Tacaño|Скупой|بخيل","Kind|אדיב|Amable|Добрый|لطيف","Honest|ישר|Honesto|Честный|صادق","Patient|סבלני|Paciente|Терпеливый|صبور"]],
+["w131","ant",1,"Tall|גבוה|Alto|Высокий|طويل",["Short|נמוך|Bajo|Низкий|قصير","Thin|רזה|Delgado|Худой|نحيف","Young|צעיר|Joven|Молодой|شاب","Strong|חזק|Fuerte|Сильный|قوي"]],
+["w132","ant",1,"Accept|לקבל|Aceptar|Принимать|يقبل",["Refuse|לסרב|Rechazar|Отвергать|يرفض","Agree|להסכים|Consentir|Соглашаться|يوافق","Answer|לענות|Responder|Отвечать|يجيب","Explain|להסביר|Explicar|Объяснять|يشرح"]],
+["w133","ant",1,"Wet|רטוב|Mojado|Мокрый|مبلل",["Dry|יבש|Seco|Сухой|جاف","Cold|קר|Frío|Холодный|بارد","Clean|נקי|Limpio|Чистый|نظيف","Soft|רך|Blando|Мягкий|ناعم"]],
+["w134","ant",1,"Remember|לזכור|Recordar|Помнить|يتذكر",["Forget|לשכוח|Olvidar|Забывать|ينسى","Repeat|לחזור על|Repetir|Повторять|يكرر","Notice|להבחין|Notar|Замечать|يلاحظ","Learn|ללמוד|Aprender|Учить|يتعلم"]],
+["w141","ana",1,["Bird|ציפור|Pájaro|Птица|طائر","Nest|קן|Nido|Гнездо|عش","Bee|דבורה|Abeja|Пчела|نحلة"],["Hive|כוורת|Colmena|Улей|خلية","Honey|דבש|Miel|Мёд|عسل","Flower|פרח|Flor|Цветок|زهرة","Wing|כנף|Ala|Крыло|جناح"]],
+["w142","ana",1,["Glove|כפפה|Guante|Перчатка|قفاز","Hand|יד|Mano|Рука|يد","Sock|גרב|Calcetín|Носок|جورب"],["Foot|כף רגל|Pie|Нога|قدم","Shoe|נעל|Zapato|Ботинок|حذاء","Wool|צמר|Lana|Шерсть|صوف","Knee|ברך|Rodilla|Колено|ركبة"]],
+["w143","ana",1,["Puppy|גור|Cachorro|Щенок|جرو","Dog|כלב|Perro|Собака|كلب","Kitten|חתלתול|Gatito|Котёнок|هريرة"],["Cat|חתול|Gato|Кошка|قط","Mouse|עכבר|Ratón|Мышь|فأر","Milk|חלב|Leche|Молоко|حليب","Tail|זנב|Cola|Хвост|ذيل"]],
+["w144","ana",1,["Eye|עין|Ojo|Глаз|عين","See|לראות|Ver|Видеть|يرى","Ear|אוזן|Oído|Ухо|أذن"],["Hear|לשמוע|Oír|Слышать|يسمع","Speak|לדבר|Hablar|Говорить|يتكلم","Sound|צליל|Sonido|Звук|صوت","Smell|להריח|Oler|Нюхать|يشم"]],
+["w145","ana",1,["Hungry|רעב|Hambriento|Голодный|جائع","Eat|לאכול|Comer|Есть|يأكل","Tired|עייף|Cansado|Усталый|متعب"],["Sleep|לישון|Dormir|Спать|ينام","Run|לרוץ|Correr|Бегать|يركض","Bed|מיטה|Cama|Кровать|سرير","Work|לעבוד|Trabajar|Работать|يعمل"]],
+["w146","ana",1,["Car|מכונית|Coche|Машина|سيارة","Road|כביש|Carretera|Дорога|طريق","Train|רכבת|Tren|Поезд|قطار"],["Rails|מסילה|Vía|Рельсы|سكة","Station|תחנה|Estación|Вокзал|محطة","Ticket|כרטיס|Billete|Билет|تذكرة","Engine|מנוע|Motor|Двигатель|محرك"]],
+["w147","ana",1,["Morning|בוקר|Mañana|Утро|صباح","Breakfast|ארוחת בוקר|Desayuno|Завтрак|فطور","Evening|ערב|Noche|Вечер|مساء"],["Dinner|ארוחת ערב|Cena|Ужин|عشاء","Lunch|ארוחת צהריים|Almuerzo|Обед|غداء","Moon|ירח|Luna|Луна|قمر","Pillow|כרית|Almohada|Подушка|وسادة"]],
+["w148","ana",1,["Bread|לחם|Pan|Хлеб|خبز","Bakery|מאפייה|Panadería|Булочная|مخبز","Medicine|תרופה|Medicina|Лекарство|دواء"],["Pharmacy|בית מרקחת|Farmacia|Аптека|صيدلية","Doctor|רופא|Médico|Врач|طبيب","Pill|כדור|Pastilla|Таблетка|حبة","Patient|מטופל|Paciente|Пациент|مريض"]],
+["w149","ana",1,["Cold|קור|Frío|Холод|برد","Coat|מעיל|Abrigo|Пальто|معطف","Rain|גשם|Lluvia|Дождь|مطر"],["Umbrella|מטרייה|Paraguas|Зонт|مظلّة","Cloud|ענן|Nube|Облако|غيمة","Puddle|שלולית|Charco|Лужа|بِركة ماء","Thunder|רעם|Trueno|Гром|رعد"]],
+["w161","odd",1,null,["Carrot|גזר|Zanahoria|Морковь|جزر","Apple|תפוח|Manzana|Яблоко|تفاح","Pear|אגס|Pera|Груша|كمثرى","Plum|שזיף|Ciruela|Слива|برقوق"]],
+["w162","odd",1,null,["April|אפריל|Abril|Апрель|أبريل","Monday|יום שני|Lunes|Понедельник|الإثنين","Friday|יום שישי|Viernes|Пятница|الجمعة","Sunday|יום ראשון|Domingo|Воскресенье|الأحد"]],
+["w163","odd",1,null,["Trumpet|חצוצרה|Trompeta|Труба|بوق","Violin|כינור|Violín|Скрипка|كمان","Guitar|גיטרה|Guitarra|Гитара|غيتار","Cello|צ'לו|Violonchelo|Виолончель|تشيلو"]],
+["w164","odd",1,null,["Wood|עץ|Madera|Дерево|خشب","Copper|נחושת|Cobre|Медь|نحاس","Iron|ברזל|Hierro|Железо|حديد","Silver|כסף|Plata|Серебро|فضة"]],
+["w165","odd",1,null,["Bat|עטלף|Murciélago|Летучая мышь|خفاش","Eagle|נשר|Águila|Орёл|نسر","Sparrow|דרור|Gorrión|Воробей|عصفور","Owl|ינשוף|Búho|Сова|بومة"]],
+["w166","odd",1,null,["Cube|קובייה|Cubo|Куб|مكعب","Square|ריבוע|Cuadrado|Квадрат|مربع","Triangle|משולש|Triángulo|Треугольник|مثلث","Circle|עיגול|Círculo|Круг|دائرة"]],
+["w167","odd",1,null,["Spoon|כף|Cuchara|Ложка|ملعقة","Chair|כיסא|Silla|Стул|كرسي","Table|שולחן|Mesa|Стол|طاولة","Sofa|ספה|Sofá|Диван|أريكة"]],
+["w171","def",1,"a person who controls an aircraft in flight|מי שמנווט מטוס באוויר|persona que maneja los mandos de un avión|человек, который управляет самолётом|شخص يقود الطائرة",["Pilot|טייס|Piloto|Пилот|طيار","Sailor|ימאי|Marinero|Моряк|بحّار","Driver|נהג|Conductor|Водитель|سائق","Baker|אופה|Panadero|Пекарь|خباز"]],
+["w172","def",1,"a doctor for animals|רופא של בעלי חיים|médico de animales|врач для животных|طبيب الحيوانات",["Vet|וטרינר|Veterinario|Ветеринар|بيطري","Dentist|רופא שיניים|Dentista|Стоматолог|طبيب أسنان","Farmer|חקלאי|Granjero|Фермер|مزارع","Judge|שופט|Juez|Судья|قاضٍ"]],
+["w173","def",1,"a book of words and their meanings|ספר של מילים ופירושיהן|libro de palabras y sus significados|книга слов и их значений|كتاب للكلمات ومعانيها",["Dictionary|מילון|Diccionario|Словарь|قاموس","Atlas|אטלס|Atlas|Атлас|أطلس","Diary|יומן|Diario|Дневник|مذكرات","Novel|רומן|Novela|Роман|رواية"]],
+["w174","def",1,"water turned into gas by heat|מים שהפכו לגז מחום|agua convertida en gas por el calor|вода, превращённая в газ нагревом|ماء تحوّل إلى غاز بالحرارة",["Steam|אדים|Vapor|Пар|بخار","Ice|קרח|Hielo|Лёд|جليد","Rain|גשם|Lluvia|Дождь|مطر","Salt|מלח|Sal|Соль|ملح"]],
+/* ---------- d:2 ---------- */
+["w201","syn",2,"Abandon|לנטוש|Abandonar|Покинуть|يهجر",["Desert|לזנוח|Desamparar|Бросить|يترك","Rescue|להציל|Rescatar|Спасти|ينقذ","Repair|לתקן|Reparar|Починить|يصلح","Visit|לבקר|Visitar|Навестить|يزور"]],
+["w202","syn",2,"Courteous|אדיב|Cortés|Учтивый|لبق",["Polite|מנומס|Educado|Вежливый|مهذّب","Rude|גס|Grosero|Грубый|فظ","Lazy|עצלן|Perezoso|Ленивый|كسول","Nervous|עצבני|Nervioso|Нервный|عصبي"]],
+["w203","syn",2,"Vanish|להתנדף|Desvanecerse|Исчезнуть|يتلاشى",["Disappear|להיעלם|Desaparecer|Пропасть|يختفي","Appear|להופיע|Aparecer|Появиться|يظهر","Shout|לצעוק|Gritar|Крикнуть|يصرخ","Gather|לאסוף|Reunir|Собрать|يجمع"]],
+["w204","syn",2,"Conceal|להסתיר|Ocultar|Скрывать|يُخفي",["Hide|להחביא|Esconder|Прятать|يخبّئ","Reveal|לחשוף|Revelar|Раскрывать|يكشف","Collect|לאסוף|Recoger|Собирать|يجمع","Repair|לתקן|Reparar|Чинить|يصلح"]],
+["w205","syn",2,"Diligent|שקדן|Diligente|Усердный|مجتهد",["Hardworking|חרוץ|Trabajador|Трудолюбивый|دؤوب","Lazy|עצלן|Perezoso|Ленивый|كسول","Lucky|בר מזל|Afortunado|Везучий|محظوظ","Clever|פיקח|Listo|Умный|ذكي"]],
+["w206","syn",2,"Feeble|רפה|Endeble|Немощный|واهن",["Weak|חלש|Débil|Слабый|ضعيف","Strong|חזק|Fuerte|Сильный|قوي","Cheap|זול|Barato|Дешёвый|رخيص","Late|מאוחר|Tardío|Поздний|متأخر"]],
+["w207","syn",2,"Inquire|לברר|Indagar|Осведомиться|يستفسر",["Ask|לשאול|Preguntar|Спросить|يسأل","Reply|להשיב|Responder|Ответить|يجيب","Forget|לשכוח|Olvidar|Забыть|ينسى","Arrive|להגיע|Llegar|Прибыть|يصل"]],
+["w208","syn",2,"Vacant|פנוי|Desocupado|Незанятый|شاغر",["Empty|ריק|Vacío|Пустой|فارغ","Crowded|צפוף|Abarrotado|Переполненный|مزدحم","Clean|נקי|Limpio|Чистый|نظيف","Narrow|צר|Estrecho|Узкий|ضيق"]],
+["w209","syn",2,"Ponder|להרהר|Reflexionar|Размышлять|يتأمل",["Reflect|לחשוב לעומק|Meditar|Обдумывать|يتفكّر","Ignore|להתעלם|Ignorar|Игнорировать|يتجاهل","Hurry|למהר|Apresurarse|Торопиться|يستعجل","Shout|לצעוק|Gritar|Кричать|يصرخ"]],
+["w210","syn",2,"Rigid|נוקשה|Rígido|Негибкий|جامد",["Stiff|קשיח|Tieso|Жёсткий|متصلّب","Flexible|גמיש|Flexible|Гибкий|مرن","Hollow|חלול|Hueco|Полый|أجوف","Warm|חמים|Tibio|Тёплый|دافئ"]],
+["w211","syn",2,"Precise|מדוקדק|Preciso|Выверенный|دقيق",["Exact|מדויק|Exacto|Точный|مضبوط","Vague|מעורפל|Vago|Расплывчатый|مبهم","Loud|רועש|Ruidoso|Громкий|صاخب","Recent|חדש|Reciente|Недавний|حديث"]],
+["w212","syn",2,"Wicked|מרושע|Malvado|Злобный|شرير",["Evil|רשע|Perverso|Злой|خبيث","Kind|טוב לב|Bondadoso|Добрый|طيب","Clever|פיקח|Listo|Умный|ذكي","Shy|ביישן|Tímido|Застенчивый|خجول"]],
+["w221","ant",2,"Expand|להתרחב|Expandirse|Расширяться|يتمدّد",["Contract|להתכווץ|Contraerse|Сжиматься|ينكمش","Grow|לגדול|Crecer|Расти|ينمو","Melt|להימס|Derretirse|Таять|يذوب","Travel|לנסוע|Viajar|Путешествовать|يسافر"]],
+["w222","ant",2,"Optimist|אופטימיסט|Optimista|Оптимист|متفائل",["Pessimist|פסימיסט|Pesimista|Пессимист|متشائم","Dreamer|חולם|Soñador|Мечтатель|حالم","Expert|מומחה|Experto|Эксперт|خبير","Tourist|תייר|Turista|Турист|سائح"]],
+["w223","ant",2,"Increase|להגדיל|Aumentar|Увеличивать|يزيد",["Decrease|להקטין|Disminuir|Уменьшать|يُنقص","Double|להכפיל|Duplicar|Удваивать|يضاعف","Measure|למדוד|Medir|Измерять|يقيس","Repeat|לחזור על|Repetir|Повторять|يكرر"]],
+["w224","ant",2,"Praise|לשבח|Elogiar|Хвалить|يمدح",["Criticize|לגנות|Criticar|Критиковать|ينتقد","Admire|להעריץ|Admirar|Восхищаться|يقدّر","Describe|לתאר|Describir|Описывать|يصف","Reward|לתגמל|Premiar|Награждать|يكافئ"]],
+["w225","ant",2,"Scarce|מועט|Escaso|Скудный|شحيح",["Plentiful|שופע|Abundante|Обильный|وفير","Rare|נדיר|Raro|Редкий|نادر","Limited|מוגבל|Limitado|Ограниченный|محدود","Costly|יקר|Costoso|Дорогой|باهظ"]],
+["w226","ant",2,"Humble|צנוע|Humilde|Скромный|متواضع",["Arrogant|יהיר|Arrogante|Высокомерный|متكبّر","Shy|ביישן|Tímido|Застенчивый|خجول","Gentle|עדין|Amable|Мягкий|لطيف","Poor|עני|Pobre|Бедный|فقير"]],
+["w227","ant",2,"Transparent|שקוף|Transparente|Прозрачный|شفاف",["Opaque|אטום|Opaco|Непрозрачный|معتم","Clear|צלול|Claro|Ясный|صافٍ","Thin|דק|Fino|Тонкий|رقيق","Shiny|מבריק|Brillante|Блестящий|لامع"]],
+["w228","ant",2,"Hostile|עוין|Hostil|Враждебный|عدائي",["Friendly|ידידותי|Amistoso|Дружелюбный|ودود","Angry|כועס|Enojado|Сердитый|غاضب","Foreign|זר|Extranjero|Чужой|أجنبي","Quiet|שקט|Callado|Тихий|هادئ"]],
+["w229","ant",2,"Rough|מחוספס|Áspero|Шершавый|خشن",["Smooth|חלק|Liso|Гладкий|أملس","Hard|קשה|Duro|Твёрдый|صلب","Sharp|חד|Afilado|Острый|حاد","Heavy|כבד|Pesado|Тяжёлый|ثقيل"]],
+["w230","ant",2,"Guilty|אשם|Culpable|Виновный|مذنب",["Innocent|חף מפשע|Inocente|Невиновный|بريء","Accused|נאשם|Acusado|Обвиняемый|متّهم","Honest|ישר|Honrado|Честный|أمين","Angry|כועס|Enojado|Сердитый|غاضب"]],
+["w231","ant",2,"Reward|תגמול|Recompensa|Награда|مكافأة",["Punishment|עונש|Castigo|Наказание|عقوبة","Prize|פרס|Premio|Приз|جائزة","Payment|תשלום|Pago|Плата|دفعة","Promise|הבטחה|Promesa|Обещание|وعد"]],
+["w241","ana",2,["Hammer|פטיש|Martillo|Молоток|مطرقة","Nail|מסמר|Clavo|Гвоздь|مسمار","Screwdriver|מברג|Destornillador|Отвёртка|مفك"],["Screw|בורג|Tornillo|Шуруп|برغي","Wrench|מפתח ברגים|Llave inglesa|Гаечный ключ|مفتاح ربط","Drill|מקדחה|Taladro|Дрель|مثقاب","Wood|עץ|Madera|Дерево|خشب"]],
+["w242","ana",2,["Ruler|סרגל|Regla|Линейка|مسطرة","Length|אורך|Longitud|Длина|طول","Clock|שעון|Reloj|Часы|ساعة"],["Time|זמן|Tiempo|Время|وقت","Wall|קיר|Pared|Стена|جدار","Alarm|מעורר|Alarma|Будильник|منبّه","Battery|סוללה|Pila|Батарейка|بطارية"]],
+["w243","ana",2,["Leaf|עלה|Hoja|Лист|ورقة","Tree|עץ|Árbol|Дерево|شجرة","Feather|נוצה|Pluma|Перо|ريشة"],["Bird|ציפור|Ave|Птица|طائر","Pillow|כרית|Almohada|Подушка|وسادة","Nest|קן|Nido|Гнездо|عش","Sky|שמיים|Cielo|Небо|سماء"]],
+["w244","ana",2,["Drought|בצורת|Sequía|Засуха|جفاف","Rain|גשם|Lluvia|Дождь|مطر","Famine|רעב|Hambruna|Голод|مجاعة"],["Food|מזון|Comida|Еда|طعام","Money|כסף|Dinero|Деньги|مال","War|מלחמה|Guerra|Война|حرب","Desert|מדבר|Desierto|Пустыня|صحراء"]],
+["w245","ana",2,["Calf|עגל|Ternero|Телёнок|عجل","Cow|פרה|Vaca|Корова|بقرة","Lamb|טלה|Cordero|Ягнёнок|حمل"],["Sheep|כבשה|Oveja|Овца|نعجة","Goat|עז|Cabra|Коза|ماعز","Wool|צמר|Lana|Шерсть|صوف","Farm|חווה|Granja|Ферма|مزرعة"]],
+["w246","ana",2,["Baker|אופה|Panadero|Пекарь|خبّاز","Bread|לחם|Pan|Хлеб|خبز","Tailor|חייט|Sastre|Портной|خيّاط"],["Suit|חליפה|Traje|Костюм|بدلة","Needle|מחט|Aguja|Иголка|إبرة","Shop|חנות|Tienda|Магазин|متجر","Fabric|בד|Tela|Ткань|قماش"]],
+["w247","ana",2,["Poet|משורר|Poeta|Поэт|شاعر","Poem|שיר|Poema|Стихотворение|قصيدة","Composer|מלחין|Compositor|Композитор|ملحّن"],["Symphony|סימפוניה|Sinfonía|Симфония|سيمفونية","Piano|פסנתר|Piano|Пианино|بيانو","Orchestra|תזמורת|Orquesta|Оркестр|أوركسترا","Singer|זמר|Cantante|Певец|مغنٍّ"]],
+["w261","odd",2,null,["Moon|ירח|Luna|Луна|القمر","Mercury|כוכב חמה|Mercurio|Меркурий|عطارد","Venus|נוגה|Venus|Венера|الزهرة","Mars|מאדים|Marte|Марс|المريخ"]],
+["w262","odd",2,null,["Oak|אלון|Roble|Дуб|بلوط","Tulip|צבעוני|Tulipán|Тюльпан|توليب","Rose|ורד|Rosa|Роза|وردة","Daisy|חיננית|Margarita|Ромашка|أقحوان"]],
+["w263","odd",2,null,["Sphere|כדור|Esfera|Сфера|كرة","Hexagon|משושה|Hexágono|Шестиугольник|مسدّس","Pentagon|מחומש|Pentágono|Пятиугольник|مخمّس","Octagon|מתומן|Octágono|Восьмиугольник|مثمّن"]],
+["w264","odd",2,null,["Litre|ליטר|Litro|Литр|لتر","Inch|אינץ'|Pulgada|Дюйм|بوصة","Mile|מייל|Milla|Миля|ميل","Metre|מטר|Metro|Метр|متر"]],
+["w265","odd",2,null,["Sahara|סהרה|Sahara|Сахара|الصحراء الكبرى","Nile|נילוס|Nilo|Нил|النيل","Amazon|אמזונס|Amazonas|Амазонка|الأمازون","Danube|דנובה|Danubio|Дунай|الدانوب"]],
+["w266","odd",2,null,["Shark|כריש|Tiburón|Акула|قرش","Whale|לוויתן|Ballena|Кит|حوت","Dolphin|דולפין|Delfín|Дельфин|دلفين","Seal|כלב ים|Foca|Тюлень|فقمة"]],
+["w271","def",2,"a word with the same meaning as another word|מילה שמשמעותה זהה למילה אחרת|palabra con el mismo significado que otra|слово с тем же значением, что и другое слово|كلمة لها معنى كلمة أخرى نفسه",["Synonym|מילה נרדפת|Sinónimo|Синоним|مرادف","Antonym|מילה מנוגדת|Antónimo|Антоним|ضدّ","Homonym|הומונים|Homónimo|Омоним|مشترك لفظي","Acronym|ראשי תיבות|Acrónimo|Аббревиатура|اختصار"]],
+["w272","def",2,"a scientist who studies stars and planets|מדען שחוקר כוכבים וכוכבי לכת|científico que estudia las estrellas y los planetas|учёный, изучающий звёзды и планеты|عالِم يدرس النجوم والكواكب",["Astronomer|אסטרונום|Astrónomo|Астроном|فلكي","Geologist|גאולוג|Geólogo|Геолог|جيولوجي","Botanist|בוטנאי|Botánico|Ботаник|عالم نبات","Historian|היסטוריון|Historiador|Историк|مؤرخ"]],
+["w273","def",2,"to move something to a later time|להעביר משהו למועד מאוחר יותר|dejar algo para más tarde|перенести что-то на более позднее время|أن تجعل أمراً في وقت لاحق",["Postpone|לדחות|Aplazar|Отложить|يؤجّل","Cancel|לבטל|Cancelar|Отменить|يلغي","Hurry|למהר|Apresurar|Поторопить|يستعجل","Repeat|לחזור על|Repetir|Повторить|يكرّر"]],
+["w274","def",2,"active mainly at night|פעיל בעיקר בשעות החשכה|activo sobre todo de noche|активный в основном ночью|نشِط في الليل غالباً",["Nocturnal|לילי|Nocturno|Ночной|ليلي","Dormant|רדום|Latente|Спящий|خامل","Nomadic|נוודי|Nómada|Кочевой|رحّال","Diurnal|יומי|Diurno|Дневной|نهاري"]],
+/* ---------- d:3 ---------- */
+["w301","syn",3,"Laconic|לקוני|Lacónico|Лаконичный|مقتضب",["Concise|תמציתי|Conciso|Сжатый|موجز","Verbose|רב-מלל|Verboso|Многословный|مُسهب","Rude|גס|Grosero|Грубый|فظ","Cheerful|עליז|Alegre|Весёлый|مرح"]],
+["w302","syn",3,"Candid|גלוי לב|Franco|Откровенный|صريح",["Frank|כן|Sincero|Искренний|صادق","Secretive|חשאי|Reservado|Скрытный|كتوم","Clumsy|מגושם|Torpe|Неуклюжий|أخرق","Bitter|מר|Amargo|Горький|مرير"]],
+["w303","syn",3,"Ominous|מבשר רעות|Ominoso|Зловещий|مشؤوم",["Threatening|מאיים|Amenazador|Угрожающий|مُنذِر بالخطر","Cheerful|עליז|Alegre|Весёлый|مرح","Ancient|עתיק|Antiguo|Древний|قديم","Fragrant|ריחני|Fragante|Душистый|عطِر"]],
+["w304","syn",3,"Meticulous|קפדני|Meticuloso|Дотошный|مُدقِّق",["Thorough|יסודי|Minucioso|Тщательный|متأنٍّ","Careless|רשלני|Descuidado|Небрежный|مهمل","Hasty|נמהר|Apresurado|Поспешный|متسرّع","Generous|נדיב|Generoso|Щедрый|كريم"]],
+["w305","syn",3,"Obstinate|עקשן|Obstinado|Неуступчивый|متصلّب",["Stubborn|קשה עורף|Terco|Упрямый|عنيد","Flexible|גמיש|Flexible|Гибкий|مرن","Anxious|חרד|Ansioso|Тревожный|قلق","Graceful|חינני|Grácil|Изящный|رشيق"]],
+["w306","syn",3,"Pragmatic|פרגמטי|Pragmático|Прагматичный|براغماتي",["Practical|מעשי|Práctico|Практичный|عملي","Idealistic|אידיאליסטי|Idealista|Идеалистичный|مثالي","Nervous|עצבני|Nervioso|Нервный|عصبي","Elegant|אלגנטי|Elegante|Элегантный|أنيق"]],
+["w307","syn",3,"Ambiguous|דו-משמעי|Ambiguo|Двусмысленный|ملتبس",["Unclear|עמום|Equívoco|Неоднозначный|غامض","Obvious|ברור מאליו|Obvio|Очевидный|واضح","Polite|מנומס|Cortés|Вежливый|مؤدّب","Formal|רשמי|Formal|Официальный|رسمي"]],
+["w308","syn",3,"Futile|עקר|Fútil|Тщетный|عقيم",["Pointless|חסר טעם|Inútil|Бесполезный|عديم الجدوى","Fruitful|פורה|Fructífero|Плодотворный|مثمر","Urgent|דחוף|Urgente|Срочный|عاجل","Simple|פשוט|Sencillo|Простой|بسيط"]],
+["w309","syn",3,"Adversary|אויב|Adversario|Противник|خصم",["Opponent|יריב|Contrincante|Соперник|غريم","Ally|בעל ברית|Aliado|Союзник|حليف","Referee|שופט|Árbitro|Судья|حَكَم","Neighbour|שכן|Vecino|Сосед|جار"]],
+["w310","syn",3,"Tenacious|עיקש|Tenaz|Цепкий|متشبّث",["Persistent|נחוש|Perseverante|Настойчивый|مثابر","Fickle|הפכפך|Voluble|Непостоянный|متقلّب","Gentle|עדין|Delicado|Мягкий|لطيف","Proud|גאה|Orgulloso|Гордый|فخور"]],
+["w311","syn",3,"Arduous|מפרך|Arduo|Изнурительный|مُضنٍ",["Strenuous|מתיש|Agotador|Тяжёлый|شاقّ","Effortless|קליל|Fácil|Лёгкий|سهل","Distant|רחוק|Lejano|Далёкий|بعيد","Pleasant|נעים|Agradable|Приятный|لطيف"]],
+["w312","syn",3,"Mundane|שגרתי|Anodino|Обыденный|مألوف",["Ordinary|רגיל|Corriente|Заурядный|عادي","Extraordinary|יוצא דופן|Extraordinario|Необычайный|استثنائي","Sacred|קדוש|Sagrado|Священный|مقدّس","Hidden|נסתר|Oculto|Скрытый|خفي"]],
+["w313","syn",3,"Prudent|שקול|Prudente|Благоразумный|حصيف",["Careful|זהיר|Cauteloso|Осмотрительный|حذِر","Reckless|פזיז|Imprudente|Безрассудный|متهوّر","Generous|נדיב|Generoso|Щедрый|كريم","Famous|מפורסם|Famoso|Знаменитый|مشهور"]],
+["w314","syn",3,"Benevolent|מיטיב|Benévolo|Благосклонный|خيّر",["Kind|טוב לב|Bondadoso|Добрый|طيّب القلب","Malicious|זדוני|Malicioso|Злонамеренный|خبيث النية","Timid|הססן|Tímido|Робкий|هيّاب","Wealthy|אמיד|Adinerado|Состоятельный|ثري"]],
+["w321","ant",3,"Benign|שפיר|Benigno|Доброкачественный|حميد",["Malignant|ממאיר|Maligno|Злокачественный|خبيث","Harmless|לא מזיק|Inofensivo|Безвредный|غير ضار","Chronic|כרוני|Crónico|Хронический|مزمن","Contagious|מדבק|Contagioso|Заразный|معدٍ"]],
+["w322","ant",3,"Frugal|חסכן|Frugal|Бережливый|مقتصد",["Wasteful|בזבזן|Derrochador|Расточительный|مبذّر","Thrifty|חסכוני|Ahorrativo|Экономный|موفّر","Wealthy|עשיר|Rico|Богатый|غني","Honest|ישר|Honesto|Честный|أمين"]],
+["w323","ant",3,"Zenith|שיא|Cénit|Зенит|ذروة",["Nadir|שפל|Nadir|Надир|حضيض","Summit|פסגה|Cumbre|Вершина|قمّة","Horizon|אופק|Horizonte|Горизонт|أفق","Orbit|מסלול|Órbita|Орбита|مدار"]],
+["w324","ant",3,"Lucid|צלול|Lúcido|Ясный|صافي الذهن",["Muddled|מבולבל|Confuso|Путаный|مشوّش","Bright|בהיר|Brillante|Яркий|لامع","Calm|רגוע|Tranquilo|Спокойный|هادئ","Gentle|עדין|Suave|Мягкий|لطيف"]],
+["w325","ant",3,"Alleviate|להקל|Aliviar|Облегчать|يخفّف",["Aggravate|להחמיר|Agravar|Усугублять|يفاقم","Soothe|להרגיע|Calmar|Успокаивать|يهدّئ","Delay|לעכב|Retrasar|Задерживать|يؤخّر","Measure|למדוד|Medir|Измерять|يقيس"]],
+["w326","ant",3,"Prosperity|שגשוג|Prosperidad|Процветание|ازدهار",["Poverty|עוני|Pobreza|Бедность|فقر","Wealth|עושר|Riqueza|Богатство|ثراء","Progress|קדמה|Progreso|Прогресс|تقدّم","Silence|שקט|Silencio|Тишина|صمت"]],
+["w327","ant",3,"Novice|טירון|Novato|Новичок|مبتدئ",["Expert|מומחה|Experto|Знаток|خبير","Beginner|מתחיל|Principiante|Начинающий|مستجدّ","Student|תלמיד|Estudiante|Ученик|طالب","Rival|יריב|Rival|Соперник|منافس"]],
+["w328","ant",3,"Hasten|להחיש|Apresurar|Торопить|يعجّل",["Delay|לעכב|Demorar|Задерживать|يؤخّر","Hurry|למהר|Acelerar|Подгонять|يسرّع","Arrive|להגיע|Llegar|Прибывать|يصل","Shorten|לקצר|Acortar|Сокращать|يقصّر"]],
+["w329","ant",3,"Taciturn|שתקן|Taciturno|Молчаливый|صموت",["Talkative|פטפטן|Hablador|Болтливый|ثرثار","Silent|שותק|Callado|Безмолвный|صامت","Gloomy|קודר|Sombrío|Мрачный|كئيب","Clever|פיקח|Listo|Умный|ذكي"]],
+["w330","ant",3,"Concur|להסכים|Concordar|Соглашаться|يوافق",["Disagree|להתנגד|Discrepar|Возражать|يعارض","Approve|לאשר|Aprobar|Одобрять|يُقرّ","Repeat|לחזור על|Repetir|Повторять|يكرّر","Listen|להקשיב|Escuchar|Слушать|يستمع"]],
+["w331","ant",3,"Sporadic|ספורדי|Esporádico|Эпизодический|متقطّع",["Constant|מתמיד|Constante|Постоянный|مستمر","Occasional|מזדמן|Ocasional|Случайный|عَرَضي","Sudden|פתאומי|Repentino|Внезапный|مفاجئ","Loud|רועש|Ruidoso|Громкий|صاخب"]],
+["w341","ana",3,["Ornithology|אורניתולוגיה|Ornitología|Орнитология|الأورنيثولوجيا","Birds|ציפורים|Aves|Птицы|الطيور","Entomology|אנטומולוגיה|Entomología|Энтомология|الإنتومولوجيا"],["Insects|חרקים|Insectos|Насекомые|الحشرات","Plants|צמחים|Plantas|Растения|النباتات","Fossils|מאובנים|Fósiles|Окаменелости|الأحافير","Stars|כוכבים|Estrellas|Звёзды|النجوم"]],
+["w342","ana",3,["Prologue|פרולוג|Prólogo|Пролог|تمهيد","Novel|רומן|Novela|Роман|رواية","Overture|אוברטורה|Obertura|Увертюра|افتتاحية"],["Opera|אופרה|Ópera|Опера|أوبرا","Finale|פינאלה|Final|Финал|خاتمة","Orchestra|תזמורת|Orquesta|Оркестр|أوركسترا","Conductor|מנצח|Director de orquesta|Дирижёр|مايسترو"]],
+["w343","ana",3,["Carnivore|טורף|Carnívoro|Хищник|لاحم","Meat|בשר|Carne|Мясо|لحم","Herbivore|אוכל עשב|Herbívoro|Травоядное|عاشب"],["Plants|צמחים|Plantas|Растения|نباتات","Insects|חרקים|Insectos|Насекомые|حشرات","Water|מים|Agua|Вода|ماء","Fish|דגים|Peces|Рыба|سمك"]],
+["w344","ana",3,["Insomnia|נדודי שינה|Insomnio|Бессонница|الأرق","Sleep|שינה|Sueño|Сон|النوم","Amnesia|אמנזיה|Amnesia|Амнезия|الأمنيزيا"],["Memory|זיכרון|Memoria|Память|الذاكرة","Pain|כאב|Dolor|Боль|الألم","Brain|מוח|Cerebro|Мозг|الدماغ","Speech|דיבור|Habla|Речь|الكلام"]],
+["w345","ana",3,["Archipelago|ארכיפלג|Archipiélago|Архипелаг|أرخبيل","Island|אי|Isla|Остров|جزيرة","Constellation|קונסטלציה|Constelación|Созвездие|كوكبة"],["Star|כוכב|Estrella|Звезда|نجم","Planet|כוכב לכת|Planeta|Планета|كوكب","Galaxy|גלקסיה|Galaxia|Галактика|مجرّة","Telescope|טלסקופ|Telescopio|Телескоп|مقراب"]],
+["w346","ana",3,["Mason|בנאי|Cantero|Каменщик|بنّاء","Stone|אבן|Piedra|Камень|حجر","Carpenter|נגר|Carpintero|Плотник|نجّار"],["Wood|עץ|Madera|Дерево|خشب","Saw|מסור|Sierra|Пила|منشار","Furniture|רהיטים|Muebles|Мебель|أثاث","Nail|מסמר|Clavo|Гвоздь|مسمار"]],
+["w347","ana",3,["Cartographer|קרטוגרף|Cartógrafo|Картограф|رسّام الخرائط","Map|מפה|Mapa|Карта|خريطة","Lexicographer|לקסיקוגרף|Lexicógrafo|Лексикограф|مؤلّف المعاجم"],["Dictionary|מילון|Diccionario|Словарь|معجم","Grammar|דקדוק|Gramática|Грамматика|قواعد","Alphabet|אלפבית|Alfabeto|Алфавит|أبجدية","Novel|רומן|Novela|Роман|رواية"]],
+["w361","odd",3,null,["Sonata|סונטה|Sonata|Соната|سوناتا","Sonnet|סונט|Soneto|Сонет|سونيت","Haiku|הייקו|Haiku|Хайку|هايكو","Limerick|לימריק|Limerick|Лимерик|ليمريك"]],
+["w362","odd",3,null,["Sirius|סיריוס|Sirio|Сириус|الشعرى اليمانية","Saturn|שבתאי|Saturno|Сатурн|زحل","Jupiter|צדק|Júpiter|Юпитер|المشتري","Neptune|נפטון|Neptuno|Нептун|نبتون"]],
+["w363","odd",3,null,["Newton|ניוטון|Newton|Ньютон|نيوتن","Celsius|צלזיוס|Celsius|Цельсий|سلسيوس","Fahrenheit|פרנהייט|Fahrenheit|Фаренгейт|فهرنهايت","Kelvin|קלווין|Kelvin|Кельвин|كلفن"]],
+["w364","odd",3,null,["Adverb|תואר הפועל|Adverbio|Наречие|ظرف","Simile|דימוי|Símil|Сравнение|تشبيه","Metaphor|מטפורה|Metáfora|Метафора|استعارة","Hyperbole|הגזמה|Hipérbole|Гипербола|مبالغة"]],
+["w371","def",3,"a fear of heights|פחד גבהים|miedo a las alturas|боязнь высоты|الخوف من المرتفعات",["Acrophobia|אקרופוביה|Acrofobia|Акрофобия|أكروفوبيا","Claustrophobia|קלסטרופוביה|Claustrofobia|Клаустрофобия|كلوستروفوبيا","Arachnophobia|ארכנופוביה|Aracnofobia|Арахнофобия|أراكنوفوبيا","Agoraphobia|אגורפוביה|Agorafobia|Агорафобия|أغورافوبيا"]],
+["w372","def",3,"a word or phrase that reads the same backwards|מילה או צירוף שנקראים אותו דבר גם מהסוף להתחלה|palabra o frase que se lee igual al revés|слово или фраза, которые одинаково читаются в обе стороны|كلمة أو عبارة تُقرأ بالطريقة نفسها من الجهتين",["Palindrome|פלינדרום|Palíndromo|Палиндром|باليندروم","Anagram|אנגרמה|Anagrama|Анаграмма|أناغرام","Acronym|ראשי תיבות|Acrónimo|Аббревиатура|اختصار","Synonym|מילה נרדפת|Sinónimo|Синоним|مرادف"]],
+["w373","def",3,"rule by a small group of powerful people|שלטון של קבוצה קטנה ובעלת עוצמה|gobierno de un pequeño grupo de poderosos|власть небольшой группы влиятельных людей|حكم مجموعة صغيرة من أصحاب النفوذ",["Oligarchy|אוליגרכיה|Oligarquía|Олигархия|أوليغارشية","Monarchy|מונרכיה|Monarquía|Монархия|ملكية","Democracy|דמוקרטיה|Democracia|Демократия|ديمقراطية","Anarchy|אנרכיה|Anarquía|Анархия|فوضوية"]],
+["w374","def",3,"excessive pride|גאווה מופרזת|orgullo desmedido|чрезмерная гордость|كبرياء مفرطة",["Hubris|יוהרה|Soberbia|Гордыня|غطرسة","Humility|ענווה|Humildad|Смирение|تواضع","Envy|קנאה|Envidia|Зависть|حسد","Apathy|אדישות|Apatía|Апатия|لامبالاة"]],
+["w375","def",3,"the study of where words come from|חקר מקורן של מילים|estudio del origen de las palabras|наука о происхождении слов|دراسة أصول الكلمات",["Etymology|אטימולוגיה|Etimología|Этимология|التأثيل","Entomology|אנטומולוגיה|Entomología|Энтомология|الإنتومولوجيا","Ecology|אקולוגיה|Ecología|Экология|علم البيئة","Geology|גאולוגיה|Geología|Геология|الجيولوجيا"]]
+];
+const _wwW=s=>{ const a=s.split('|'); const o={}; WW_LANGS.forEach((l,i)=>o[l]=a[i]); return o; };
+const _wwFill=(key,vars)=>{ const o={}; WW_LANGS.forEach(l=>{ let s=(T[l]&&T[l][key])||T.en[key]||key;
+  Object.keys(vars||{}).forEach(k=>{ s=s.replace('{'+k+'}',vars[k][l]); }); o[l]=s; }); return o; };
+/* Builds the playable question for one bank row. */
+function wwQuestion(row){
+  const [id,kind,d,stem,opts]=row;
+  const q={id,d:['easy','medium','hard'][d-1],ww:kind,opts:opts.map(w=>({val:_wwW(w)})),ans:0};
+  if(kind==='ana'){
+    const [a,b,c]=stem.map(_wwW);
+    q.prompt=_wwFill('ww.ana'); q.sub=_wwFill('ww.anasub',{a,b,c});
+  } else if(kind==='odd'){
+    q.prompt=_wwFill('ww.odd');
+  } else {
+    q.prompt=_wwFill('ww.'+kind,{w:_wwW(stem)});
+  }
+  return q;
+}
+/* Level bands → how many items of each difficulty a level draws. */
+function wwMix(lvl){
+  if(lvl<=12) return {1:6};
+  if(lvl<=20) return {1:3,2:3};
+  if(lvl<=30) return {1:1,2:4,3:1};
+  if(lvl<=40) return {2:2,3:4};
+  return {2:1,3:5};
+}
+const WW_RECENT=30;
 function genWord(lvl){
-  const sets=pick(WORD_SETS,6);
-  return sets.map(s=>shuffleOpts({prompt:s.q,opts:s.o.map(x=>({val:x})),ans:0}));
+  const m=gMeta(), recent=(m.seen.ww||[]).slice(-WW_RECENT), rset=new Set(recent);
+  const out=[], mix=wwMix(lvl);
+  Object.keys(mix).forEach(d=>{
+    const tier=WW.filter(r=>r[2]===+d);
+    const fresh=gShuffle(tier.filter(r=>!rset.has(r[0])));
+    /* if the tier is exhausted, fall back to the least recently seen */
+    const stale=tier.filter(r=>rset.has(r[0])).sort((a,b)=>recent.indexOf(a[0])-recent.indexOf(b[0]));
+    out.push(...fresh.concat(stale).slice(0,mix[d]));
+  });
+  m.seen.ww=(m.seen.ww||[]).concat(out.map(r=>r[0])).slice(-WW_RECENT*2);
+  saveProgress();
+  return gShuffle(out).map(r=>shuffleOpts(wwQuestion(r)));
+}
+
+/* ==================== GAMES SELF-CHECK ====================
+   gamesSelfCheck(n) generates n levels' worth of items per game, spread over
+   the whole level range, and checks every one. Run it from the console:
+   gamesSelfCheck(2000) → {speed:{items,bad:[]}, …}. Empty "bad" lists pass.
+     speed    key in range and equal to the generator's answer; options
+              distinct positive integers; speedVerify() (every fitting rule
+              family predicts the key and nothing else).
+     spatial  options render differently and are distinct by pose signature;
+              exactly one option satisfies the item's rule (spVerify).
+     word     static bank audit (wwAudit) plus n generated levels: six
+              distinct items per level, none repeated inside the window. */
+function gamesSelfCheck(n){
+  n=n||500;
+  const rep={speed:{items:0,bad:[]},spatial:{items:0,bad:[]}};
+  for(let k=0;k<n;k++){
+    const lvl=1+(k%LEVELS_PER_GAME);
+    genSpatial(lvl).forEach(q=>{
+      rep.spatial.items++;
+      const html=q.opts.map(svgFor);
+      if(q.fb || !(q.ans>=0&&q.ans<4) || !spVerify(q) || new Set(html).size!==4)
+        rep.spatial.bad.push({lvl,sp:q.sp,opts:q.opts.map(spSig).join(' | '),ans:q.ans});
+    });
+    genSpeed(lvl).forEach(q=>{
+      rep.speed.items++;
+      const vals=q.opts.map(o=>+o.val);
+      if(q.fb || !(q.ans>=0&&q.ans<q.opts.length) || vals[q.ans]!==q.key || !speedVerify(q.seq,q.key,vals))
+        rep.speed.bad.push({lvl,rule:q.rule,seq:q.seq.join(','),opts:vals.join(','),key:q.key});
+    });
+  }
+  rep.word=wwAudit();
+  const m=gMeta(), keep=(m.seen.ww||[]).slice();
+  m.seen.ww=[];
+  let last=[];
+  for(let k=0;k<n;k++){
+    const lvl=1+(k%LEVELS_PER_GAME), qs=genWord(lvl), ids=qs.map(q=>q.id);
+    rep.word.items+=qs.length;
+    if(qs.length!==6 || new Set(ids).size!==6) rep.word.bad.push({lvl,why:'level size/dupes',ids});
+    const window=last.slice(-WW_RECENT);
+    const rep2=ids.filter(id=>window.includes(id));
+    /* every tier is larger than the window, so nothing may repeat inside it */
+    if(rep2.length) rep.word.bad.push({lvl,why:'repeat inside window',ids:rep2});
+    last=last.concat(ids);
+  }
+  m.seen.ww=keep;
+  return rep;
+}
+/* Static audit of the Word Wit bank, in every language. */
+function wwAudit(){
+  const bad=[], ids=new Set();
+  /* key words of the free test: the English answer of every verbal item, plus the memory word */
+  const qbKeys=new Set();
+  try{ const L=lang; lang='en';
+    QB().forEach(q=>{ if(q.cat==='verbal'&&q.opts&&q.opts[q.ans]&&q.opts[q.ans].val) qbKeys.add(String(loc(q.opts[q.ans].val)).toLowerCase()); });
+    lang=L; }catch(e){}
+  ['lantern','ephemeral','enduring','short-lived','slow','fast','museum','painting','library'].forEach(w=>qbKeys.add(w));
+  WW.forEach(r=>{
+    const [id,kind,d,stem,opts]=r;
+    if(ids.has(id)) bad.push({id,why:'duplicate id'}); ids.add(id);
+    if(!['syn','ant','ana','odd','def'].includes(kind)) bad.push({id,why:'kind'});
+    if(![1,2,3].includes(d)) bad.push({id,why:'difficulty tag'});
+    if(!opts||opts.length!==4) bad.push({id,why:'needs 4 options'});
+    const stems = kind==='ana' ? stem : (stem?[stem]:[]);
+    if(kind!=='odd' && !stems.length) bad.push({id,why:'missing stem'});
+    WW_LANGS.forEach((l,li)=>{
+      const o=opts.map(w=>(w.split('|')[li]||'').trim());
+      const st=stems.map(w=>(w.split('|')[li]||'').trim());
+      if(o.some(x=>!x)||st.some(x=>!x)) bad.push({id,l,why:'empty string'});
+      if(new Set(o.map(x=>x.toLowerCase())).size!==4) bad.push({id,l,why:'two options read the same',o});
+      if(kind!=='def' && st.some(x=>o.map(y=>y.toLowerCase()).includes(x.toLowerCase()))) bad.push({id,l,why:'stem word offered as an option',o});
+      if(opts.some(w=>w.split('|').length!==5)) bad.push({id,why:'needs exactly 5 languages'});
+    });
+    const en=[...stems,opts[0]].map(w=>w.split('|')[0].toLowerCase());
+    en.forEach(w=>{ if(qbKeys.has(w)) bad.push({id,why:'reuses a free-test key: '+w}); });
+  });
+  return {bank:WW.length,tiers:[1,2,3].map(d=>WW.filter(r=>r[2]===d).length),items:0,bad};
 }
 
 /* ==================== GAMES CATALOG ==================== */
@@ -5372,11 +6308,37 @@ const CATALOG=[
       ar:'منطق ألوان مستوى بمستوى مع نجوم وميزانية حركات وشبكات متنامية.'}[lang]),
     icon:'<path d="M17 11h9v5a4 4 0 0 0 8 0v-5h7v9h-5a4 4 0 0 0 0 8h5v9h-9v-5a4 4 0 0 0-8 0v5h-7V11Z" fill="#EDE5FF" stroke="var(--purple)" stroke-width="2.6" stroke-linejoin="round"/>'}
 ];
+/* CATALOG is read at call time everywhere (hub, lobby, level map, gate), so
+   entries pushed by later script blocks show up without any registration.
+   Optional fields an entry may carry:
+     launch()        the card's play button runs launchGame(key), which gates
+                     then calls this instead of opening a level map;
+     metaText()      replaces the "N levels" line on the card;
+     progressText()  shown in the card's progress area;
+     goal()          the one-line goal under the level-map title;
+     free:true       never gated.                                          */
+const _gVal=v=>typeof v==='function'?v():(v||'');
 function gameMeta(key){
   const c=CATALOG.find(x=>x.key===key);
   if(!c) return {name:'',desc:'',icon:''};
-  if(c.type==='quiz') return {name:GAME_BANKS[key].name(),desc:GAME_BANKS[key].desc(),icon:GAME_BANKS[key].icon};
-  return {name:c.name(),desc:c.desc(),icon:c.icon};
+  const b=GAME_BANKS[key];
+  if(b && c.type==='quiz') return {name:b.name(),desc:b.desc(),icon:b.icon};
+  return {name:_gVal(c.name),desc:_gVal(c.desc),icon:c.icon||''};
+}
+function gameGoal(key){
+  const c=CATALOG.find(x=>x.key===key);
+  if(c && c.goal) return _gVal(c.goal);
+  const k='gx.goal.'+key;
+  return t(k)!==k ? t(k) : t('gx.goal.default');
+}
+/* The single entry point every game card uses. */
+function launchGame(key){
+  const c=CATALOG.find(x=>x.key===key);
+  if(!c) return;
+  if(isLocked(key)){ showPlusGate(key); return; }
+  if(typeof c.launch==='function'){ c.launch(); return; }
+  if(c.type==='hardcore'){ openHardcoreIntro(); return; }
+  openLevelMap(key);
 }
 
 /* ==================== PLUS GATE ====================
@@ -5406,7 +6368,7 @@ function showPlusGate(key){
   bobNudge();
 }
 
-function openGamesHub(){ renderGamesHub(); showScreen('screen-games'); }
+function openGamesHub(){ renderGamesHub(); if(showScreen('screen-games')) gStopRun(); }
 
 function renderGamesHub(){
   const st=document.getElementById('games-member-state');
@@ -5415,7 +6377,30 @@ function renderGamesHub(){
     :`<div class="upgrade-prompt"><p><b>${t('games.upsellt')}</b>${t('games.upselld')}</p>
        <button class="btn-upgrade" onclick="openPricing()">${t('games.plusplans')}</button></div>`;
 
+  /* Player panel: level, XP, day streak and achievements. Shown once there
+     is something to show (a member, or anyone who has earned XP). */
+  let pp=document.getElementById('gx-player-wrap');
+  if(!pp){ pp=document.createElement('div'); pp.id='gx-player-wrap'; document.getElementById('games-grid').before(pp); }
+  pp.innerHTML=(isMember()||gMeta().xp>0)?gPlayerPanelHTML():'';
+
+  /* CATALOG is read now, not at boot, so games added by later blocks appear. */
   document.getElementById('games-grid').innerHTML=CATALOG.map(c=>gameCardHTML(c)).join('');
+}
+function gPlayerPanelHTML(){
+  const m=gMeta(), li=gLevelInfo(m.xp), day=gDayStreak();
+  const got=ACHS.filter(a=>m.ach[a.id]).length;
+  const xpLine=t('gx.xpto',{a:li.into,b:li.need,n:li.L+1});
+  const list=ACHS.map(a=>`<li class="${m.ach[a.id]?'':'locked'}">${TROPHY_SVG}<div><b>${t('ach.'+a.id+'.n')}</b><span>${t('ach.'+a.id+'.d')}</span></div></li>`).join('');
+  return `<div class="gx-player">
+    <div class="gx-lvl" aria-hidden="true"><small>${t('game.level')}</small><b>${li.L}</b></div>
+    <div class="gx-pinfo">
+      <div class="ttl">${t('gx.player',{n:li.L})}</div>
+      <div class="gx-xpbar" role="progressbar" aria-valuemin="0" aria-valuemax="${li.need}" aria-valuenow="${li.into}" aria-label="${gEsc(xpLine)}"><i style="width:${Math.round(li.into/li.need*100)}%"></i></div>
+      <div class="sub"><span>${xpLine}</span><span class="${day?'on':''}">🔥 ${day>1?t('gx.daystreak',{n:day}):(day?t('gx.daystreak1'):t('gx.daystreak0'))}</span></div>
+    </div>
+    <details><summary>${TROPHY_SVG}<span>${t('gx.achs')} · ${t('gx.achcount',{a:got,b:ACHS.length})}</span></summary>
+      <ul class="gx-achs">${list}</ul></details>
+  </div>`;
 }
 
 const LOCK_SVG='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">'+
@@ -5423,25 +6408,32 @@ const LOCK_SVG='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strok
 
 function gameCardHTML(c){
   const m=gameMeta(c.key), locked=isLocked(c.key), hc=(c.key==='hardcore');
-  const meta = hc ? t('hc.tagline') : `${levelsFor(c.key)} ${t('game.level').toLowerCase()}s`;
+  const k=gEsc(c.key);
+  const meta = typeof c.metaText==='function' ? c.metaText()
+             : (hc ? t('hc.tagline') : t('gx.levels',{n:levelsFor(c.key)}));
   let foot;
   if(locked){
     foot=`<span class="lock-badge">${LOCK_SVG}${t('games.locked')}</span>
-      <button class="btn-locked" onclick="showPlusGate('${c.key}')">${LOCK_SVG}${t('games.unlock')}</button>`;
+      <button class="btn-locked" onclick="launchGame('${k}')">${LOCK_SVG}${t('games.unlock')}</button>`;
   } else if(hc){
-    const best=bestFor('hardcore');
-    foot=`<div class="game-meta">${t('hc.best')}: <b>${best?best+'%':'—'}</b></div>
+    foot=`<div class="game-meta">${t('hc.best')}: <b>${hcBestText()}</b></div>
       <span class="badge hc">${t('hc.short')}</span>
-      <button class="btn-hardcore" onclick="openHardcoreIntro()">${t('hc.start')}</button>`;
+      <button class="btn-hardcore" onclick="launchGame('${k}')">${t('hc.start')}</button>`;
+  } else if(typeof c.launch==='function'){
+    const pt = typeof c.progressText==='function' ? c.progressText() : '';
+    foot=`${pt?`<div class="game-progress"><span>${pt}</span></div>`:''}
+      <span class="badge">${c.free?t('games.freetag'):t('games.unlocked')}</span>
+      <button class="btn-play-mini" onclick="launchGame('${k}')">${t('gx.play')}</button>`;
   } else {
     const LV=levelsFor(c.key), done=highestLevel(c.key), pctDone=Math.round(done/LV*100);
+    const pt = typeof c.progressText==='function' ? c.progressText() : `${done}/${LV} ★${starsFor(c.key)}`;
     foot=`<div class="game-progress"><div class="bar"><i style="width:${pctDone}%"></i></div>
-        <span>${done}/${LV} ★${starsFor(c.key)}</span></div>
+        <span>${pt}</span></div>
       <span class="badge">${c.free?t('games.freetag'):t('games.unlocked')}</span>
-      <button class="btn-play-mini" onclick="openLevelMap('${c.key}')">${t('btn.continue')}</button>`;
+      <button class="btn-play-mini" onclick="launchGame('${k}')">${t('btn.continue')}</button>`;
   }
   return `<div class="game-card${hc?' hardcore':''}">
-      <svg class="game-icon" viewBox="0 0 52 52">${m.icon}</svg>
+      <svg class="game-icon" viewBox="0 0 52 52" aria-hidden="true">${m.icon}</svg>
       <h3>${m.name}</h3><p>${m.desc}</p>
       <div class="game-meta">${meta}</div>
       ${foot}
@@ -5451,14 +6443,19 @@ function gameCardHTML(c){
 /* ==================== LEVEL MAP ==================== */
 let currentGameKey='memmatrix', currentLevel=1;
 
-function levelsFor(key){ return key==='puzzle'?PZ_LEVELS:LEVELS_PER_GAME; }
+function levelsFor(key){
+  if(key==='puzzle') return PZ_LEVELS;
+  const c=CATALOG.find(x=>x.key===key);
+  return (c && +c.levels>0) ? +c.levels : LEVELS_PER_GAME;
+}
 
 function openLevelMap(key){
   if(isLocked(key)){ showPlusGate(key); return; }
   currentGameKey=key;
   const m=gameMeta(key);
   document.getElementById('lm-title').textContent=m.name;
-  document.getElementById('lm-sub').textContent=t('games.sub').split('.')[0]+'.';
+  document.getElementById('lm-sub').textContent=gameGoal(key);
+  gSyncSoundChips();
   const LV=levelsFor(key);
   document.getElementById('lm-stars').textContent=`${starsFor(key)} / ${LV*3}`;
   const prog=progFor(key), high=highestLevel(key), unlocked=Math.min(high+1,LV);
@@ -5472,17 +6469,27 @@ function openLevelMap(key){
       :`${i}<span class="node-stars">${[1,2,3].map(s=>`<i class="${s<=stars?'':'empty'}">★</i>`).join('')}</span>`;
     html+=`<div class="level-row" style="padding-left:${offs[(i-1)%offs.length]}%">
       <button class="level-node ${st}" ${st==='locked'?'disabled':`onclick="playLevel('${key}',${i})"`}>${inner}</button>
-      ${st==='locked'?'':`<span class="level-label"><b>${t('game.level')} ${i}</b>${st==='done'?'★'.repeat(stars):t('btn.continue')}</span>`}
+      ${st==='locked'?'':`<span class="level-label"><b>${t('game.level')} ${i}${gLevelTag(key,i)}</b>${st==='done'?'★'.repeat(stars):t('btn.continue')}</span>`}
     </div>`;
   }
   document.getElementById('level-path').innerHTML=html;
-  showScreen('screen-levelmap');
+  /* Stop the running level only once the move is confirmed — "Stay" on the
+     exit warning must leave it untouched. */
+  if(showScreen('screen-levelmap')) gStopRun();
 }
 
+/* A short tag on level-map nodes whose level plays differently. */
+function gLevelTag(key,lvl){
+  if(key!=='memmatrix') return '';
+  const m=mmConfig(lvl).mode;
+  return m==='std'?'':`<span class="gx-tag">${t('gx.mm.'+m)}</span>`;
+}
 function playLevel(key,lvl){
   currentGameKey=key; currentLevel=lvl;
   const c=CATALOG.find(x=>x.key===key);
-  if(c.type==='matrix') startMemMatrix(lvl);
+  if(!c) return;
+  if(typeof c.play==='function') c.play(lvl);
+  else if(c.type==='matrix') startMemMatrix(lvl);
   else if(c.type==='puzzle') loadPuzzleLevel(lvl);
   else startQuizGameLevel(key,lvl);
 }
@@ -5490,35 +6497,67 @@ function playLevel(key,lvl){
 /* ==================== QUIZ-STYLE GAME LEVELS ==================== */
 function startQuizGameLevel(key,lvl){
   const bank=GAME_BANKS[key];
+  gNewRun();
+  const secs=typeof bank.secs==='function'?bank.secs(lvl):bank.secsPerLevel;
   engine={mode:key,qs:bank.gen(lvl),cur:0,answers:[],sel:null,timer:null,
-    left:bank.secsPerLevel,limit:bank.secsPerLevel,streak:0,bestStreak:0,correct:0};
+    left:secs,limit:secs,streak:0,bestStreak:0,correct:0,runXp:0};
   armActivity('game');
   showScreen('screen-quiz'); renderQuestion(); runTimer();
-  bobReact('testStart');
+  /* A level opens with a level line, not the free test's "thirty items". */
+  bobReact('testStart',{text:bobLine('levelStart')});
 }
 function finishQuizGameLevel(){
   const correct=engine.answers.filter(Boolean).length;
   const total=engine.qs.length||1;
-  finishLevel(Math.round(correct/total*100), `${correct}/${total}`);
+  const pct=Math.round(correct/total*100);
+  finishLevel(pct,`${correct}/${total}`,
+    {nudge:gNudgeCorrect(correct,total,gStarsFor(pct)),runXp:engine.runXp||0,combo:engine.bestStreak||0});
 }
 
-/* ==================== MEMORY MATRIX (real flash-recall) ==================== */
+/* ==================== MEMORY MATRIX (flash-recall, 50 levels) ====================
+   The curve follows working-memory span instead of running past it:
+     tiles to hold   2 → 9      (the old curve reached 32 of 36)
+     grid            3×3 (1–6), 4×4 (7–18), 5×5 (19–34), 6×6 (35–50)
+     flash           1600 → 800 ms
+   Two late variants add a different kind of load rather than more tiles:
+     Sequence (21, 25, … 49) — Corsi-style: tiles light one at a time and must
+       be repeated in order. Holding order is harder than holding a set, so
+       these levels use one tile fewer (max 7).
+     Mirror (31, 35, … 47) — rebuild the pattern flipped left↔right. That adds
+       manipulation of what you hold on top of storing it (max 7).
+   Five rounds per level, so 3 / 4 / 5 clean rounds give 1 / 2 / 3 stars, and
+   up to level 15 the first wrong tap in a round is a forgiven strike.      */
 let mmState=null;
+const MM_ROUNDS=5, MM_SCR='screen-memmatrix';
 function mmConfig(lvl){
-  const size=lvl<=3?3:(lvl<=8?4:(lvl<=20?5:6));
-  const litCount=2+Math.floor(lvl*0.6);
-  const rounds=Math.min(6,3+Math.floor(lvl/12));
-  const flashMs=Math.max(550,1600-lvl*28);
-  return {size,litCount:Math.min(litCount,size*size-1),rounds,flashMs};
+  const L=Math.max(1,Math.min(LEVELS_PER_GAME,lvl|0));
+  const span=2+Math.round((L-1)*7/49);
+  const size=L<=6?3:(L<=18?4:(L<=34?5:6));
+  const flashMs=Math.round(1600-(L-1)*800/49);
+  let mode='std';
+  if(L>=21 && L%4===1) mode='seq';
+  else if(L>=31 && L%4===3) mode='mirror';
+  const count = mode==='std' ? span : Math.max(3,Math.min(7,span-1));
+  return {size,count:Math.min(count,Math.floor(size*size*0.4)),rounds:MM_ROUNDS,flashMs,mode,
+          strikes:L<=15?1:0, stepMs:Math.max(420,Math.round(flashMs*0.55))};
 }
+function gStarsFor(pct){ return pct>=95?3:(pct>=80?2:(pct>=PASS_PCT?1:0)); }
+const mmCell=i=>document.querySelector(`#mm-grid .mm-cell[data-i="${i}"]`);
+
 function startMemMatrix(lvl){
   currentGameKey='memmatrix'; currentLevel=lvl;
+  const tok=gNewRun();
   const cfg=mmConfig(lvl);
-  mmState={cfg,round:0,results:[],lit:[],picked:[],phase:'idle',streak:0};
+  mmState={tok,cfg,round:0,results:[],shown:[],target:[],picked:[],phase:'idle',
+           streak:0,bestStreak:0,strikes:0,runXp:0};
   document.getElementById('mm-level').textContent=lvl;
+  const md=document.getElementById('mm-mode');
+  md.hidden=cfg.mode==='std'; md.textContent=cfg.mode==='std'?'':t('gx.mm.'+cfg.mode);
+  gComboChip('mm-combo',0);
+  gSyncSoundChips();
   armActivity('game');
-  showScreen('screen-memmatrix');
-  bobSetStage('mm-bob','testStart',bobLine('levelStart'),'warm');
+  showScreen(MM_SCR);
+  bobSetStage('mm-bob','testStart',cfg.mode==='std'?bobLine('levelStart'):t('mm.intro.'+cfg.mode),'warm');
   mmNextRound();
 }
 function mmRenderDots(){
@@ -5526,75 +6565,162 @@ function mmRenderDots(){
     .map((_,i)=>{const r=mmState.results[i];
       return `<i class="${r===undefined?'':(r?'ok':'bad')}"></i>`;}).join('');
 }
+function mmSetInteractive(on){
+  document.querySelectorAll('#mm-grid .mm-cell').forEach(c=>c.setAttribute('aria-disabled',on?'false':'true'));
+}
 function mmNextRound(){
-  if(mmState.round>=mmState.cfg.rounds){ mmFinish(); return; }
-  const {size,litCount,flashMs}=mmState.cfg;
-  const total=size*size;
+  const s=mmState;
+  if(s.round>=s.cfg.rounds){ mmFinish(); return; }
+  const {size,count,mode}=s.cfg, total=size*size;
   const cells=[...Array(total).keys()];
-  mmState.lit=pick(cells,litCount);
-  mmState.picked=[];
-  mmState.phase='ready';
-  document.getElementById('mm-round').textContent=`${mmState.round+1}/${mmState.cfg.rounds}`;
+  const mirror=i=>Math.floor(i/size)*size+(size-1-i%size);
+  let shown=pick(cells,count), guard=0;
+  /* a mirror round must not be its own reflection */
+  if(mode==='mirror') while(guard++<40 && shown.every(i=>shown.includes(mirror(i)))) shown=pick(cells,count);
+  s.shown=shown;
+  s.target = mode==='mirror' ? shown.map(mirror) : shown.slice();   /* in 'seq' the order matters */
+  s.picked=[]; s.strikes=s.cfg.strikes; s.phase='ready';
+  document.getElementById('mm-round').textContent=`${s.round+1}/${s.cfg.rounds}`;
   mmRenderDots();
   const grid=document.getElementById('mm-grid');
   grid.style.gridTemplateColumns=`repeat(${size},1fr)`;
-  grid.innerHTML=cells.map(i=>`<div class="mm-cell" data-i="${i}"></div>`).join('');
+  grid.classList.toggle('mirror-hint',mode==='mirror');
+  grid.innerHTML=cells.map(i=>{
+    const r=Math.floor(i/size)+1, c=i%size+1;
+    return `<button type="button" class="mm-cell" data-i="${i}" aria-disabled="true"
+      aria-label="${gEsc(t('mm.cell',{r,c}))}" onclick="mmPick(${i})"></button>`;
+  }).join('');
+  gGridKeys(grid,size);
   const status=document.getElementById('mm-status');
-  status.className='mm-status'; status.textContent=t('mm.getready');
-
-  setTimeout(()=>{
-    /* FLASH: show the pattern */
-    mmState.phase='flash';
-    status.className='mm-status flash'; status.textContent=t('mm.watch');
-    mmState.lit.forEach(i=>grid.querySelector(`[data-i="${i}"]`).classList.add('lit'));
-    setTimeout(()=>{
-      /* HIDE, then accept input */
-      grid.querySelectorAll('.mm-cell').forEach(c=>c.classList.remove('lit'));
-      mmState.phase='recall';
-      status.className='mm-status recall';
-      status.textContent=t('mm.recall')+` (${litCount})`;
-      grid.querySelectorAll('.mm-cell').forEach(c=>c.onclick=()=>mmPick(+c.dataset.i));
-    },flashMs);
-  },700);
-}
-function mmPick(i){
-  if(mmState.phase!=='recall'||mmState.picked.includes(i)) return;
-  const grid=document.getElementById('mm-grid');
-  const cell=grid.querySelector(`[data-i="${i}"]`);
-  mmState.picked.push(i);
-  if(mmState.lit.includes(i)){
-    cell.classList.add('picked'); cell.textContent='✓';
-    if(mmState.picked.filter(x=>mmState.lit.includes(x)).length===mmState.lit.length){
-      mmState.phase='done'; mmState.results.push(true); mmRenderDots();
-      const s=document.getElementById('mm-status'); s.className='mm-status recall'; s.textContent=t('mm.correct');
-      mmState.streak=(mmState.streak||0)+1;
-      fxBurst('#mm-grid',{count:14,spread:96});
-      bobSetStage('mm-bob', mmState.streak>=3?'streak':'correct',
-                  bobLine(mmState.streak>=3?'streak3':'correct'),
-                  mmState.streak>=3?'hot':'good',1600);
-      playChime(true);
-      mmState.round++; setTimeout(mmNextRound,900);
-    }
+  if(s.round===0){
+    /* a 3-2-1 beat before the very first flash, so it is never missed */
+    const beat=(n,at)=>gLater(()=>{ status.className='mm-status count'; status.textContent=String(n); gSfx('tick'); },at,MM_SCR);
+    beat(3,0); beat(2,430); beat(1,860);
+    gLater(()=>{ gSfx('go'); mmFlash(); },1290,MM_SCR);
   } else {
-    cell.classList.add('miss'); cell.textContent='✕';
-    mmState.phase='done'; mmState.results.push(false); mmRenderDots();
-    const s=document.getElementById('mm-status'); s.className='mm-status wrong'; s.textContent=t('mm.wrong');
-    mmState.streak=0;
-    bobSetStage('mm-bob','wrong',bobLine('wrong'),'',1800);
-    playChime(false);
-    /* reveal what it actually was */
-    mmState.lit.forEach(x=>grid.querySelector(`[data-i="${x}"]`).classList.add('lit'));
-    mmState.round++; setTimeout(mmNextRound,1400);
+    status.className='mm-status'; status.textContent=t('mm.getready');
+    gLater(mmFlash,650,MM_SCR);
   }
 }
+function mmFlash(){
+  const s=mmState, grid=document.getElementById('mm-grid'), status=document.getElementById('mm-status');
+  s.phase='flash';
+  status.className='mm-status flash';
+  status.textContent=t(s.cfg.mode==='seq'?'mm.seqwatch':'mm.watch');
+  if(s.cfg.mode==='seq'){
+    const step=s.cfg.stepMs, gap=150;
+    s.shown.forEach((ix,k)=>{
+      gLater(()=>{ const c=mmCell(ix); if(c) c.classList.add('seqlit'); gSfx('flash'); },k*(step+gap),MM_SCR);
+      gLater(()=>{ const c=mmCell(ix); if(c) c.classList.remove('seqlit'); },k*(step+gap)+step,MM_SCR);
+    });
+    gLater(mmRecall,s.shown.length*(step+gap)+120,MM_SCR);
+  } else {
+    s.shown.forEach(ix=>mmCell(ix).classList.add('lit'));
+    gLater(()=>{ grid.querySelectorAll('.mm-cell').forEach(c=>c.classList.remove('lit')); mmRecall(); },s.cfg.flashMs,MM_SCR);
+  }
+}
+function mmRecallText(){
+  const s=mmState, k={std:'mm.recall',seq:'mm.seqrecall',mirror:'mm.mirrorrecall'}[s.cfg.mode];
+  return `${t(k)} (${s.picked.length}/${s.target.length})`;
+}
+function mmRecall(){
+  const s=mmState;
+  s.phase='recall';
+  const status=document.getElementById('mm-status');
+  status.className='mm-status recall'; status.textContent=mmRecallText();
+  mmSetInteractive(true);
+}
+function mmPick(i){
+  const s=mmState;
+  if(!s||s.phase!=='recall'||s.picked.includes(i)) return;
+  const el=mmCell(i);
+  if(!el||el.classList.contains('strike')) return;
+  const seq=s.cfg.mode==='seq';
+  const ok = seq ? s.target[s.picked.length]===i : s.target.includes(i);
+  const status=document.getElementById('mm-status');
+  if(ok){
+    s.picked.push(i);
+    el.classList.add('picked');
+    el.innerHTML = seq ? `<span class="ord">${s.picked.length}</span>` : '✓';
+    el.setAttribute('aria-label',el.getAttribute('aria-label')+' ✓');
+    if(s.picked.length===s.target.length) mmRoundEnd(true);
+    else { status.className='mm-status recall'; status.textContent=mmRecallText(); }
+  } else if(s.strikes>0){
+    /* forgiven slip: shake, say so, and give the cell back */
+    s.strikes--;
+    el.classList.add('strike'); el.textContent='✕';
+    status.className='mm-status wrong'; status.textContent=t('mm.strike');
+    gLater(()=>{
+      el.classList.remove('strike'); el.textContent='';
+      if(s.phase==='recall'){ status.className='mm-status recall'; status.textContent=mmRecallText(); }
+    },700,MM_SCR);
+  } else {
+    el.classList.add('miss'); el.textContent='✕';
+    mmRoundEnd(false);
+  }
+}
+function mmRoundEnd(ok){
+  const s=mmState, grid=document.getElementById('mm-grid'), status=document.getElementById('mm-status');
+  s.phase='done'; s.results.push(ok); mmRenderDots();
+  mmSetInteractive(false);
+  if(ok){
+    s.streak++; s.bestStreak=Math.max(s.bestStreak,s.streak);
+    const mult=gMult(s.streak), gain=3*mult;
+    s.runXp+=gain;
+    status.className='mm-status recall'; status.textContent=t('mm.correct');
+    fxBurst(grid,{count:14,spread:96});
+    gXpFloat(status,gain,mult);
+    gComboChip('mm-combo',s.streak);
+    bobSetStage('mm-bob',s.streak>=3?'streak':'correct',bobLine(s.streak>=3?'streak3':'correct'),s.streak>=3?'hot':'good',1600);
+    if(s.streak===3) gSfx('combo',2); else playChime(true);
+  } else {
+    s.streak=0;
+    gComboChip('mm-combo',0);
+    status.className='mm-status wrong'; status.textContent=t('mm.wrong');
+    bobSetStage('mm-bob','wrong',bobLine('wrong'),'',1800);
+    playChime(false);
+    /* show what it actually was — with the order on a sequence round */
+    s.target.forEach((x,k)=>{
+      const c=mmCell(x); if(!c||c.classList.contains('picked')) return;
+      c.classList.add('lit','reveal');
+      if(s.cfg.mode==='seq') c.innerHTML=`<span class="ord">${k+1}</span>`;
+    });
+  }
+  s.round++;
+  gLater(mmNextRound,ok?950:1800,MM_SCR);
+}
 function mmFinish(){
-  const ok=mmState.results.filter(Boolean).length;
-  finishLevel(Math.round(ok/mmState.cfg.rounds*100),`${ok}/${mmState.cfg.rounds}`);
+  const s=mmState, ok=s.results.filter(Boolean).length, total=s.cfg.rounds;
+  const pct=Math.round(ok/total*100);
+  finishLevel(pct,`${ok}/${total}`,{nudge:gNudgeCorrect(ok,total,gStarsFor(pct)),runXp:s.runXp,combo:s.bestStreak});
 }
 
-
-/* ==================== LOGIC QUEST PUZZLE (40 levels, 7 rule types) ==================== */
+/* ==================== LOGIC QUEST PUZZLE (50 levels, 10 rule bands) ==================== */
 const TILE_COLORS=['#7C4DFF','#12B39B','#4C6FE0','#F0B429','#FF4D9D','#22C3E6','#8BD450'];
+/* Each colour also has its own shape, so a colour rule can be played by
+   shape alone — nothing in Logic Quest depends on colour vision. */
+const TILE_SHAPES=['circle','square','triangle','diamond','star','hex','cross'];
+const PZ_SHAPE_PATH={
+  circle:'<circle cx="12" cy="12" r="7.2"/>',
+  square:'<rect x="5.2" y="5.2" width="13.6" height="13.6" rx="1.6"/>',
+  triangle:'<path d="M12 3.8 20.6 19.4H3.4Z"/>',
+  diamond:'<path d="M12 3 21 12 12 21 3 12Z"/>',
+  star:'<path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6L12 16.9l-5.4 2.9 1.1-6-4.5-4.2 6.1-.8Z"/>',
+  hex:'<path d="M7.6 4.2h8.8L20.8 12l-4.4 7.8H7.6L3.2 12Z"/>',
+  cross:'<path d="M9.3 3.8h5.4v5.5h5.5v5.4h-5.5v5.5H9.3v-5.5H3.8V9.3h5.5Z"/>'
+};
+function pzShapeSVG(ci,cls){
+  return `<svg class="${cls||'pz-shape'}" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor">${PZ_SHAPE_PATH[TILE_SHAPES[ci]]}</g></svg>`;
+}
+/* Label colour per tile: whichever of white or near-black has the higher
+   contrast on that fill. White on the yellow and teal tiles failed WCAG. */
+function _gLum(hex){
+  const n=parseInt(hex.slice(1),16);
+  return [n>>16&255,n>>8&255,n&255].map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);})
+    .reduce((a,v,i)=>a+v*[0.2126,0.7152,0.0722][i],0);
+}
+const PZ_INK=TILE_COLORS.map(c=>{ const L=_gLum(c), D=_gLum('#14101F');
+  return (1.05/(L+0.05))>=((L+0.05)/(D+0.05)) ? '#FFFFFF' : '#14101F'; });
 const PZ_LEVELS=50;
 let pzState=null;
 
@@ -5613,8 +6739,10 @@ function pzConfig(lvl){
   else if(lvl<=46){      mode='chain';      size=6;          colors=6; }
   else {                 mode='chainrule';  size=6;          colors=5;
                          extra.rule=['even','odd','div3','gt'][ (lvl-47)%4 ]; }
-  const tight=Math.max(0,4-Math.floor(lvl/9));   /* move slack shrinks as levels rise, hits 0 well before the end */
-  return {mode,size,colors,slack:tight,extra};
+  /* Spare moves shrink as levels rise (4 → 1). A wrong tap spends one; the
+     level fails only once the targets left outnumber the moves left. */
+  const slack=Math.max(1,4-Math.floor(lvl/10));
+  return {mode,size,colors,slack,extra};
 }
 
 const PZ_RULE_TEXT={
@@ -5648,82 +6776,82 @@ function pzRuleText(mode,extra){
 function loadPuzzleLevel(lvl){
   currentGameKey='puzzle'; currentLevel=lvl;
   armActivity('game');
+  const tok=gNewRun();
   const cfg=pzConfig(lvl);
   const total=cfg.size*cfg.size;
-  const palette=TILE_COLORS.slice(0,cfg.colors);
+  const palette=[...Array(cfg.colors).keys()];          /* colour indices */
+  const rc=arr=>arr[Math.floor(Math.random()*arr.length)];
 
-  /* build tiles: colour + number */
+  /* build tiles: colour + unique number */
   const nums=[];
-  while(nums.length<total) {
+  while(nums.length<total){
     const v=1+Math.floor(Math.random()*(total+6));
     if(!nums.includes(v)) nums.push(v);
   }
-  let tiles=nums.map(n=>({n,c:palette[Math.floor(Math.random()*palette.length)]}));
+  let tiles=nums.map(n=>({n,c:rc(palette)}));
 
   let target=null, targets=[], ordered=false, hideAfter=0, extra={...cfg.extra};
 
   if(cfg.mode==='color'||cfg.mode==='memory'||cfg.mode==='combo'||cfg.mode==='chain'){
-    target=palette[Math.floor(Math.random()*palette.length)];
+    target=rc(palette);
     /* guarantee a sensible count of the target colour */
     const want=Math.max(3,Math.min(3+Math.floor(lvl/6),Math.floor(total*0.45)));
-    const idx=[...tiles.keys()];
-    for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    const idx=gShuffle([...tiles.keys()]);
     const others=palette.filter(c=>c!==target);
-    idx.forEach((ix,k)=> tiles[ix].c = k<want ? target : others[Math.floor(Math.random()*others.length)]);
-    targets=tiles.map((t,i)=>t.c===target?i:-1).filter(i=>i>=0);
+    idx.forEach((ix,k)=> tiles[ix].c = k<want ? target : rc(others));
+    targets=tiles.map((tl,i)=>tl.c===target?i:-1).filter(i=>i>=0);
     ordered = (cfg.mode==='combo'||cfg.mode==='chain');
     if(cfg.mode==='memory') hideAfter=Math.max(1400,3200-lvl*70);
     if(cfg.mode==='chain') hideAfter=3000;
   }
   else if(cfg.mode==='notcolor'){
-    target=palette[Math.floor(Math.random()*palette.length)];
+    target=rc(palette);
     const want=Math.max(3,Math.floor(total*0.35));
-    const idx=[...tiles.keys()];
-    for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    const idx=gShuffle([...tiles.keys()]);
     const others=palette.filter(c=>c!==target);
-    idx.forEach((ix,k)=> tiles[ix].c = k<want ? target : others[Math.floor(Math.random()*others.length)]);
-    targets=tiles.map((t,i)=>t.c!==target?i:-1).filter(i=>i>=0);
+    idx.forEach((ix,k)=> tiles[ix].c = k<want ? target : rc(others));
+    targets=tiles.map((tl,i)=>tl.c!==target?i:-1).filter(i=>i>=0);
   }
   else if(cfg.mode==='ascending'){
-    targets=[...tiles.keys()].sort((a,b)=>tiles[a].n-tiles[b].n);
+    targets=[...tiles.keys()];
     ordered=true;
   }
   else if(cfg.mode==='mathrule'||cfg.mode==='chainrule'){
     const rule=cfg.extra.rule;
     if(rule==='gt'){
-      const sorted=[...tiles].map(t=>t.n).sort((a,b)=>a-b);
+      const sorted=tiles.map(tl=>tl.n).sort((a,b)=>a-b);
       extra.n=sorted[Math.floor(total*0.55)];
-      targets=tiles.map((t,i)=>t.n>extra.n?i:-1).filter(i=>i>=0);
+      targets=tiles.map((tl,i)=>tl.n>extra.n?i:-1).filter(i=>i>=0);
     } else {
       const test={even:n=>n%2===0,odd:n=>n%2===1,div3:n=>n%3===0}[rule];
-      targets=tiles.map((t,i)=>test(t.n)?i:-1).filter(i=>i>=0);
-      /* make sure there are at least 3 valid targets */
+      targets=tiles.map((tl,i)=>test(tl.n)?i:-1).filter(i=>i>=0);
+      /* Make sure there are at least 3 valid targets. The repair moves a tile
+         to the next unused number that satisfies the rule, so numbers stay
+         unique and an ordered level can never have two "next" tiles. (The old
+         "even" repair added 2 to odd numbers, which kept them odd.) */
+      const used=new Set(tiles.map(tl=>tl.n));
       let guard=0;
-      while(targets.length<3 && guard++<50){
+      while(targets.length<3 && guard++<60){
         const ix=Math.floor(Math.random()*total);
-        tiles[ix].n = rule==='even' ? tiles[ix].n+(tiles[ix].n%2) + (tiles[ix].n%2===0?0:1)
-                    : rule==='odd' ? (tiles[ix].n%2===1?tiles[ix].n:tiles[ix].n+1)
-                    : tiles[ix].n - (tiles[ix].n%3);
-        if(tiles[ix].n<1) tiles[ix].n=rule==='div3'?3:1;
-        targets=tiles.map((t,i)=>test(t.n)?i:-1).filter(i=>i>=0);
+        if(test(tiles[ix].n)) continue;
+        let v=tiles[ix].n+1;
+        while(!test(v)||used.has(v)) v++;
+        used.delete(tiles[ix].n); tiles[ix].n=v; used.add(v);
+        targets=tiles.map((tl,i)=>test(tl.n)?i:-1).filter(i=>i>=0);
       }
     }
   }
   else if(cfg.mode==='majority'){
     /* one colour is most common — the player must count to find it */
-    const counts={};
-    palette.forEach(c=>counts[c]=0);
-    const winner=palette[Math.floor(Math.random()*palette.length)];
+    const winner=rc(palette);
     const winCount=Math.floor(total*0.32)+1;
-    const idx=[...tiles.keys()];
-    for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    const idx=gShuffle([...tiles.keys()]);
     const others=palette.filter(c=>c!==winner);
     idx.forEach((ix,k)=>{
-      if(k<winCount) tiles[ix].c=winner;
-      else tiles[ix].c=others[(k-winCount)%others.length];   /* spread evenly so winner is clearly top */
+      tiles[ix].c = k<winCount ? winner : others[(k-winCount)%others.length];  /* spread evenly so the winner is clearly top */
     });
     target=winner;
-    targets=tiles.map((t,i)=>t.c===winner?i:-1).filter(i=>i>=0);
+    targets=tiles.map((tl,i)=>tl.c===winner?i:-1).filter(i=>i>=0);
   }
 
   if(cfg.mode==='chainrule'){ ordered=true; hideAfter=Math.max(1500,3200-(lvl-47)*300); }
@@ -5731,102 +6859,156 @@ function loadPuzzleLevel(lvl){
 
   const showNums = ['ascending','mathrule','chainrule','combo','chain'].includes(cfg.mode);
   const showRuleColor = ['color','notcolor','memory','combo','chain'].includes(cfg.mode);
+  const showShape = showRuleColor || cfg.mode==='majority';
 
-  pzState={tiles,targets,ordered,cfg,mode:cfg.mode,target,extra,showNums,
-    progress:0,cleared:new Set(),done:false,hidden:false,
+  pzState={tok,tiles,targets,ordered,cfg,mode:cfg.mode,target,extra,showNums,showShape,
+    progress:0,cleared:new Set(),flashing:new Set(),misses:0,done:false,hidden:false,
+    streak:0,bestStreak:0,runXp:0,
     movesLeft:targets.length+cfg.slack,maxMoves:targets.length+cfg.slack};
 
   document.getElementById('pz-level').textContent=lvl;
   document.getElementById('pz-moves').textContent=pzState.movesLeft;
+  gSyncSoundChips();
+  gComboChip('pz-combo',0);
 
-  const swatch = showRuleColor && target
-    ? ` <span style="display:inline-block;width:18px;height:18px;border-radius:6px;background:${target};vertical-align:-4px;margin:0 6px;box-shadow:0 2px 6px rgba(0,0,0,.18)"></span>`
-    : (cfg.mode==='majority' ? ' ❓' : '');
+  let swatch='';
+  if(showRuleColor && target!==null){
+    swatch=` <span class="pz-swatch" style="background:${TILE_COLORS[target]};color:${PZ_INK[target]}">${pzShapeSVG(target)}</span>`+
+           `<span class="pz-swname">${t('gx.col.'+target)} · ${t('gx.shp.'+target)}</span>`;
+  } else if(cfg.mode==='majority'){
+    swatch=` <span class="pz-swatch q" aria-hidden="true">?</span><span class="pz-swname">${t('pz.mostoften')}</span>`;
+  }
   document.getElementById('pz-target').innerHTML=
-    `${pzRuleText(cfg.mode,extra)}${swatch} <b style="color:var(--accent-ink)">(${targets.length})</b>`;
+    `${pzRuleText(cfg.mode,extra)}${swatch} <b class="pz-count">(${targets.length})</b>`;
 
-  document.getElementById('pz-msg').textContent='';
-  document.getElementById('pz-msg').className='puzzle-msg';
+  const msg=document.getElementById('pz-msg');
+  msg.textContent=''; msg.className='puzzle-msg';
   renderPzBoard();
   showScreen('screen-puzzle-play');
   bobSetStage('pz-bob','testStart',bobLine('levelStart'),'warm');
 
   if(hideAfter){
-    setTimeout(()=>{
-      if(!pzState||pzState.done) return;
+    gLater(()=>{
+      if(!pzState||pzState.done||pzState.tok!==tok) return;
       pzState.hidden=true; renderPzBoard();
-      const m=document.getElementById('pz-msg');
-      m.textContent=({en:'Board hidden — go from memory!',he:'הלוח מוסתר — מהזיכרון!',es:'Tablero oculto — ¡de memoria!',ru:'Доска скрыта — по памяти!',ar:'اللوحة مخفية — من الذاكرة!'})[lang];
-      m.className='puzzle-msg good';
-    },hideAfter);
+      msg.textContent=t('pz.hidden');
+      msg.className='puzzle-msg good';
+    },hideAfter,'screen-puzzle-play');
   }
 }
 
+function pzTileInner(i){
+  const s=pzState, tl=s.tiles[i];
+  const cleared=s.cleared.has(i), hid=s.hidden&&!cleared;
+  if(cleared) return {html:'✓',aria:t('pz.foundtile'),bg:TILE_COLORS[tl.c],ink:PZ_INK[tl.c]};
+  if(hid) return {html:'?',aria:t('pz.hiddentile'),bg:'var(--bg-soft)',ink:'var(--muted)'};
+  const shape = s.showShape ? pzShapeSVG(tl.c, s.showNums?'pz-shape mini':'pz-shape') : '';
+  const num = s.showNums ? `<span class="pz-num">${tl.n}</span>` : '';
+  const aria = s.showShape ? `${t('gx.col.'+tl.c)} ${t('gx.shp.'+tl.c)}${s.showNums?', '+tl.n:''}` : String(tl.n);
+  return {html:shape+num,aria,bg:TILE_COLORS[tl.c],ink:PZ_INK[tl.c]};
+}
 function renderPzBoard(){
   const b=document.getElementById('pz-board');
   b.style.gridTemplateColumns=`repeat(${pzState.cfg.size},1fr)`;
-  b.innerHTML=pzState.tiles.map((t,i)=>{
-    const cleared=pzState.cleared.has(i);
-    const bg = (pzState.hidden && !cleared) ? 'var(--bg-soft)' : t.c;
-    const label = cleared ? '' : (pzState.hidden ? '?' : (pzState.showNums ? t.n : ''));
-    const col = (pzState.hidden && !cleared) ? 'var(--lock)' : '#FFFFFF';
-    return `<button class="grid-tile${cleared?' faded':''}" data-i="${i}"
-      style="background:${bg};color:${col}" onclick="tapTile(${i})">${label}</button>`;
+  b.innerHTML=pzState.tiles.map((tl,i)=>{
+    const x=pzTileInner(i), cleared=pzState.cleared.has(i);
+    return `<button class="grid-tile${cleared?' faded':''}${pzState.hidden&&!cleared?' hid':''}" data-i="${i}"
+      style="background:${x.bg};color:${x.ink}" aria-label="${gEsc(x.aria)}" onclick="tapTile(${i})">${x.html}</button>`;
   }).join('');
+  gGridKeys(b,pzState.cfg.size);
+}
+function pzRefreshTile(i){
+  const el=document.querySelector(`#pz-board .grid-tile[data-i="${i}"]`);
+  if(!el||!pzState) return;
+  const x=pzTileInner(i);
+  el.classList.remove('is-miss','pop');
+  el.classList.toggle('hid',pzState.hidden&&!pzState.cleared.has(i));
+  el.style.background=x.bg; el.style.color=x.ink;
+  el.setAttribute('aria-label',x.aria);
+  el.innerHTML=x.html;
 }
 
 function tapTile(i){
-  if(!pzState||pzState.done||pzState.cleared.has(i)) return;
-  const el=document.querySelector(`.grid-tile[data-i="${i}"]`);
+  const s=pzState;
+  if(!s||s.done||s.cleared.has(i)||s.flashing.has(i)) return;
+  const el=document.querySelector(`#pz-board .grid-tile[data-i="${i}"]`);
   const msg=document.getElementById('pz-msg');
+  const ok = s.ordered ? s.targets[s.progress]===i : s.targets.includes(i);
 
-  let ok;
-  if(pzState.ordered){
-    ok = pzState.targets[pzState.progress]===i;          /* must be the exact next one */
-  } else {
-    ok = pzState.targets.includes(i);
-  }
-
-  pzState.cleared.add(i);
-  pzState.movesLeft--;
-  document.getElementById('pz-moves').textContent=pzState.movesLeft;
-  el.classList.add('pop');
+  s.movesLeft--;
+  document.getElementById('pz-moves').textContent=s.movesLeft;
 
   if(ok){
-    pzState.progress++;
-    el.style.background=pzState.tiles[i].c;
-    el.textContent='✓';
-    setTimeout(()=>el.classList.add('faded'),150);
-    msg.textContent=`${pzState.progress}/${pzState.targets.length} ${t('pz.found')}`;
+    s.cleared.add(i);
+    s.progress++;
+    s.streak++; s.bestStreak=Math.max(s.bestStreak,s.streak);
+    const mult=gMult(s.streak), gain=mult;
+    s.runXp+=gain;
+    pzRefreshTile(i);
+    el.classList.add('pop');
+    gLater(()=>el.classList.add('faded'),160,'screen-puzzle-play');
+    msg.textContent=`${s.progress}/${s.targets.length} ${t('pz.found')}`;
     msg.className='puzzle-msg good';
-    pzState.streak=(pzState.streak||0)+1;
-    fxBurst(el,{count:8,spread:52,colors:[pzState.tiles[i].c,'#F0B429']});
-    if(pzState.streak===3) bobSetStage('pz-bob','streak',bobLine('streak3'),'hot',2000);
-    else if(pzState.streak>0 && pzState.streak%5===0) bobSetStage('pz-bob','streak',bobLine('streak5'),'hot',2400);
+    fxBurst(el,{count:8,spread:52,colors:[TILE_COLORS[s.tiles[i].c],'#F0B429']});
+    gComboChip('pz-combo',s.streak);
+    if(mult>1) gXpFloat(el,gain,mult);
+    if(s.streak===3){ bobSetStage('pz-bob','streak',bobLine('streak3'),'hot',2000); gSfx('combo',2); }
+    else if(s.streak===6){ bobSetStage('pz-bob','streak',bobLine('combo'),'hot',2200); gSfx('combo',3); }
+    else if(s.streak>0 && s.streak%5===0) bobSetStage('pz-bob','streak',bobLine('streak5'),'hot',2400);
   } else {
-    pzState.streak=0;
+    /* A wrong tap costs a move but the tile stays in play — in an ordered
+       mode it may be a later target, and clearing it here used to make the
+       level impossible to finish. */
+    s.misses++; s.streak=0;
+    gComboChip('pz-combo',0);
+    s.flashing.add(i);
+    el.classList.remove('pop'); void el.offsetWidth;
+    el.classList.add('is-miss');
+    el.innerHTML='✕';
     bobSetStage('pz-bob','wrong',bobLine('wrong'),'',1600);
-    el.style.background='var(--chip-ext-bg)'; el.style.color='var(--chip-ext-ink)';
-    el.textContent='✕';
-    msg.textContent = pzState.ordered
-      ? ({en:'Wrong order — costs a move.',he:'סדר שגוי — עולה מהלך.',es:'Orden incorrecto — cuesta un movimiento.',ru:'Неверный порядок — минус ход.',ar:'ترتيب خاطئ — يكلّف حركة.'})[lang]
-      : t('pz.wrongtile');
+    msg.textContent = s.ordered ? t('pz.wrongorder') : t('pz.wrongtile');
     msg.className='puzzle-msg bad';
+    gLater(()=>{ s.flashing.delete(i); pzRefreshTile(i); },560,'screen-puzzle-play');
   }
 
-  if(pzState.progress===pzState.targets.length){
-    pzState.done=true;
-    const used=pzState.maxMoves-pzState.movesLeft;
-    const pct=Math.round(pzState.targets.length/used*100);
-    setTimeout(()=>finishLevel(pct,`${pzState.progress}/${pzState.targets.length}`),520);
-  } else if(pzState.movesLeft<=0){
-    pzState.done=true;
+  const remaining=s.targets.length-s.progress;
+  if(remaining===0){
+    s.done=true;
+    const m2=Math.max(1,Math.floor(s.cfg.slack/2));
+    const stars = s.misses===0?3:(s.misses<=m2?2:1);
+    const pct=Math.round(s.targets.length/(s.targets.length+s.misses)*100);
+    const nudge = stars===3?'' : (stars===2?t('lr.nudgeclean',{s:'★★★'}):t('lr.nudgemiss',{m:m2,s:'★★'}));
+    gLater(()=>finishLevel(pct,`${s.progress}/${s.targets.length}`,
+      {passed:true,stars,nudge,runXp:s.runXp,combo:s.bestStreak}),520,'screen-puzzle-play');
+  } else if(s.movesLeft<remaining){
+    /* Not enough moves left to finish: say so, and fail — never "out of
+       moves" followed by "level passed". */
+    s.done=true;
     msg.textContent=t('pz.outofmoves'); msg.className='puzzle-msg bad';
-    setTimeout(()=>finishLevel(Math.round(pzState.progress/pzState.targets.length*100),
-      `${pzState.progress}/${pzState.targets.length}`),800);
+    gLater(()=>finishLevel(Math.round(s.progress/s.targets.length*100),`${s.progress}/${s.targets.length}`,
+      {passed:false,reason:t('lr.outofmoves',{f:s.progress,n:s.targets.length}),
+       nudge:t('lr.nudgemiss',{m:s.cfg.slack,s:'★'}),runXp:s.runXp,combo:s.bestStreak}),800,'screen-puzzle-play');
   }
 }
 
+/* Arrow-key movement across a square grid of buttons (RTL-aware). */
+function gGridKeys(grid,size){
+  grid.onkeydown=e=>{
+    const k=e.key; if(!/^Arrow/.test(k)) return;
+    const btns=[...grid.querySelectorAll('button')];
+    const i=btns.indexOf(document.activeElement); if(i<0) return;
+    const rtl=document.documentElement.dir==='rtl';
+    let j=-1;
+    if(k==='ArrowRight'||k==='ArrowLeft'){
+      const d=((k==='ArrowRight')!==rtl)?1:-1, c=i%size+d;
+      if(c>=0&&c<size) j=i+d;
+    } else {
+      const d=k==='ArrowDown'?size:-size;
+      if(i+d>=0&&i+d<btns.length) j=i+d;
+    }
+    if(j>=0){ e.preventDefault(); btns[j].focus(); }
+  };
+}
 
 /* ==================== HARDCORE — RUN ENGINE ====================
    Hardcore has no level ladder: it is one run of HC_ITEMS items drawn at
@@ -5854,11 +7036,23 @@ function openHardcoreIntro(){
 
 function startHardcore(){
   const bank=HARDCORE_BANK();
-  /* Draw without replacement, then shuffle each item's options so the key
-     never sits in the same slot twice. */
-  const qs=pick(bank,Math.min(HC_ITEMS,bank.length)).map(q=>shuffleOpts(Object.assign({},q,{opts:q.opts.slice()})));
+  /* Prefer items not seen in the last two runs (the bank has 31, a run uses
+     10, so two runs back still leaves 11 fresh). When there are not enough,
+     the least recently seen fill in.
+     Ordering easy → hard is skipped on purpose: the bank has no difficulty
+     signal (every item is top-band, tagged only by construct), and inventing
+     one would order the run on a guess. */
+  const m=gMeta(), recent=(m.seen.hc||[]).slice(-HC_ITEMS*2);
+  const fresh=gShuffle(bank.filter(q=>!recent.includes(q.id)));
+  const stale=bank.filter(q=>recent.includes(q.id)).sort((a,b)=>recent.indexOf(a.id)-recent.indexOf(b.id));
+  const drawn=fresh.concat(stale).slice(0,Math.min(HC_ITEMS,bank.length));
+  m.seen.hc=(m.seen.hc||[]).concat(drawn.map(q=>q.id)).slice(-HC_ITEMS*4);
+  saveProgress();
+  /* Shuffle each item's options so the key never sits in the same slot twice. */
+  const qs=gShuffle(drawn).map(q=>shuffleOpts(Object.assign({},q,{opts:q.opts.slice()})));
+  gNewRun();
   engine={mode:'hardcore',qs,cur:0,answers:[],sel:null,timer:null,
-          left:HC_SECONDS,limit:HC_SECONDS,streak:0,bestStreak:0,correct:0};
+          left:HC_SECONDS,limit:HC_SECONDS,streak:0,bestStreak:0,correct:0,runXp:0};
   hcRun={started:Date.now()};
   currentGameKey='hardcore';
   armActivity('game');
@@ -5869,22 +7063,34 @@ function startHardcore(){
   setBobState(document.getElementById('quiz-bob'),'hardcore',0,'hardcore');
 }
 
+const _hcClock=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+/* Best score, and the fastest time at that score. */
+function hcBest(){ const m=gMeta(); const b=m.hc||{}; const legacy=bestFor('hardcore');
+  return (b.pct||0)>=legacy ? b : {pct:legacy}; }
+function hcBestText(){
+  const b=hcBest();
+  if(!b.pct) return '—';
+  return b.secs!==undefined ? t('hc.bestat',{p:b.pct,t:_hcClock(b.secs)}) : b.pct+'%';
+}
 function finishHardcore(){
+  gStopRun();
   disarmActivity();
   const qs=engine.qs, total=qs.length||1;
   const correct=engine.answers.filter(Boolean).length;
   const pct=Math.round(correct/total*100);
   const used=engine.limit-Math.max(0,engine.left);
-  const prevBest=bestFor('hardcore');
-  const beat=recordBest('hardcore',pct);
+  const m=gMeta(), prev=hcBest();
+  /* A record is a higher score, or the same score in less time. */
+  const beat = prev.pct>0 && (pct>prev.pct || (pct===prev.pct && prev.secs!==undefined && used<prev.secs));
+  if(!prev.pct || pct>prev.pct || (pct===prev.pct && (prev.secs===undefined || used<prev.secs))) m.hc={pct,secs:used};
+  recordBest('hardcore',pct);
 
   document.getElementById('hc-score-val').textContent='';
   animateNumber(document.getElementById('hc-score-val'),pct,900,v=>Math.round(v)+'%');
   document.getElementById('hc-correct').textContent=`${correct}/${total}`;
   document.getElementById('hc-correct2').textContent=`${correct}/${total}`;
-  document.getElementById('hc-time').textContent=
-    `${Math.floor(used/60)}:${String(used%60).padStart(2,'0')}`;
-  document.getElementById('hc-bestval').textContent=(beat?pct:Math.max(prevBest,pct))+'%';
+  document.getElementById('hc-time').textContent=_hcClock(used);
+  document.getElementById('hc-bestval').textContent=hcBestText();
   document.getElementById('hc-streak').textContent=engine.bestStreak||0;
 
   const rank = pct>=90?3:(pct>=70?2:(pct>=40?1:0));
@@ -5898,56 +7104,239 @@ function finishHardcore(){
       <span><b>${q.id} · ${catName(q.cat)}</b><br>${loc(q.ex)}</span></div>`;
   }).join('');
 
+  const booked=gBookRun({xp:(engine.runXp||0)+(rank>=2?20:0),combo:engine.bestStreak||0});
+  _gFails.hardcore = rank>0 ? 0 : (_gFails.hardcore||0)+1;
   const state = beat?'newRecord':(rank>=2?'highScore':(rank===0?'encouraging':'celebrate'));
   showScreen('screen-hcresult',{force:true});
   bobSetStage('hc-bob',state,
-    beat?bobLine('newRecord'):(rank>=2?bobLine('hardcoreDone'):bobLine('levelFail')),
+    beat?bobLine('newRecord'):(rank>=2?bobLine('hardcoreDone'):(_gFails.hardcore>=2?bobLine('failTwice'):bobLine('levelFail'))),
     beat?'hot':(rank>=2?'good':'warm'));
-  playChime(rank>0);
+  if(rank===3) gSfx('fanfare'); else playChime(rank>0);
   if(rank>=2||beat) setTimeout(()=>fxBurst('#hc-score-val',{count:beat?28:18,spread:beat?160:110}),260);
+  if(rank===3) setTimeout(gConfetti,300);
+  if(booked.xp) setTimeout(()=>fxPop('#hc-score-val',t('lr.xp',{n:booked.xp}),'gold'),700);
+  gAfterBooking(booked);
 }
 
-/* ==================== SHARED LEVEL RESULT ==================== */
-function finishLevel(pct,scoreLabel){
-  disarmActivity();
-  const passed=pct>=PASS_PCT;
-  const stars=pct>=95?3:(pct>=80?2:(passed?1:0));
-  if(passed){
-    const prog=progFor(currentGameKey);
-    prog[currentLevel]=Math.max(prog[currentLevel]||0,stars);
-    saveProgress();
+/* ==================== GAMES v2 — rewards ====================
+   Everything lives inside the per-user gameProgress (key "_meta"), so it is
+   saved, loaded and switched with the account exactly like the stars are:
+     xp        total experience; the player level is derived from it
+     day       {last:'YYYY-MM-DD', n, best} consecutive days played
+     ach       {id: unlockedAt}
+     pb        {'game:level': best %} — personal best per game AND level
+     combo     best combo reached in any run
+     seen      recently seen item ids per game (no-repeat windows)
+     hc        Hardcore best {pct, secs}                                   */
+function gMeta(){
+  let m=gameProgress._meta;
+  if(!m||typeof m!=='object') m=gameProgress._meta={};
+  m.xp=+m.xp||0; m.ach=m.ach||{}; m.pb=m.pb||{}; m.seen=m.seen||{};
+  m.day=m.day||{last:'',n:0,best:0}; m.combo=+m.combo||0;
+  return m;
+}
+const XP_PER_STAR=10, XP_NEW_STAR=20;
+/* Level 2 at 100 XP, then each level needs 50 more than the one before. */
+function gLevelInfo(xp){
+  let L=1, need=100, left=Math.max(0,Math.floor(xp||0));
+  while(left>=need){ left-=need; L++; need=100+50*(L-1); }
+  return {L,into:left,need};
+}
+/* Combo multiplier: ×2 from three in a row, ×3 from six. */
+function gMult(streak){ return streak>=6?3:(streak>=3?2:1); }
+function gToday(d){ d=d||new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function gYesterday(){ const d=new Date(); d.setDate(d.getDate()-1); return gToday(d); }
+/* Marks today as played. Returns the new streak length when it advanced. */
+function gTouchDay(){
+  const m=gMeta(), today=gToday();
+  if(m.day.last===today) return 0;
+  m.day.n = (m.day.last===gYesterday()) ? (m.day.n||0)+1 : 1;
+  m.day.last=today; m.day.best=Math.max(m.day.best||0,m.day.n);
+  return m.day.n;
+}
+function gDayStreak(){ const m=gMeta(); return (m.day.last===gToday()||m.day.last===gYesterday())?(m.day.n||0):0; }
+
+const CORE_GAMES=['memmatrix','speed','spatial','wordrecall','puzzle'];
+const ACHS=[
+  {id:'first',    ok:s=>s.cleared>=1},
+  {id:'three',    ok:s=>s.three>=1},
+  {id:'ten',      ok:s=>s.cleared>=10},
+  {id:'combo10',  ok:s=>s.combo>=10},
+  {id:'allfive',  ok:s=>s.five},
+  {id:'streak5',  ok:s=>s.day>=5},
+  {id:'hc70',     ok:s=>s.hc>=70},
+  {id:'lvl30',    ok:s=>s.top>=30},
+  {id:'fifty',    ok:s=>s.cleared>=50},
+  {id:'stars100', ok:s=>s.stars>=100}
+];
+function gStats(){
+  const m=gMeta(); let cleared=0,three=0,stars=0,top=0;
+  CATALOG.filter(c=>c.type!=='hardcore' && typeof c.launch!=='function').forEach(c=>{
+    const p=gameProgress[c.key]||{};
+    Object.keys(p).forEach(l=>{ const v=+p[l]||0; if(v>0){ cleared++; stars+=v; top=Math.max(top,+l||0); if(v>=3) three++; } });
+  });
+  return {cleared,three,stars,top,
+    five:CORE_GAMES.every(k=>highestLevel(k)>0),
+    combo:m.combo, hc:Math.max(bestFor('hardcore'),(m.hc&&m.hc.pct)||0),
+    day:Math.max(m.day.best||0,gDayStreak())};
+}
+function gCheckAchievements(){
+  const m=gMeta(), s=gStats(), fresh=[];
+  ACHS.forEach(a=>{ if(!m.ach[a.id] && a.ok(s)){ m.ach[a.id]=Date.now(); fresh.push(a.id); } });
+  return fresh;
+}
+/* Books a finished run: XP, the day streak and achievements, then saves. */
+function gBookRun(o){
+  const m=gMeta();
+  const before=gLevelInfo(m.xp).L;
+  const xp=Math.max(0,Math.round(o.xp||0));
+  m.xp+=xp;
+  if(o.combo) m.combo=Math.max(m.combo,o.combo);
+  const day=gTouchDay();
+  const after=gLevelInfo(m.xp).L;
+  const ach=gCheckAchievements();
+  saveProgress();
+  return {xp,levelUp:after>before?after:0,day,ach};
+}
+/* What the result screens do with a booked run: toasts, Bob's day cheer. */
+function gAfterBooking(b){
+  if(b.ach.length) setTimeout(()=>gAchToast(b.ach),900);
+  if(b.day>=2) setTimeout(()=>bobMoment('streak',bobLine('dayStreak').replace('{n}',b.day),3600),b.ach.length?4600:1500);
+}
+
+const TROPHY_SVG='<svg class="gx-trophy" viewBox="0 0 32 32" aria-hidden="true"><path d="M10 5h12v6a6 6 0 0 1-12 0Z" fill="#F0B429" stroke="#B87F00" stroke-width="1.4"/>'+
+  '<path d="M10 7H6.5a3.5 3.5 0 0 0 3.8 5M22 7h3.5a3.5 3.5 0 0 1-3.8 5" fill="none" stroke="#B87F00" stroke-width="1.6"/>'+
+  '<path d="M14 17h4v4h-4zM11 22h10v4H11z" fill="#B87F00"/></svg>';
+const _achQ=[]; let _achBusy=false;
+function gAchToast(ids){ _achQ.push(...ids); if(!_achBusy) _gNextToast(); }
+function _gNextToast(){
+  const id=_achQ.shift();
+  if(!id){ _achBusy=false; return; }
+  _achBusy=true;
+  let el=document.getElementById('gx-toast');
+  if(!el){
+    el=document.createElement('div'); el.id='gx-toast'; el.className='gx-toast';
+    el.setAttribute('role','status'); el.setAttribute('aria-live','polite');
+    document.body.appendChild(el);
   }
-  const m=gameMeta(currentGameKey);
-  document.getElementById('lr-kicker').textContent=`${m.name} · ${t('game.level')} ${currentLevel}`;
+  el.innerHTML=`${TROPHY_SVG}<div><small>${t('gx.achunlocked')}</small><b>${t('ach.'+id+'.n')}</b><span>${t('ach.'+id+'.d')}</span></div>`;
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  gSfx('ach');
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(_gNextToast,380); },3400);
+}
+
+/* In-run juice shared by every game. */
+function gXpFloat(el,n,mult){ if(el) fxPop(el,`+${n} XP${mult>1?' ×'+mult:''}`,mult>1?'gold':''); }
+function gComboChip(id,streak){
+  const chip=document.getElementById(id); if(!chip) return;
+  const m=gMult(streak);
+  if(streak<2){ chip.hidden=true; return; }
+  chip.hidden=false;
+  chip.textContent=`🔥 ${streak}`+(m>1?` · ${t('gx.combo',{m})}`:'');
+  chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump');
+}
+/* Light CSS confetti for a three-star finish. Nothing at all with reduced motion. */
+function gConfetti(){
+  if(REDUCED()) return;
+  const layer=fxLayer(), cols=['#7C4DFF','#12B39B','#F0B429','#FF4D9D','#22C3E6','#8BD450'];
+  for(let i=0;i<34;i++){
+    const d=document.createElement('i');
+    d.className='gx-conf';
+    d.style.cssText=`left:${Math.random()*100}%;background:${cols[i%cols.length]};`+
+      `--dx:${Math.round((Math.random()-.5)*160)}px;--rot:${Math.round(Math.random()*720-360)}deg;`+
+      `animation-delay:${Math.round(Math.random()*350)}ms;animation-duration:${1400+Math.round(Math.random()*900)}ms;`+
+      (i%3===0?'border-radius:50%;':'');
+    layer.appendChild(d);
+    setTimeout(()=>d.remove(),2800);
+  }
+}
+/* "1 more correct for ★★" — the smallest number of extra correct answers
+   that reaches the next star threshold, or '' when there is none. */
+function gNudgeCorrect(have,total,stars){
+  if(stars>=3||!total) return '';
+  const thr=[PASS_PCT,80,95][stars];
+  let n=have+1;
+  while(n<=total && Math.round(n/total*100)<thr) n++;
+  if(n>total) return '';
+  const k=n-have, s='★'.repeat(stars+1);
+  return k===1?t('lr.nudge1',{s}):t('lr.nudgen',{n:k,s});
+}
+
+/* ==================== SHARED LEVEL RESULT ====================
+   finishLevel(pct, label, opts)
+     opts.passed  override the pass rule (Logic Quest: out of moves = fail)
+     opts.stars   override the star rule
+     opts.reason  blurb to show instead of the generic one on a fail
+     opts.nudge   "1 more correct for ★★" line (computed by the game)
+     opts.runXp   XP earned during the run (combo-weighted)
+     opts.combo   best combo of the run                                    */
+const _gFails={};
+function finishLevel(pct,scoreLabel,opts){
+  const o=opts||{};
+  gStopRun();
+  disarmActivity();
+  const key=currentGameKey, lvl=currentLevel;
+  const passed = o.passed!==undefined ? !!o.passed : pct>=PASS_PCT;
+  const stars = !passed ? 0 : (o.stars!==undefined ? o.stars : (pct>=95?3:(pct>=80?2:1)));
+  const prog=progFor(key), prevStars=prog[lvl]||0;
+  if(passed) prog[lvl]=Math.max(prevStars,stars);
+  const newStars=Math.max(0,stars-prevStars);
+
+  /* Personal best per game and level, so "new record" compares like with like. */
+  const m=gMeta(), pbk=key+':'+lvl, prevPb=m.pb[pbk];
+  const beat = passed && prevPb!==undefined && pct>prevPb;
+  m.pb[pbk]=Math.max(prevPb||0,pct);
+
+  const xp=(o.runXp||0)+stars*XP_PER_STAR+newStars*XP_NEW_STAR;
+  const booked=gBookRun({xp,combo:o.combo||0});
+  _gFails[key] = passed ? 0 : (_gFails[key]||0)+1;
+
+  const gm=gameMeta(key);
+  document.getElementById('lr-kicker').textContent=`${gm.name} · ${t('game.level')} ${lvl}`;
   const tag=document.getElementById('lr-passtag');
   tag.className='pass-tag '+(passed?'pass':'fail');
   tag.textContent=passed?t('lr.passed'):t('lr.failed');
   document.getElementById('lr-stars').innerHTML=passed
     ? [1,2,3].map(i=>`<span class="${i<=stars?'':'dim'}">★</span>`).join('') : '';
+  document.getElementById('lr-stars').setAttribute('aria-label',passed?`${stars} / 3 ★`:'');
   document.getElementById('lr-score').textContent=scoreLabel+` · ${pct}%`;
   document.getElementById('lr-blurb').textContent=passed
     ? (stars===3?t('lr.perfect'):(stars===2?t('lr.good'):t('lr.ok')))
-    : t('lr.needmore',{n:PASS_PCT});
+    : (o.reason||t('lr.needmore',{n:PASS_PCT}));
+
+  const extra=[];
+  if(booked.xp) extra.push(`<span class="gx-chip xp">${t('lr.xp',{n:booked.xp})}</span>`);
+  if(booked.levelUp) extra.push(`<span class="gx-chip up">${t('lr.levelup',{n:booked.levelUp})}</span>`);
+  if(beat) extra.push(`<span class="gx-chip rec">★ ${t('lr.record',{p:prevPb})}</span>`);
+  else if(prevPb!==undefined) extra.push(`<span class="gx-chip">${t('lr.best',{p:m.pb[pbk]})}</span>`);
+  const ex=document.getElementById('lr-extra');
+  ex.innerHTML=(extra.length?`<div class="gx-chips">${extra.join('')}</div>`:'')+
+    (o.nudge?`<p class="gx-nudge">${o.nudge}</p>`:'');
+
   const nb=document.getElementById('lr-next'), rb=document.getElementById('lr-retry');
-  if(passed && currentLevel<levelsFor(currentGameKey)){ nb.style.display=''; nb.textContent=t('btn.nextlevel'); }
+  if(passed && lvl<levelsFor(key)){ nb.style.display=''; nb.textContent=t('btn.nextlevel'); }
   else nb.style.display='none';
   rb.style.display=''; rb.textContent=passed?t('btn.restart'):t('btn.tryagain');
-  playChime(passed);
+  if(stars===3) gSfx('fanfare'); else playChime(passed);
   showScreen('screen-levelresult',{force:true});
 
   /* Bob closes the level out. A beaten personal best gets the biggest state
-     he has; a plain pass gets a short one so replaying stays quick. */
-  const beat = passed && recordBest(currentGameKey,pct);
+     he has; two fails in a row get encouragement rather than another "no". */
+  const twice=!passed && _gFails[key]>=2;
   const state = beat ? 'newRecord' : (passed ? (stars===3?'highScore':'celebrate') : 'encouraging');
   const line  = beat ? bobLine('newRecord')
-              : (passed ? (stars===3?bobLine('highScore'):bobLine('levelPass')) : bobLine('levelFail'));
+              : (passed ? (stars===3?bobLine('highScore'):(booked.levelUp?bobLine('levelUp'):bobLine('levelPass')))
+                        : (twice?bobLine('failTwice'):bobLine('levelFail')));
   bobSetStage('lr-bob',state,line,beat?'hot':(passed?'good':'warm'));
   if(passed){
     setTimeout(()=>{
       fxBurst('#lr-stars',{count:beat?26:16,spread:beat?150:110});
       if(beat) fxPop('#lr-score',t('hc.newbest'),'gold');
+      if(stars===3) gConfetti();
     },180);
   }
+  gAfterBooking(booked);
 }
 function advanceLevel(){ playLevel(currentGameKey,currentLevel+1); }
 function retryLevel(){ playLevel(currentGameKey,currentLevel); }
@@ -7534,6 +8923,33 @@ function playChime(up){
     g.gain.exponentialRampToValueAtTime(0.0001,t0+0.34);
     o.connect(g); g.connect(ctx.destination);
     o.start(t0); o.stop(t0+0.36);
+  });
+}
+
+/* Game cues, on the same "Click sounds" switch and at the same low level as
+   playChime. Short sine/triangle blips only — nothing that would grate after
+   a hundred plays. */
+function gSfx(kind,arg){
+  if(!sfxOn) return;
+  const ctx=audioCtx(); if(!ctx) return;
+  const seq={
+    ach:[[659.25,0],[783.99,.08],[987.77,.16],[1318.5,.26]],
+    fanfare:[[523.25,0],[659.25,.1],[783.99,.2],[1046.5,.32]],
+    combo:[[440*Math.pow(2,(Math.min(arg||1,3)*4)/12),0]],
+    tick:[[880,0]],
+    go:[[1174.66,0]],
+    flash:[[740,0]]
+  }[kind];
+  if(!seq) return;
+  const vol=kind==='tick'||kind==='flash'?0.05:0.08;
+  seq.forEach(([hz,dt])=>{
+    const t0=ctx.currentTime+dt, o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=kind==='tick'?'triangle':'sine'; o.frequency.value=hz;
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.exponentialRampToValueAtTime(vol,t0+0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+(kind==='fanfare'||kind==='ach'?0.42:0.18));
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t0); o.stop(t0+0.45);
   });
 }
 
