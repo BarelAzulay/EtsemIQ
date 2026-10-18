@@ -1349,6 +1349,52 @@
     .mm-cell.seqlit,.mm-cell.lit{transform:none;}
   }
 </style>
+<style id="ft-items">
+  /* Free test: balance scales, puzzle boards, timed digits (see docs/QUESTION-AUDIT.md).
+     Colours come from the theme tokens, so both themes work unchanged. */
+  .q-sub:has(> .ft-stem),.q-sub:has(> .ft-wm){background:none;border:0;padding:0;margin:-6px 0 26px;}
+  .ft-stem{display:flex;flex-wrap:wrap;gap:12px 22px;justify-content:center;}
+  .ft-scale{width:236px;max-width:100%;height:auto;color:var(--ink);}
+  .ft-board{width:176px;max-width:72vw;height:auto;}
+  .ft-target{width:220px;}
+  .ft-board .f rect{fill:var(--bg-soft);stroke:var(--muted);stroke-width:1.2;}
+  .ft-board .g rect{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.6;stroke-dasharray:4 3;}
+  .ft-board .t rect{fill:var(--accent-soft);stroke:var(--accent-ink);stroke-width:1.5;}
+  .ft-pz rect{fill:var(--accent-soft);stroke:var(--accent-ink);stroke-width:1.4;}
+  .option svg.ft-wt,.option svg.ft-pz{flex-shrink:0;}
+  .ft-dg{display:inline-flex;gap:6px;}
+  .ft-dg i{font-style:normal;min-width:30px;height:38px;padding:0 4px;border:1px solid var(--line);border-radius:8px;
+    display:inline-flex;align-items:center;justify-content:center;background:var(--white);color:var(--ink);
+    font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;}
+  .option .ft-dg{gap:4px;}
+  .option .ft-dg i{min-width:24px;height:30px;font-size:16px;padding:0 2px;}
+  .ft-wm{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:110px;}
+  .ft-wm-digits{min-height:38px;}
+  .ft-wm-bar{display:none;width:min(220px,70%);height:4px;border-radius:2px;background:var(--line);overflow:hidden;}
+  .ft-wm-bar span{display:block;height:100%;background:var(--accent);transform-origin:left center;}
+  [dir="rtl"] .ft-wm-bar span{transform-origin:right center;}
+  .ft-wm.show .ft-wm-bar{display:block;}
+  .ft-wm-go{min-height:44px;padding:10px 22px;border-radius:22px;border:1.5px solid var(--accent);
+    background:var(--accent-soft);color:var(--accent-ink);font-weight:600;font-size:15px;cursor:pointer;}
+  .ft-wm.show .ft-wm-go,.ft-wm.done .ft-wm-go{display:none;}
+  .ft-wm-note{display:none;font-size:14px;color:var(--muted);text-align:center;}
+  .ft-wm.done .ft-wm-note{display:block;}
+  .ft-wm.done .ft-wm-digits i{color:var(--muted);}
+  #question-mount.ft-wm-wait .options-grid{visibility:hidden;}
+  /* RTL: the analogy arrows follow the reading direction. */
+  [dir="rtl"] .analogy-op{display:inline-block;transform:scaleX(-1);}
+  /* A figure series of five or six cells stays on one line on a phone, so the
+     "?" never wraps away from the figures it continues. */
+  @media (max-width:440px){
+    #screen-quiz .visual-row{flex-wrap:nowrap;}
+    #screen-quiz .visual-row > .visual-cell{flex:0 1 66px;min-width:0;height:auto;aspect-ratio:1;}
+  }
+  /* Five or more figure options on a phone: two columns, not a long list. */
+  @media (max-width:820px){
+    .options-grid:has(> .option:nth-child(5)):has(> .option > svg):not(:has(svg.ft-wide)):not(:has(svg.ft-wt)){
+      grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
+</style>
 </head>
 <body>
 <div class="ticker-bar"><span class="ticker-dot"></span><span id="ticker-text"></span></div>
@@ -3034,6 +3080,11 @@ function figSVG(f){
 
 function svgFor(o){
   if(o.val!==undefined) return null;
+  /* Free-test primitives (balance weights, puzzle pieces). New keys only, so
+     every existing figure renders exactly as before. */
+  if(o.wt) return wtSVG(o.wt);
+  if(o.pz) return pzSVG(o.pz);
+  if(o.pzs) return pzsSVG(o.pzs);
   if(o.fig) return figSVG(o.fig);
   if(o.dots!==undefined) return dotsSVG(o.dots);
   if(o.color) return `<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="${COLOR_MAP[o.color]}"/></svg>`;
@@ -3048,209 +3099,686 @@ function svgFor(o){
 /* signature used to guarantee no two options in a question render identically */
 function optSig(o){
   if(o.val!==undefined) return 'v:'+(typeof o.val==='string'?o.val:JSON.stringify(o.val));
+  if(o.wt) return 'w:'+o.wt.join(',');
+  if(o.pz) return 'p:'+pzKey(o.pz);
+  if(o.pzs) return 'P:'+o.pzs.map(pzKey).join('|');
   if(o.fig) return 'f:'+[o.fig.shape,o.fig.inner||'-',o.fig.n||0,o.fig.line||'solid',((o.fig.rot||0)%360+360)%360].join(':');
   if(o.dots!==undefined) return 'd:'+o.dots;
   if(o.color) return 'c:'+o.color;
   return `g:${o.glyph}:${((o.rot||0)%360+360)%360}:${o.mir?1:0}:${o.tint||''}`;
 }
 
-/* ==================== 30-QUESTION BANK ====================
-   d = difficulty (easy | medium | hard | extreme), also used as score weight. */
+/* ====================================================================
+   FREE TEST — 30 SLOTS, PARALLEL FORMS (October 2026 rebuild)
+   ====================================================================
+   FT_BANK() returns 30 slots in rising difficulty (7 easy, 8 medium,
+   8 hard, 7 extreme), six per report category. Each slot holds two or
+   three PARALLEL FORMS: the same construct, the same number of rule
+   tokens, the same option count, different surface. A sitting draws one
+   form per slot, never the same form as the person's previous sitting,
+   so a retake is a different test of the same thing.
+
+   Every form is authored with its key at index 0. The options are
+   shuffled when a sitting is built (ftBuildTest), so the key's position
+   is uniform per item and nothing here leaks it.
+
+   Notes on the design (full write-up: docs/QUESTION-AUDIT.md §3 and §7):
+   • Nothing is copied, traced or adapted from any published test. The
+     constructs are documented ones: matrix rule types (Carpenter, Just &
+     Shell 1990), figure weights / visual puzzles / arithmetic / digit span
+     (Wechsler), mental rotation (Shepard & Metzler 1971), analogies
+     (Sternberg 1977), serial patterns (Simon & Kotovsky 1963).
+   • Figural option sets split every attribute as evenly as they can, so
+     the key is never just "the most common value" of the options (the
+     I-RAVEN answer-set bias, Hu et al. 2021).
+   • 21 of 30 slots need no reading beyond a shared instruction. No letter
+     series anywhere: alphabets differ, and two of our languages are RTL.
+   • d = difficulty band, which is also the score weight (DIFF_WEIGHT).    */
 const DIFF_WEIGHT = {easy:1, medium:1.6, hard:2.3, extreme:3.2};
+const FT_LANGS=['en','he','es','ru','ar'];
 
-function QB(){ return [
-/* ---------- EASY (1-7) ---------- */
-{cat:'pattern',d:'easy',prompt:p('continues'),
-  seq:[{dots:1},{dots:2},{dots:3}], opts:[{dots:5},{dots:4},{dots:2},{dots:6}], ans:1},
-{cat:'numerical',d:'easy',prompt:p('nextnum'),num:true,
-  seq:[2,4,6,8], opts:[{val:'9'},{val:'10'},{val:'12'},{val:'11'}], ans:1},
-{cat:'pattern',d:'easy',prompt:p('nextcolor'),
-  seq:[{color:'red'},{color:'blue'},{color:'red'},{color:'blue'},{color:'red'}],
-  opts:[{color:'red'},{color:'blue'},{color:'green'},{color:'yellow'}], ans:1},
-{cat:'spatial',d:'easy',prompt:p('whichrotation'),
-  seq:[{glyph:'flag',rot:0},{glyph:'flag',rot:90},{glyph:'flag',rot:180}],
-  opts:[{glyph:'flag',rot:270},{glyph:'flag',rot:90},{glyph:'flag',rot:0},{glyph:'flag',rot:45}], ans:0},
-{cat:'verbal',d:'easy',
-  prompt:{en:'Big is to Small as Fast is to ___?',he:'גדול הוא לקטן כמו מהיר הוא ל___?',es:'Grande es a Pequeño como Rápido es a ___?',ru:'Большой относится к Маленькому, как Быстрый к ___?',ar:'كبير إلى صغير كما سريع إلى ___؟'},
-  opts:[{val:{en:'Slow',he:'איטי',es:'Lento',ru:'Медленный',ar:'بطيء'}},{val:{en:'Quick',he:'זריז',es:'Veloz',ru:'Скорый',ar:'عاجل'}},
-        {val:{en:'Speed',he:'מהירות',es:'Velocidad',ru:'Скорость',ar:'سرعة'}},{val:{en:'Run',he:'לרוץ',es:'Correr',ru:'Бежать',ar:'يجري'}}], ans:0},
-{cat:'spatial',d:'easy',prompt:p('analogy'),
-  analogy:[{glyph:'flag',rot:0},{glyph:'flag',rot:90},{glyph:'ell',rot:0}],
-  opts:[{glyph:'ell',rot:180},{glyph:'ell',rot:90},{glyph:'ell',rot:270},{glyph:'ell',rot:0,mir:true}], ans:1},
-{cat:'pattern',d:'easy',prompt:p('odd'),oddOut:true,
-  opts:[{color:'blue'},{color:'blue'},{color:'green'},{color:'blue'}], ans:2},
+/* ---------- new primitives: balance weights ----------
+   Four shapes, each with its own fill so the shapes are told apart twice —
+   by outline and by colour. Shape alone is enough, so colour vision never
+   matters. */
+const WT_FILL={ci:'#4C6FE0',sq:'#FF7A3D',tri:'#2E9E63',dia:'#7C5CE0'};
+function wtShape(k,x,b,s){            /* centre x, baseline b, size s */
+  const f=`fill="${WT_FILL[k]||'#888'}"`;
+  if(k==='ci') return `<circle cx="${x}" cy="${b-s/2}" r="${s/2}" ${f}/>`;
+  if(k==='sq') return `<rect x="${x-s/2+.5}" y="${b-s+.5}" width="${s-1}" height="${s-1}" rx="1.6" ${f}/>`;
+  if(k==='tri') return `<path d="M${x} ${b-s} L${x+s*.58} ${b} L${x-s*.58} ${b} Z" ${f}/>`;
+  return `<path d="M${x} ${b-s} L${x+s*.52} ${b-s/2} L${x} ${b} L${x-s*.52} ${b-s/2} Z" ${f}/>`;
+}
+/* lay shapes out in up to two rows, bottom row on the baseline */
+function wtPile(list,cx,b,s,g){
+  const n=list.length, per=n<=4?n:Math.ceil(n/2);
+  let out='';
+  list.forEach((k,i)=>{
+    const row=Math.floor(i/per), inRow=Math.min(per,n-row*per), col=i-row*per;
+    const x=cx+(col-(inRow-1)/2)*(s+g);
+    out+=wtShape(k,x,b-row*(s+g),s);
+  });
+  return out;
+}
+function wtSVG(list){                  /* an answer option: a pile of weights */
+  const n=list.length, per=n<=4?n:Math.ceil(n/2), rows=n<=4?1:2, s=13, g=3;
+  const w=per*(s+g)+2, h=rows*(s+g)+2;
+  return `<svg class="ft-wt" viewBox="0 0 ${w} ${h}" style="width:${Math.round(w*1.7)}px;height:${Math.round(h*1.7)}px">`+
+    wtPile(list,w/2,h-1.5,s,g)+`</svg>`;
+}
+/* one balanced pan scale; R===null draws the "?" pan */
+function balanceSVG(L,R){
+  const q=R===null;
+  return `<svg class="ft-scale${q?' ft-scale-q':''}" viewBox="0 0 200 84" role="img">`+
+    `<g stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none">`+
+    `<path d="M80 80 H120"/><path d="M100 79 V45"/><path d="M26 44 H174"/>`+
+    `<path d="M50 44 V39"/><path d="M150 44 V39"/><path d="M12 38 H88"/><path d="M112 38 H188"/></g>`+
+    `<circle cx="100" cy="44" r="3.4" fill="currentColor"/>`+
+    wtPile(L,50,36,13,3)+
+    (q?`<rect x="126" y="10" width="48" height="25" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-dasharray="4 3"/>`+
+       `<text x="150" y="28.5" text-anchor="middle" font-size="16" font-weight="700" fill="var(--accent-ink)">?</text>`
+      :wtPile(R,150,36,13,3))+
+    `</svg>`;
+}
+function balanceStem(scales,q){
+  return `<div class="ft-stem ft-bal">`+scales.map(([l,r])=>balanceSVG(l.split(' '),r.split(' '))).join('')+
+    balanceSVG(q.split(' '),null)+`</div>`;
+}
 
-/* ---------- MEDIUM (8-15) ---------- */
-{cat:'numerical',d:'medium',prompt:p('nextnum'),num:true,
-  seq:[2,4,8,16], opts:[{val:'24'},{val:'30'},{val:'32'},{val:'64'}], ans:2},
-{cat:'spatial',d:'medium',prompt:p('mirror'),noQ:true,
-  seq:[{glyph:'ell',rot:0}],
-  opts:[{glyph:'ell',rot:0},{glyph:'ell',rot:0,mir:true},{glyph:'ell',rot:180},{glyph:'ell',rot:90}], ans:1},
-/* Q10 — reworded in the 2026 audit. The old wording asked "does it follow?"
-   but offered True / False / Cannot be determined, so a reader who answered
-   the question asked ("no, it does not follow") and a reader who answered the
-   options ("the conclusion is undetermined") both had a case. The claim is now
-   named explicitly and the options are about its truth value only. */
-{cat:'logic',d:'medium',
-  prompt:{en:'All cats are mammals. Some mammals can swim. Using only these two statements, what can be said about the claim "some cats can swim"?',
-    he:'כל החתולים הם יונקים. חלק מהיונקים יודעים לשחות. על סמך שתי הטענות האלה בלבד, מה אפשר לומר על הטענה «חלק מהחתולים יודעים לשחות»?',
-    es:'Todos los gatos son mamíferos. Algunos mamíferos nadan. Usando solo estas dos afirmaciones, ¿qué se puede decir de la afirmación «algunos gatos nadan»?',
-    ru:'Все кошки — млекопитающие. Некоторые млекопитающие умеют плавать. Опираясь только на эти два утверждения, что можно сказать об утверждении «некоторые кошки умеют плавать»?',
-    ar:'كل القطط ثدييات. بعض الثدييات تسبح. بالاعتماد على هاتين العبارتين فقط، ماذا يمكن أن يُقال عن العبارة «بعض القطط تسبح»؟'},
-  opts:[{val:{en:'It must be true',he:'היא חייבת להיות נכונה',es:'Debe ser verdadera',ru:'Оно обязательно верно',ar:'يجب أن تكون صحيحة'}},
-        {val:{en:'It must be false',he:'היא חייבת להיות לא נכונה',es:'Debe ser falsa',ru:'Оно обязательно неверно',ar:'يجب أن تكون خاطئة'}},
-        {val:{en:'It may be true or false — the statements do not settle it',he:'היא עשויה להיות נכונה או לא — הטענות לא מכריעות',es:'Puede ser verdadera o falsa: las afirmaciones no lo deciden',ru:'Может быть верно или неверно — утверждения этого не решают',ar:'قد تكون صحيحة أو خاطئة — العبارتان لا تحسمان ذلك'}}], ans:2},
-{cat:'pattern',d:'medium',prompt:p('continues'),
-  seq:[{dots:1},{dots:3},{dots:5}], opts:[{dots:6},{dots:7},{dots:8},{dots:9}], ans:1},
-{cat:'verbal',d:'medium',
-  prompt:{en:'Book is to Library as Painting is to ___?',he:'ספר הוא לספרייה כמו ציור הוא ל___?',es:'Libro es a Biblioteca como Pintura es a ___?',ru:'Книга относится к Библиотеке, как Картина к ___?',ar:'كتاب إلى مكتبة كما لوحة إلى ___؟'},
-  opts:[{val:{en:'Frame',he:'מסגרת',es:'Marco',ru:'Рама',ar:'إطار'}},{val:{en:'Museum',he:'מוזיאון',es:'Museo',ru:'Музей',ar:'متحف'}},
-        {val:{en:'Artist',he:'אמן',es:'Artista',ru:'Художник',ar:'فنان'}},{val:{en:'Wall',he:'קיר',es:'Pared',ru:'Стена',ar:'جدار'}}], ans:1},
-{cat:'pattern',d:'medium',prompt:p('matrixgrid'),
-  matrix:[{dots:1},{dots:2},{dots:3},{dots:2},{dots:4},{dots:6},{dots:3},{dots:6},null],
-  opts:[{dots:7},{dots:8},{dots:9},{dots:5}], ans:2},
-{cat:'spatial',d:'medium',prompt:p('whichrotation'),
-  seq:[{glyph:'barb',rot:0},{glyph:'barb',rot:90},{glyph:'barb',rot:180}],
-  opts:[{glyph:'barb',rot:0},{glyph:'barb',rot:270},{glyph:'barb',rot:135},{glyph:'barb',rot:180}], ans:1},
-{cat:'pattern',d:'medium',prompt:p('odd'),oddOut:true,
-  opts:[{glyph:'flag',rot:0},{glyph:'flag',rot:0},{glyph:'flag',rot:0,mir:true},{glyph:'flag',rot:0}], ans:2},
+/* ---------- new primitives: puzzle pieces (polyominoes) ----------
+   A piece is a list of [row,col] cells. pzKey is orientation-sensitive on
+   purpose: two options that are rotations of each other would both be
+   "right", and the QA script checks for exactly that. */
+function pzNorm(cells){
+  const r0=Math.min(...cells.map(c=>c[0])), c0=Math.min(...cells.map(c=>c[1]));
+  return cells.map(([r,c])=>[r-r0,c-c0]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+}
+function pzKey(cells){ return pzNorm(cells).map(c=>c.join('.')).join(','); }
+function pzDims(cells){ const n=pzNorm(cells);
+  return [Math.max(...n.map(c=>c[0]))+1, Math.max(...n.map(c=>c[1]))+1]; }
+function pzRects(cells,ox,oy,u){
+  return pzNorm(cells).map(([r,c])=>`<rect x="${ox+c*u+.7}" y="${oy+r*u+.7}" width="${u-1.4}" height="${u-1.4}" rx="1.6"/>`).join('');
+}
+function pzSVG(cells){                 /* one piece, as an answer option */
+  const [R,C]=pzDims(cells), u=10;
+  return `<svg class="ft-pz" viewBox="0 0 ${C*u} ${R*u}" style="width:${C*17}px;height:${R*17}px">${pzRects(cells,0,0,u)}</svg>`;
+}
+function pzsSVG(pieces){               /* a set of pieces side by side */
+  const u=10, gap=10; let x=0, H=0, body='';
+  pieces.forEach(p=>{ const [R,C]=pzDims(p); H=Math.max(H,R); });
+  pieces.forEach((p,i)=>{ const [R,C]=pzDims(p);
+    body+=pzRects(p,x,(H-R)*u/2,u); x+=C*u+(i<pieces.length-1?gap:0); });
+  return `<svg class="ft-pz ft-wide" viewBox="0 0 ${x} ${H*u}" style="width:${Math.round(x*1.4)}px;height:${Math.round(H*u*1.4)}px">${body}</svg>`;
+}
+/* a square board with a gap, for "which piece completes it" */
+function pzBoardSVG(n,gap){
+  const u=22, G=new Set(gap.map(c=>c.join('.'))); let f='', g='';
+  for(let r=0;r<n;r++) for(let c=0;c<n;c++){
+    const cell=`<rect x="${c*u+1}" y="${r*u+1}" width="${u-2}" height="${u-2}" rx="2.5"/>`;
+    if(G.has(r+'.'+c)) g+=cell; else f+=cell;
+  }
+  return `<div class="ft-stem"><svg class="ft-board" viewBox="0 0 ${n*u} ${n*u}" role="img"><g class="f">${f}</g><g class="g">${g}</g></svg></div>`;
+}
+/* a target outline for "which set of pieces makes this shape" */
+function pzTargetSVG(cells){
+  const [R,C]=pzDims(cells), u=22;
+  return `<div class="ft-stem"><svg class="ft-board ft-target" viewBox="0 0 ${C*u} ${R*u}" role="img"><g class="t">`+
+    pzNorm(cells).map(([r,c])=>`<rect x="${c*u+1}" y="${r*u+1}" width="${u-2}" height="${u-2}" rx="2.5"/>`).join('')+`</g></svg></div>`;
+}
+const pzParse=s=>{ const out=[]; s.split('/').forEach((row,r)=>[...row].forEach((ch,c)=>{ if(ch==='#') out.push([r,c]); })); return out; };
 
-/* ---------- HARD (16-23) ---------- */
-{cat:'numerical',d:'hard',prompt:p('nextnum'),num:true,
-  seq:[1,1,2,3,5,8], opts:[{val:'11'},{val:'12'},{val:'13'},{val:'16'}], ans:2},
-/* Q17 — reworded in the 2026 audit. "Did it necessarily rain?" with
-   Yes / No / Cannot be determined had two defensible answers: "no, not
-   necessarily" and "undetermined" are the same thought. The options now spell
-   out the reasoning instead of labelling it, so only one can be right. */
-{cat:'logic',d:'hard',
-  prompt:{en:'If it rains, the ground gets wet. The ground is wet. Using only this, can you conclude that it rained?',
-    he:'אם יורד גשם, האדמה נרטבת. האדמה רטובה. על סמך זה בלבד, אפשר להסיק שירד גשם?',
-    es:'Si llueve, el suelo se moja. El suelo está mojado. Usando solo esto, ¿puedes concluir que llovió?',
-    ru:'Если идёт дождь, земля становится мокрой. Земля мокрая. Опираясь только на это, можно ли заключить, что шёл дождь?',
-    ar:'إذا أمطرت، تبتل الأرض. الأرض مبتلة. بالاعتماد على هذا فقط، هل يمكنك أن تستنتج أنها أمطرت؟'},
-  opts:[{val:{en:'Yes — rain is the only thing that wets the ground',he:'כן — רק גשם מרטיב את האדמה',es:'Sí: solo la lluvia moja el suelo',ru:'Да — только дождь мочит землю',ar:'نعم — المطر وحده يبلّل الأرض'}},
-        {val:{en:'No — something else could have wet it',he:'לא — משהו אחר יכול היה להרטיב אותה',es:'No: algo más pudo mojarlo',ru:'Нет — её могло намочить что-то другое',ar:'لا — قد يكون شيء آخر قد بلّلها'}},
-        {val:{en:'Yes, but only if the ground was dry before',he:'כן, אבל רק אם האדמה הייתה יבשה קודם',es:'Sí, pero solo si el suelo estaba seco antes',ru:'Да, но только если земля была сухой до этого',ar:'نعم، لكن فقط إذا كانت الأرض جافة قبل ذلك'}}], ans:1},
-{cat:'spatial',d:'hard',prompt:p('matrixgrid'),
-  matrix:[{glyph:'flag',rot:0},{glyph:'flag',rot:45},{glyph:'flag',rot:90},
-          {glyph:'flag',rot:90},{glyph:'flag',rot:135},{glyph:'flag',rot:180},
-          {glyph:'flag',rot:180},{glyph:'flag',rot:225},null],
-  opts:[{glyph:'flag',rot:270},{glyph:'flag',rot:315},{glyph:'flag',rot:270,mir:true},{glyph:'flag',rot:180}], ans:0},
-{cat:'spatial',d:'hard',prompt:p('whichrotation'),
-  seq:[{glyph:'ell',rot:0},{glyph:'ell',rot:45},{glyph:'ell',rot:90}],
-  opts:[{glyph:'ell',rot:180},{glyph:'ell',rot:135},{glyph:'ell',rot:225},{glyph:'ell',rot:270}], ans:1},
-(function(){
-  const d=MEM_DISTRACTORS[lang]||MEM_DISTRACTORS.en;
-  const o=[{val:d[0]},{val:memWord()},{val:d[1]},{val:d[2]}];
-  return {cat:'verbal',d:'hard',prompt:p('recallword'),recall:true,opts:o,ans:1};
-})(),
-{cat:'spatial',d:'hard',prompt:p('analogy'),
-  analogy:[{glyph:'barb',rot:0},{glyph:'barb',rot:0,mir:true},{glyph:'ell',rot:90}],
-  opts:[{glyph:'ell',rot:90,mir:true},{glyph:'ell',rot:270},{glyph:'ell',rot:90},{glyph:'ell',rot:180,mir:true}], ans:0},
-{cat:'logic',d:'hard',
-  prompt:{en:'Some doctors are teachers. All teachers are patient. Are some doctors necessarily patient?',he:'חלק מהרופאים הם מורים. כל המורים סבלניים. האם בהכרח חלק מהרופאים סבלניים?',es:'Algunos médicos son profesores. Todos los profesores son pacientes. ¿Algunos médicos son necesariamente pacientes?',ru:'Некоторые врачи — учителя. Все учителя терпеливы. Обязательно ли некоторые врачи терпеливы?',ar:'بعض الأطباء معلمون. كل المعلمين صبورون. هل بعض الأطباء صبورون بالضرورة؟'},
-  opts:[{val:{en:'Yes',he:'כן',es:'Sí',ru:'Да',ar:'نعم'}},{val:{en:'No',he:'לא',es:'No',ru:'Нет',ar:'لا'}},
-        {val:{en:'Cannot be determined',he:'לא ניתן לקבוע',es:'No se puede determinar',ru:'Нельзя определить',ar:'لا يمكن التحديد'}}], ans:0},
-{cat:'spatial',d:'hard',prompt:p('mirror'),noQ:true,
-  seq:[{glyph:'barb',rot:45}],
-  opts:[{glyph:'barb',rot:45},{glyph:'barb',rot:135},{glyph:'barb',rot:45,mir:true},{glyph:'barb',rot:225}], ans:2},
+/* ---------- strings owned by the free test ---------- */
+const FT_TXT={
+  en:{wmShow:'Show the digits',wmDone:'Hidden. Now choose them in reverse order.'},
+  he:{wmShow:'הצגת הספרות',wmDone:'הספרות הוסתרו. עכשיו בחרו אותן בסדר הפוך.'},
+  es:{wmShow:'Mostrar las cifras',wmDone:'Ocultas. Ahora elígelas en orden inverso.'},
+  ru:{wmShow:'Показать цифры',wmDone:'Цифры скрыты. Теперь выберите их в обратном порядке.'},
+  ar:{wmShow:'اعرض الأرقام',wmDone:'أُخفيت الأرقام. اخترها الآن بترتيب معكوس.'}
+};
+const T_FT={}; FT_LANGS.forEach(l=>{ T_FT[l]={'ft.wmShow':FT_TXT[l].wmShow,'ft.wmDone':FT_TXT[l].wmDone}; });
+Object.keys(T_FT).forEach(l=>{ if(T[l]) Object.assign(T[l], T_FT[l]); });
 
-/* ---------- EXTREME (24-30) ---------- */
-{cat:'numerical',d:'extreme',prompt:p('nextnum'),num:true,
-  seq:[1,2,6,24,120], opts:[{val:'240'},{val:'600'},{val:'720'},{val:'840'}], ans:2},
-{cat:'spatial',d:'extreme',prompt:p('matrixgrid'),
-  matrix:[{glyph:'ell',rot:0},{glyph:'ell',rot:90},{glyph:'ell',rot:180},
-          {glyph:'ell',rot:45},{glyph:'ell',rot:135},{glyph:'ell',rot:225},
-          {glyph:'ell',rot:90},{glyph:'ell',rot:180},null],
-  opts:[{glyph:'ell',rot:270},{glyph:'ell',rot:225},{glyph:'ell',rot:315},{glyph:'ell',rot:270,mir:true}], ans:0},
-/* Q26 — replaced in the 2026 audit. The old item listed three statements but
-   never said who made which, and "at least two of us" left "us" undefined, so
-   the puzzle was under-specified rather than hard. This version names a
-   speaker for every statement; exactly one assignment of truth-teller
-   satisfies all three at once (Ben), and the other two produce a direct
-   contradiction. */
-{cat:'logic',d:'extreme',
-  prompt:{en:'Three people each say one thing. Ana: "Ben is lying." Ben: "Cara is lying." Cara: "Ana and Ben are both lying." Exactly one of the three is telling the truth. Who?',
-   he:'שלושה אנשים, כל אחד אומר משפט אחד. אנה: «בן משקר.» בן: «קארה משקרת.» קארה: «אנה ובן שניהם משקרים.» בדיוק אחד מהשלושה דובר אמת. מי?',
-   es:'Tres personas dicen una cosa cada una. Ana: «Ben miente.» Ben: «Cara miente.» Cara: «Ana y Ben mienten los dos.» Exactamente una de las tres dice la verdad. ¿Quién?',
-   ru:'Три человека говорят по одной фразе. Аня: «Бен лжёт.» Бен: «Кара лжёт.» Кара: «Аня и Бен оба лгут.» Ровно один из троих говорит правду. Кто?',
-   ar:'ثلاثة أشخاص يقول كل منهم جملة واحدة. آنا: «بن يكذب.» بن: «كارا تكذب.» كارا: «آنا وبن كلاهما يكذب.» واحد فقط من الثلاثة يقول الحقيقة. من؟'},
-  opts:[{val:{en:'Ana',he:'אנה',es:'Ana',ru:'Аня',ar:'آنا'}},
-        {val:{en:'Ben',he:'בן',es:'Ben',ru:'Бен',ar:'بن'}},
-        {val:{en:'Cara',he:'קארה',es:'Cara',ru:'Кара',ar:'كارا'}},
-        {val:{en:'No consistent answer exists',he:'אין תשובה עקבית',es:'No existe respuesta consistente',ru:'Непротиворечивого ответа нет',ar:'لا توجد إجابة متسقة'}}], ans:1},
-/* Q27 — reworded in the 2026 audit. The old prompt said the figure "rotates
-   90° AND mirrors at each step", but a reflection combined with a rotation is
-   itself a reflection, so applying that transformation twice returns the
-   original: the rule as written could not generate the series it was attached
-   to. The series is the standard two-independent-rules construct, and the
-   prompt now describes it that way. The figures and the key are unchanged. */
-{cat:'spatial',d:'extreme',
-  prompt:{en:'Two rules run through this series: the figure turns 90° at every step, and every second figure is mirrored. Which comes next?',
-    he:'שני חוקים פועלים בסדרה: הצורה מסתובבת ב-90° בכל שלב, וכל צורה שנייה משוקפת. מה בא אחר כך?',
-    es:'Dos reglas recorren esta serie: la figura gira 90° en cada paso y cada segunda figura está reflejada. ¿Cuál sigue?',
-    ru:'В ряду действуют два правила: фигура поворачивается на 90° на каждом шаге, и каждая вторая фигура отражена. Что дальше?',
-    ar:'قاعدتان تسريان في السلسلة: يدور الشكل 90° في كل خطوة، وكل شكل ثانٍ يكون معكوساً. ما التالي؟'},
-  seq:[{glyph:'ell',rot:0},{glyph:'ell',rot:90,mir:true},{glyph:'ell',rot:180}],
-  opts:[{glyph:'ell',rot:270},{glyph:'ell',rot:270,mir:true},{glyph:'ell',rot:0,mir:true},{glyph:'ell',rot:90}], ans:1},
-{cat:'pattern',d:'extreme',prompt:p('matrixgrid'),
-  matrix:[{dots:1},{dots:4},{dots:5},{dots:2},{dots:3},{dots:5},{dots:4},{dots:5},null],
-  opts:[{dots:6},{dots:7},{dots:8},{dots:9}], ans:3},
-{cat:'numerical',d:'extreme',prompt:p('nextnum'),num:true,
-  seq:[1,2,4,7,11,16], opts:[{val:'20'},{val:'21'},{val:'22'},{val:'24'}], ans:2},
-{cat:'verbal',d:'extreme',
-  prompt:{en:'Which word is most nearly opposite in meaning to "ephemeral"?',he:'איזו מילה הכי הפוכה במשמעות ל"בן חלוף"?',es:'¿Qué palabra es más opuesta a "efímero"?',ru:'Какое слово наиболее противоположно слову «эфемерный»?',ar:'أي كلمة هي الأقرب لعكس معنى "زائل"؟'},
-  opts:[{val:{en:'Brief',he:'קצר',es:'Breve',ru:'Краткий',ar:'وجيز'}},{val:{en:'Enduring',he:'מתמשך',es:'Duradero',ru:'Долговечный',ar:'دائم'}},
-        {val:{en:'Fragile',he:'שביר',es:'Frágil',ru:'Хрупкий',ar:'هش'}},{val:{en:'Sudden',he:'פתאומי',es:'Repentino',ru:'Внезапный',ar:'مفاجئ'}}], ans:1}
+const FT_P={
+  turned:{en:'Which option is the same shape, only turned — not its mirror image?',
+    he:'איזו אפשרות היא אותה צורה, רק מסובבת — ולא תמונת הראי שלה?',
+    es:'¿Qué opción es la misma figura, solo girada, y no su imagen en el espejo?',
+    ru:'Какой вариант — та же фигура, только повёрнутая, а не её зеркальное отражение?',
+    ar:'أي خيار هو الشكل نفسه بعد تدويره فقط، وليس صورته في المرآة؟'},
+  balance:{en:'Every scale shown is balanced, and identical shapes always weigh the same. Which option balances the last scale?',
+    he:'כל המאזניים שמוצגים מאוזנים, וצורות זהות תמיד שוקלות אותו דבר. איזו אפשרות תאזן את המאזניים האחרונים?',
+    es:'Todas las balanzas están equilibradas y las figuras iguales siempre pesan lo mismo. ¿Qué opción equilibra la última balanza?',
+    ru:'Все весы в равновесии, а одинаковые фигуры всегда весят одинаково. Какой вариант уравновесит последние весы?',
+    ar:'كل الموازين المعروضة متوازنة، والأشكال المتطابقة لها دائماً الوزن نفسه. أي خيار يوازن الميزان الأخير؟'},
+  piece:{en:'Which piece fills the gap to complete the square? Pieces can be turned, but not flipped over.',
+    he:'איזה חלק ממלא את החסר ומשלים את הריבוע? מותר לסובב חלקים, אבל לא להפוך אותם.',
+    es:'¿Qué pieza llena el hueco y completa el cuadrado? Las piezas se pueden girar, pero no dar la vuelta.',
+    ru:'Какая деталь заполнит пустое место и дополнит квадрат? Детали можно поворачивать, но нельзя переворачивать.',
+    ar:'أي قطعة تملأ الفراغ وتكمل المربع؟ يمكن تدوير القطع، لكن لا يمكن قلبها.'},
+  assemble:{en:'Which set of pieces fits together to make exactly this shape? Pieces can be turned, but not flipped over.',
+    he:'איזו קבוצת חלקים מתחברת בדיוק לצורה הזאת? מותר לסובב חלקים, אבל לא להפוך אותם.',
+    es:'¿Qué conjunto de piezas encaja para formar exactamente esta figura? Las piezas se pueden girar, pero no dar la vuelta.',
+    ru:'Из какого набора деталей можно сложить ровно эту фигуру? Детали можно поворачивать, но нельзя переворачивать.',
+    ar:'أي مجموعة من القطع تتركب معاً لتكوّن هذا الشكل تماماً؟ يمكن تدوير القطع، لكن لا يمكن قلبها.'},
+  twoRules:{en:'Two independent rules run through this series. Which figure comes next?',
+    he:'שני חוקים בלתי תלויים פועלים בסדרה. איזו צורה באה אחר כך?',
+    es:'Dos reglas independientes recorren esta serie. ¿Qué figura sigue?',
+    ru:'В ряду действуют два независимых правила. Какая фигура следующая?',
+    ar:'قاعدتان مستقلتان تسريان في هذه السلسلة. أي شكل يأتي بعد ذلك؟'},
+  oddWord:{en:'Four of these belong together. Which one does not?',
+    he:'ארבעה מאלה שייכים יחד. איזה מהם לא שייך?',
+    es:'Cuatro de estos van juntos. ¿Cuál no encaja?',
+    ru:'Четыре из них объединяет общее. Какой лишний?',
+    ar:'أربعة من هذه تجمعها صفة مشتركة. أيّها لا ينتمي إليها؟'},
+  pairs:(stem)=>({en:`Which pair is related in the same way as ${stem.en}?`,
+    he:`איזה זוג קשור באותו אופן כמו «${stem.he}»?`,
+    es:`¿Qué par tiene la misma relación que «${stem.es}»?`,
+    ru:`Какая пара связана так же, как «${stem.ru}»?`,
+    ar:`أيّ زوج تجمع بين كلمتيه العلاقة نفسها الموجودة في «${stem.ar}»؟`}),
+  wm:(s)=>({en:`Memorise these digits. They stay on screen for ${s} seconds, then the options appear. Choose the digits in reverse order — last one first.`,
+    he:`שננו את הספרות. הן יוצגו ${s} שניות, ואז יופיעו האפשרויות. בחרו את הספרות בסדר הפוך — האחרונה ראשונה.`,
+    es:`Memoriza estas cifras. Se ven durante ${s} segundos y después aparecen las opciones. Elige las cifras en orden inverso: la última primero.`,
+    ru:`Запомните эти цифры. Они видны ${s} ${s<5?'секунды':'секунд'}, затем появятся варианты. Выберите цифры в обратном порядке — последнюю первой.`,
+    ar:`احفظ هذه الأرقام. ستبقى ظاهرة ${s} ثوانٍ ثم تظهر الخيارات. اختر الأرقام بترتيب معكوس — الأخير أولاً.`})
+};
+
+/* digits as a row of boxes. A flex row follows the page direction, so in
+   Hebrew and Arabic the first digit sits on the right, the way those
+   readers read a row. The stimulus and the options use the same markup, and
+   "reverse order" reads the same in either direction. */
+/* "4½" in a right-to-left line would show as "½4": "½" has no direction of
+   its own. An LTR isolate keeps a mixed number in one piece. */
+const ftLtr=s=>'\u2066'+s+'\u2069';
+const ftDigits=s=>`<span class="ft-dg" aria-label="${[...s].join(' ')}">${[...s].map(d=>`<i>${d}</i>`).join('')}</span>`;
+function ftWmSub(id,digits,ms){
+  const o={};
+  FT_LANGS.forEach(l=>{ o[l]=`<div class="ft-wm" data-ft="${id}" data-ms="${ms}" data-dg="${digits}">`+
+    `<span class="ft-dg ft-wm-digits" aria-live="polite"></span>`+
+    `<span class="ft-wm-bar" aria-hidden="true"><span></span></span>`+
+    `<button type="button" class="ft-wm-go" onclick="ftWmStart(this)">${FT_TXT[l].wmShow}</button>`+
+    `<span class="ft-wm-note">${FT_TXT[l].wmDone}</span></div>`; });
+  return o;
+}
+/* the word to memorise, per recall form (slot 20) */
+const FT_RECALL=[
+  {w:{en:'LANTERN',he:'פָּנָס',es:'FAROL',ru:'ФОНАРЬ',ar:'فانوس'},
+   d:[{en:'CANDLE',he:'נֵר',es:'VELA',ru:'СВЕЧА',ar:'شَمعة'},{en:'LAMP',he:'מְנוֹרָה',es:'LÁMPARA',ru:'ЛАМПА',ar:'مِصباح'},{en:'MATCH',he:'גַּפְרוּר',es:'CERILLA',ru:'СПИЧКА',ar:'عُود ثِقاب'}]},
+  {w:{en:'MIRROR',he:'מַרְאָה',es:'ESPEJO',ru:'ЗЕРКАЛО',ar:'مِرآة'},
+   d:[{en:'GLASS',he:'זְכוּכִית',es:'VIDRIO',ru:'СТЕКЛО',ar:'زُجاج'},{en:'FRAME',he:'מִסְגֶּרֶת',es:'MARCO',ru:'РАМА',ar:'إطار'},{en:'LENS',he:'עֲדָשָׁה',es:'LENTE',ru:'ЛИНЗА',ar:'عَدَسة'}]},
+  {w:{en:'PILLOW',he:'כָּרִית',es:'ALMOHADA',ru:'ПОДУШКА',ar:'وِسادة'},
+   d:[{en:'BLANKET',he:'שְׂמִיכָה',es:'MANTA',ru:'ОДЕЯЛО',ar:'بَطّانيّة'},{en:'MATTRESS',he:'מִזְרָן',es:'COLCHÓN',ru:'МАТРАС',ar:'مَرتَبة'},{en:'SHEET',he:'סָדִין',es:'SÁBANA',ru:'ПРОСТЫНЯ',ar:'مُلاءة'}]}
+];
+
+function FT_BANK(){
+  const F=(shape,inner,n,line,rot)=>({fig:{shape,inner,n,line:line||'solid',rot:rot||0}});
+  const G=(glyph,rot,mir)=>({glyph,rot:rot||0,mir:!!mir});
+  const N=(...a)=>a.map(x=>({val:String(x)}));
+  const W=s=>({wt:s.split(' ')});
+  const PZ=s=>({pz:pzParse(s)});
+  const PZS=(...a)=>({pzs:a.map(pzParse)});
+  const L=(en,he,es,ru,ar)=>({en,he,es,ru,ar});
+  const LV=(en,he,es,ru,ar)=>({val:{en,he,es,ru,ar}});
+  const DG=s=>({val:ftDigits(s)});
+  /* polyomino shorthands (rows separated by "/") */
+  const I3='#/#/#', L3='#./##', L4='#./#./##', J4='.#/.#/##', S4='#./##/.#', Z4='.#/##/#.',
+        S4h='.##/##.', Z4h='##./.##', T4='###/.#.';
+  return [
+
+/* ===================== EASY (slots 1–7) ===================== */
+/* 01 · pattern · matrix: shape constant in a row + count +1 across */
+[{id:'S01A',cat:'pattern',d:'easy',prompt:P.matrixgrid,
+  matrix:[F('sq','dot',1),F('sq','dot',2),F('sq','dot',3), F('ci','dot',1),F('ci','dot',2),F('ci','dot',3), F('tri','dot',1),F('tri','dot',2),null],
+  opts:[F('tri','dot',3),F('tri','dot',2),F('ci','dot',3),F('ci','dot',2)],ans:0},
+ {id:'S01B',cat:'pattern',d:'easy',prompt:P.matrixgrid,
+  matrix:[F('hex','bar',2),F('hex','bar',3),F('hex','bar',4), F('dia','bar',2),F('dia','bar',3),F('dia','bar',4), F('sq','bar',2),F('sq','bar',3),null],
+  opts:[F('sq','bar',4),F('sq','bar',3),F('dia','bar',4),F('dia','bar',3)],ans:0}],
+
+/* 02 · numerical · constant difference */
+[{id:'S02A',cat:'numerical',d:'easy',prompt:P.nextnum,num:true,seq:[3,7,11,15],opts:N(19,18,20,23),ans:0},
+ {id:'S02B',cat:'numerical',d:'easy',prompt:P.nextnum,num:true,seq:[4,10,16,22],opts:N(28,27,29,34),ans:0}],
+
+/* 03 · spatial · constant 90° rotation */
+[{id:'S03A',cat:'spatial',d:'easy',prompt:P.whichrotation,
+  seq:[G('flag',0),G('flag',90),G('flag',180)],opts:[G('flag',270),G('flag',270,1),G('flag',180),G('flag',0,1)],ans:0},
+ {id:'S03B',cat:'spatial',d:'easy',prompt:P.whichrotation,
+  seq:[G('ell',90),G('ell',180),G('ell',270)],opts:[G('ell',0),G('ell',0,1),G('ell',270),G('ell',90,1)],ans:0}],
+
+/* 04 · verbal · antonym analogy */
+[{id:'S04A',cat:'verbal',d:'easy',
+  prompt:L('Hot is to Cold as Day is to ___?','חם הוא לקר כמו יום הוא ל___?','Caliente es a frío como día es a ___','По аналогии: горячий — холодный, день — ?','حارّ إلى بارد كما نهار إلى ___؟'),
+  opts:[LV('Night','לילה','Noche','Ночь','ليل'),LV('Sun','שמש','Sol','Солнце','شمس'),LV('Light','אור','Luz','Свет','ضوء'),LV('Morning','בוקר','Mañana','Утро','صباح')],ans:0},
+ {id:'S04B',cat:'verbal',d:'easy',
+  prompt:L('Full is to Empty as Open is to ___?','מלא הוא לריק כמו פתוח הוא ל___?','Lleno es a vacío como abierto es a ___','По аналогии: полный — пустой, открытый — ?','ممتلئ إلى فارغ كما مفتوح إلى ___؟'),
+  opts:[LV('Closed','סגור','Cerrado','Закрытый','مغلق'),LV('Door','דלת','Puerta','Дверь','باب'),LV('Wide','רחב','Ancho','Широкий','واسع'),LV('Window','חלון','Ventana','Окно','نافذة')],ans:0}],
+
+/* 05 · logic · balance, one scale */
+[{id:'S05A',cat:'logic',d:'easy',prompt:FT_P.balance,bal:{scales:[['sq','ci ci']],q:'sq sq sq'},
+  sub:balanceStem([['sq','ci ci']],'sq sq sq'),opts:[W('ci ci ci ci ci ci'),W('ci ci ci'),W('ci ci ci ci ci'),W('ci ci ci ci')],ans:0},
+ {id:'S05B',cat:'logic',d:'easy',prompt:FT_P.balance,bal:{scales:[['tri','ci ci ci']],q:'tri tri'},
+  sub:balanceStem([['tri','ci ci ci']],'tri tri'),opts:[W('ci ci ci ci ci ci'),W('ci ci'),W('ci ci ci ci ci'),W('ci ci ci')],ans:0}],
+
+/* 06 · pattern · figure series: shape alternates, count +1 */
+[{id:'S06A',cat:'pattern',d:'easy',prompt:P.continues,
+  seq:[F('sq','dot',1),F('ci','dot',2),F('sq','dot',3),F('ci','dot',4)],opts:[F('sq','dot',5),F('ci','dot',5),F('sq','dot',4),F('ci','dot',4)],ans:0},
+ {id:'S06B',cat:'pattern',d:'easy',prompt:P.continues,
+  seq:[F('hex','bar',1),F('dia','bar',2),F('hex','bar',3),F('dia','bar',4)],opts:[F('hex','bar',5),F('dia','bar',5),F('hex','bar',4),F('dia','bar',4)],ans:0}],
+
+/* 07 · numerical · word problem: multiply, then add */
+[{id:'S07A',cat:'numerical',d:'easy',
+  prompt:L('A pack holds 6 pencils. There are 4 full packs and 2 loose pencils. How many pencils are there altogether?',
+    'בחבילה יש 6 עפרונות. יש 4 חבילות מלאות ועוד 2 עפרונות בודדים. כמה עפרונות יש בסך הכול?',
+    'Un paquete trae 6 lápices. Hay 4 paquetes llenos y 2 lápices sueltos. ¿Cuántos lápices hay en total?',
+    'В пачке 6 карандашей. Есть 4 полные пачки и ещё 2 отдельных карандаша. Сколько всего карандашей?',
+    'تحتوي العلبة على 6 أقلام. هناك 4 علب ممتلئة وقلمان إضافيان. كم قلماً في المجموع؟'),
+  opts:N(26,24,12,36),ans:0},
+ {id:'S07B',cat:'numerical',d:'easy',
+  prompt:L('A box holds 5 apples. There are 7 full boxes and 3 loose apples. How many apples are there altogether?',
+    'בארגז יש 5 תפוחים. יש 7 ארגזים מלאים ועוד 3 תפוחים בודדים. כמה תפוחים יש בסך הכול?',
+    'Una caja trae 5 manzanas. Hay 7 cajas llenas y 3 manzanas sueltas. ¿Cuántas manzanas hay en total?',
+    'В ящике 5 яблок. Есть 7 полных ящиков и ещё 3 отдельных яблока. Сколько всего яблок?',
+    'يحتوي الصندوق على 5 تفاحات. هناك 7 صناديق ممتلئة و3 تفاحات إضافية. كم تفاحة في المجموع؟'),
+  opts:N(38,35,15,50),ans:0}],
+
+/* ===================== MEDIUM (slots 8–15) ===================== */
+/* 08 · pattern · matrix: mark constant in a row + count +1 across and down */
+[{id:'S08A',cat:'pattern',d:'medium',prompt:P.matrixgrid,
+  matrix:[F('sq','cross',1),F('sq','cross',2),F('sq','cross',3), F('sq','bar',2),F('sq','bar',3),F('sq','bar',4), F('sq','dot',3),F('sq','dot',4),null],
+  opts:[F('sq','dot',5),F('sq','dot',4),F('sq','bar',5),F('sq','bar',4),F('sq','bar',6)],ans:0},
+ {id:'S08B',cat:'pattern',d:'medium',prompt:P.matrixgrid,
+  matrix:[F('ci','tri',1),F('ci','tri',2),F('ci','tri',3), F('ci','dot',2),F('ci','dot',3),F('ci','dot',4), F('ci','bar',3),F('ci','bar',4),null],
+  opts:[F('ci','bar',5),F('ci','bar',4),F('ci','dot',5),F('ci','dot',4),F('ci','dot',6)],ans:0}],
+
+/* 09 · numerical · constant ratio */
+[{id:'S09A',cat:'numerical',d:'medium',prompt:P.nextnum,num:true,seq:[3,6,12,24],opts:N(48,36,30,72,96),ans:0},
+ {id:'S09B',cat:'numerical',d:'medium',prompt:P.nextnum,num:true,seq:[2,6,18,54],opts:N(162,90,58,108,486),ans:0}],
+
+/* 10 · spatial · rotation vs reflection, quarter turns */
+[{id:'S10A',cat:'spatial',d:'medium',prompt:FT_P.turned,noQ:true,seq:[G('flag',0)],
+  opts:[G('flag',90),G('flag',90,1),G('flag',0,1),G('flag',180,1),G('flag',270,1)],ans:0},
+ {id:'S10B',cat:'spatial',d:'medium',prompt:FT_P.turned,noQ:true,seq:[G('ell',0)],
+  opts:[G('ell',270),G('ell',270,1),G('ell',0,1),G('ell',90,1),G('ell',180,1)],ans:0}],
+
+/* 11 · logic · quantified syllogism with an undetermined conclusion */
+[{id:'S11A',cat:'logic',d:'medium',
+  prompt:L('Every square in the box is blue. Some blue things in the box are small. Using only these two facts, what can be said about the claim "some squares in the box are small"?',
+    'כל הריבועים בקופסה כחולים. חלק מהדברים הכחולים בקופסה קטנים. על סמך שתי העובדות האלה בלבד, מה אפשר לומר על הטענה «חלק מהריבועים בקופסה קטנים»?',
+    'Todos los cuadrados de la caja son azules. Algunas cosas azules de la caja son pequeñas. Usando solo estos dos datos, ¿qué se puede decir de la afirmación «algunos cuadrados de la caja son pequeños»?',
+    'Все квадраты в коробке синие. Некоторые синие предметы в коробке маленькие. Опираясь только на эти два факта, что можно сказать об утверждении «некоторые квадраты в коробке маленькие»?',
+    'كل المربعات في الصندوق زرقاء. بعض الأشياء الزرقاء في الصندوق صغيرة. بالاعتماد على هاتين المعلومتين فقط، ماذا يمكن أن يُقال عن العبارة «بعض المربعات في الصندوق صغيرة»؟'),
+  opts:[LV('It may be true or false — the facts do not settle it','היא עשויה להיות נכונה או לא — העובדות לא מכריעות','Puede ser verdadera o falsa: los datos no lo deciden','Может быть верно или неверно — факты этого не решают','قد تكون صحيحة أو خاطئة — المعلومتان لا تحسمان ذلك'),
+        LV('It must be true','היא חייבת להיות נכונה','Debe ser verdadera','Оно обязательно верно','يجب أن تكون صحيحة'),
+        LV('It must be false','היא חייבת להיות לא נכונה','Debe ser falsa','Оно обязательно неверно','يجب أن تكون خاطئة')],ans:0},
+ {id:'S11B',cat:'logic',d:'medium',
+  prompt:L('All the stones in the jar are smooth. Some smooth things in the jar are white. Using only these two facts, what can be said about the claim "some stones in the jar are white"?',
+    'כל האבנים בצנצנת חלקות. חלק מהדברים החלקים בצנצנת לבנים. על סמך שתי העובדות האלה בלבד, מה אפשר לומר על הטענה «חלק מהאבנים בצנצנת לבנות»?',
+    'Todas las piedras del frasco son lisas. Algunas cosas lisas del frasco son blancas. Usando solo estos dos datos, ¿qué se puede decir de la afirmación «algunas piedras del frasco son blancas»?',
+    'Все камни в банке гладкие. Некоторые гладкие предметы в банке белые. Опираясь только на эти два факта, что можно сказать об утверждении «некоторые камни в банке белые»?',
+    'كل الحجارة في المرطبان ملساء. بعض الأشياء الملساء في المرطبان بيضاء. بالاعتماد على هاتين المعلومتين فقط، ماذا يمكن أن يُقال عن العبارة «بعض الحجارة في المرطبان بيضاء»؟'),
+  opts:[LV('It may be true or false — the facts do not settle it','היא עשויה להיות נכונה או לא — העובדות לא מכריעות','Puede ser verdadera o falsa: los datos no lo deciden','Может быть верно или неверно — факты этого не решают','قد تكون صحيحة أو خاطئة — المعلومتان لا تحسمان ذلك'),
+        LV('It must be true','היא חייבת להיות נכונה','Debe ser verdadera','Оно обязательно верно','يجب أن تكون صحيحة'),
+        LV('It must be false','היא חייבת להיות לא נכונה','Debe ser falsa','Оно обязательно неверно','يجب أن تكون خاطئة')],ans:0}],
+
+/* 12 · verbal · similarities as odd-one-out: find the abstract category */
+[{id:'S12A',cat:'verbal',d:'medium',prompt:FT_P.oddWord,
+  opts:[LV('Hammer','פטיש','Martillo','Молоток','مطرقة'),LV('Thermometer','מדחום','Termómetro','Термометр','مقياس حرارة'),
+        LV('Ruler','סרגל','Regla','Линейка','مسطرة'),LV('Clock','שעון','Reloj','Часы','ساعة'),LV('Weighing scale','מאזניים','Báscula','Весы','ميزان')],ans:0},
+ {id:'S12B',cat:'verbal',d:'medium',prompt:FT_P.oddWord,
+  opts:[LV('Fridge','מקרר','Nevera','Холодильник','ثلاجة'),LV('Grill','גריל','Parrilla','Гриль','شوّاية'),
+        LV('Oven','תנור','Horno','Духовка','فرن'),LV('Toaster','טוסטר','Tostadora','Тостер','محمصة'),LV('Microwave','מיקרוגל','Microondas','Микроволновка','ميكروويف')],ans:0}],
+
+/* 13 · logic · balance, two scales (substitution) */
+[{id:'S13A',cat:'logic',d:'medium',prompt:FT_P.balance,bal:{scales:[['sq','ci ci'],['tri','sq ci']],q:'tri'},
+  sub:balanceStem([['sq','ci ci'],['tri','sq ci']],'tri'),
+  opts:[W('ci ci ci'),W('ci ci'),W('sq sq'),W('ci ci ci ci'),W('sq sq ci')],ans:0},
+ {id:'S13B',cat:'logic',d:'medium',prompt:FT_P.balance,bal:{scales:[['tri','ci ci ci'],['dia','tri ci']],q:'dia'},
+  sub:balanceStem([['tri','ci ci ci'],['dia','tri ci']],'dia'),
+  opts:[W('ci ci ci ci'),W('ci ci ci'),W('tri tri'),W('ci ci ci ci ci'),W('tri tri ci')],ans:0}],
+
+/* 14 · verbal (working memory) · four digits backward, shown then hidden */
+[{id:'S14A',cat:'verbal',d:'medium',prompt:FT_P.wm(4),wm:{digits:'7294',ms:4000},sub:ftWmSub('S14A','7294',4000),
+  opts:[DG('4927'),DG('7294'),DG('4297'),DG('9427'),DG('4957')],ans:0},
+ {id:'S14B',cat:'verbal',d:'medium',prompt:FT_P.wm(4),wm:{digits:'3816',ms:4000},sub:ftWmSub('S14B','3816',4000),
+  opts:[DG('6183'),DG('3816'),DG('6813'),DG('1683'),DG('6173')],ans:0}],
+
+/* 15 · spatial · which piece completes the square (turn, don't flip) */
+[{id:'S15A',cat:'spatial',d:'medium',prompt:FT_P.piece,pzq:{n:4,gap:[[0,2],[0,3],[1,3],[2,3]]},
+  sub:pzBoardSVG(4,[[0,2],[0,3],[1,3],[2,3]]),
+  opts:[PZ('..#/###'),PZ('#../###'),PZ(S4h),PZ(Z4h),PZ(T4)],ans:0},
+ {id:'S15B',cat:'spatial',d:'medium',prompt:FT_P.piece,pzq:{n:4,gap:[[2,1],[2,2],[3,0],[3,1]]},
+  sub:pzBoardSVG(4,[[2,1],[2,2],[3,0],[3,1]]),
+  opts:[PZ(S4),PZ(Z4),PZ(L4),PZ(J4),PZ(T4)],ans:0}],
+
+/* ===================== HARD (slots 16–23) ===================== */
+/* 16 · numerical · second-difference progression */
+[{id:'S16A',cat:'numerical',d:'hard',prompt:P.nextnum,num:true,seq:[2,5,10,17,26],opts:N(37,35,43,50,52),ans:0},
+ {id:'S16B',cat:'numerical',d:'hard',prompt:P.nextnum,num:true,seq:[3,4,7,12,19],opts:N(28,26,31,39,38),ans:0}],
+
+/* 17 · logic · affirming the consequent */
+[{id:'S17A',cat:'logic',d:'hard',
+  prompt:L('If it rains, the ground gets wet. The ground is wet. Using only this, can you conclude that it rained?',
+    'אם יורד גשם, האדמה נרטבת. האדמה רטובה. על סמך זה בלבד, אפשר להסיק שירד גשם?',
+    'Si llueve, el suelo se moja. El suelo está mojado. Usando solo esto, ¿puedes concluir que llovió?',
+    'Если идёт дождь, земля становится мокрой. Земля мокрая. Опираясь только на это, можно ли заключить, что шёл дождь?',
+    'إذا أمطرت، تبتل الأرض. الأرض مبتلة. بالاعتماد على هذا فقط، هل يمكنك أن تستنتج أنها أمطرت؟'),
+  opts:[LV('No — something else could have wet it','לא — משהו אחר יכול היה להרטיב אותה','No: algo más pudo mojarlo','Нет — её могло намочить что-то другое','لا — قد يكون شيء آخر قد بلّلها'),
+        LV('Yes — rain is the only thing that wets the ground','כן — רק גשם מרטיב את האדמה','Sí: solo la lluvia moja el suelo','Да — только дождь мочит землю','نعم — المطر وحده يبلّل الأرض'),
+        LV('Yes, but only if the ground was dry before','כן, אבל רק אם האדמה הייתה יבשה קודם','Sí, pero solo si el suelo estaba seco antes','Да, но только если земля была сухой до этого','نعم، لكن فقط إذا كانت الأرض جافة قبل ذلك')],ans:0},
+ {id:'S17B',cat:'logic',d:'hard',
+  prompt:L('If the oven is on, the kitchen gets warm. The kitchen is warm. Using only this, can you conclude that the oven is on?',
+    'אם התנור דולק, המטבח מתחמם. המטבח חם. על סמך זה בלבד, אפשר להסיק שהתנור דולק?',
+    'Si el horno está encendido, la cocina se calienta. La cocina está caliente. Usando solo esto, ¿puedes concluir que el horno está encendido?',
+    'Если духовка включена, на кухне становится тепло. На кухне тепло. Опираясь только на это, можно ли заключить, что духовка включена?',
+    'إذا كان الفرن يعمل، يدفأ المطبخ. المطبخ دافئ. بالاعتماد على هذا فقط، هل يمكنك أن تستنتج أن الفرن يعمل؟'),
+  opts:[LV('No — something else could have warmed it','לא — משהו אחר יכול היה לחמם אותו','No: algo más pudo calentarla','Нет — кухню могло согреть что-то другое','لا — ربما دفّأه شيء آخر'),
+        LV('Yes — only the oven can warm the kitchen','כן — רק התנור יכול לחמם את המטבח','Sí: solo el horno puede calentar la cocina','Да — кухню может согреть только духовка','نعم — الفرن وحده يمكنه تدفئة المطبخ'),
+        LV('Yes, but only if the kitchen was cold before','כן, אבל רק אם המטבח היה קר קודם','Sí, pero solo si la cocina estaba fría antes','Да, но только если до этого на кухне было холодно','نعم، لكن فقط إذا كان المطبخ بارداً قبل ذلك')],ans:0}],
+
+/* 18 · pattern · matrix: distribution of three on shape AND count */
+[{id:'S18A',cat:'pattern',d:'hard',prompt:P.matrixgrid,
+  matrix:[F('hex','ring',1),F('dia','ring',2),F('ci','ring',3), F('dia','ring',3),F('ci','ring',1),F('hex','ring',2), F('ci','ring',2),F('hex','ring',3),null],
+  opts:[F('dia','ring',1),F('dia','ring',3),F('hex','ring',1),F('hex','ring',3),F('ci','ring',3),F('hex','ring',2)],ans:0},
+ {id:'S18B',cat:'pattern',d:'hard',prompt:P.matrixgrid,
+  matrix:[F('sq','dot',2),F('ci','dot',4),F('dia','dot',3), F('dia','dot',4),F('sq','dot',3),F('ci','dot',2), F('ci','dot',3),F('dia','dot',2),null],
+  opts:[F('sq','dot',4),F('sq','dot',3),F('dia','dot',4),F('dia','dot',2),F('ci','dot',2),F('dia','dot',3)],ans:0}],
+
+/* 19 · spatial · rotation vs reflection at oblique angles */
+[{id:'S19A',cat:'spatial',d:'hard',prompt:FT_P.turned,noQ:true,seq:[G('barb',0)],
+  opts:[G('barb',135),G('barb',135,1),G('barb',0,1),G('barb',90,1),G('barb',225,1),G('barb',315,1)],ans:0},
+ {id:'S19B',cat:'spatial',d:'hard',prompt:FT_P.turned,noQ:true,seq:[G('flag',45)],
+  opts:[G('flag',180),G('flag',180,1),G('flag',45,1),G('flag',90,1),G('flag',270,1),G('flag',315,1)],ans:0}],
+
+/* 20 · verbal (memory) · delayed recall of the word shown before item 1 */
+FT_RECALL.map((r,i)=>({id:'S20'+'ABC'[i],cat:'verbal',d:'hard',prompt:P.recallword,recall:true,
+  opts:[{val:r.w},...r.d.map(v=>({val:v}))],ans:0})),
+
+/* 21 · numerical · combined work rate */
+[{id:'S21A',cat:'numerical',d:'hard',
+  prompt:L('One tap fills a tank in 6 minutes. A second tap fills the same tank in 3 minutes. With both taps running, how many minutes does it take to fill the tank?',
+    'ברז אחד ממלא מכל ב-6 דקות. ברז שני ממלא את אותו מכל ב-3 דקות. כמה דקות ייקח למלא את המכל כששני הברזים פתוחים יחד?',
+    'Un grifo llena un depósito en 6 minutos. Otro grifo llena el mismo depósito en 3 minutos. Con los dos abiertos a la vez, ¿cuántos minutos tarda en llenarse?',
+    'Один кран наполняет бак за 6 минут, другой — тот же бак за 3 минуты. За сколько минут наполнится бак, если открыть оба крана?',
+    'صنبور يملأ خزاناً في 6 دقائق، وصنبور آخر يملأ الخزان نفسه في 3 دقائق. كم دقيقة يستغرق ملء الخزان إذا فُتح الصنبوران معاً؟'),
+  opts:N(2,ftLtr('4½'),9,3,ftLtr('1½')),ans:0},
+ {id:'S21B',cat:'numerical',d:'hard',
+  prompt:L('One machine packs an order in 12 minutes. A second machine packs the same order in 6 minutes. Working together, how many minutes do they take to pack it?',
+    'מכונה אחת אורזת הזמנה ב-12 דקות. מכונה שנייה אורזת את אותה הזמנה ב-6 דקות. כמה דקות ייקח להן לארוז אותה כשהן עובדות יחד?',
+    'Una máquina empaqueta un pedido en 12 minutos. Otra máquina empaqueta el mismo pedido en 6 minutos. Trabajando juntas, ¿cuántos minutos tardan en empaquetarlo?',
+    'Одна машина упаковывает заказ за 12 минут, другая — тот же заказ за 6 минут. За сколько минут они упакуют его, работая вместе?',
+    'آلة تغلّف طلبية في 12 دقيقة، وآلة أخرى تغلّف الطلبية نفسها في 6 دقائق. كم دقيقة تستغرقان لتغليفها إذا عملتا معاً؟'),
+  opts:N(4,9,18,6,3),ans:0}],
+
+/* 22 · logic · balance, three scales (substitute, then subtract) */
+[{id:'S22A',cat:'logic',d:'hard',prompt:FT_P.balance,bal:{scales:[['dia','ci ci'],['sq','dia ci'],['tri ci','sq sq']],q:'tri'},
+  sub:balanceStem([['dia','ci ci'],['sq','dia ci'],['tri ci','sq sq']],'tri'),
+  opts:[W('sq dia'),W('sq sq'),W('dia dia'),W('sq sq ci'),W('sq ci')],ans:0},
+ {id:'S22B',cat:'logic',d:'hard',prompt:FT_P.balance,bal:{scales:[['tri','ci ci'],['dia','tri ci'],['sq ci','dia dia']],q:'sq'},
+  sub:balanceStem([['tri','ci ci'],['dia','tri ci'],['sq ci','dia dia']],'sq'),
+  opts:[W('dia tri'),W('dia dia'),W('tri tri'),W('dia dia ci'),W('dia ci')],ans:0}],
+
+/* 23 · verbal · relational analogy (pair matching) */
+[{id:'S23A',cat:'verbal',d:'hard',
+  prompt:FT_P.pairs(L('SEED : TREE','זרע : עץ','SEMILLA : ÁRBOL','СЕМЯ : ДЕРЕВО','بذرة : شجرة')),
+  opts:[LV('Caterpillar : Butterfly','זחל : פרפר','Oruga : Mariposa','Гусеница : Бабочка','يرقة : فراشة'),
+        LV('Butterfly : Caterpillar','פרפר : זחל','Mariposa : Oruga','Бабочка : Гусеница','فراشة : يرقة'),
+        LV('Branch : Tree','ענף : עץ','Rama : Árbol','Ветка : Дерево','غصن : شجرة'),
+        LV('Forest : Tree','יער : עץ','Bosque : Árbol','Лес : Дерево','غابة : شجرة'),
+        LV('Nest : Bird','קן : ציפור','Nido : Pájaro','Гнездо : Птица','عشّ : طائر')],ans:0},
+ {id:'S23B',cat:'verbal',d:'hard',
+  prompt:FT_P.pairs(L('BUD : FLOWER','ניצן : פרח','CAPULLO : FLOR','БУТОН : ЦВЕТОК','برعم : زهرة')),
+  opts:[LV('Child : Adult','ילד : מבוגר','Niño : Adulto','Ребёнок : Взрослый','طفل : بالغ'),
+        LV('Adult : Child','מבוגר : ילד','Adulto : Niño','Взрослый : Ребёнок','بالغ : طفل'),
+        LV('Petal : Flower','עלה כותרת : פרח','Pétalo : Flor','Лепесток : Цветок','بتلة : زهرة'),
+        LV('Garden : Flower','גינה : פרח','Jardín : Flor','Сад : Цветок','حديقة : زهرة'),
+        LV('Bee : Flower','דבורה : פרח','Abeja : Flor','Пчела : Цветок','نحلة : زهرة')],ans:0}],
+
+/* ===================== EXTREME (slots 24–30) ===================== */
+/* 24 · pattern · matrix: shape by column + count addition + line distribution */
+[{id:'S24A',cat:'pattern',d:'extreme',prompt:P.matrixgrid,
+  matrix:[F('sq','dot',2,'solid'),F('ci','dot',1,'dash'),F('hex','dot',3,'thick'),
+          F('sq','dot',1,'dash'),F('ci','dot',3,'thick'),F('hex','dot',4,'solid'),
+          F('sq','dot',3,'thick'),F('ci','dot',2,'solid'),null],
+  opts:[F('hex','dot',5,'dash'),F('hex','dot',1,'dash'),F('hex','dot',5,'solid'),F('ci','dot',5,'dash'),F('ci','dot',1,'solid'),F('ci','dot',5,'thick')],ans:0},
+ {id:'S24B',cat:'pattern',d:'extreme',prompt:P.matrixgrid,
+  matrix:[F('dia','bar',1,'dash'),F('sq','bar',2,'thick'),F('ci','bar',3,'solid'),
+          F('dia','bar',3,'thick'),F('sq','bar',1,'solid'),F('ci','bar',4,'dash'),
+          F('dia','bar',2,'solid'),F('sq','bar',3,'dash'),null],
+  opts:[F('ci','bar',5,'thick'),F('ci','bar',1,'thick'),F('ci','bar',5,'dash'),F('sq','bar',5,'thick'),F('sq','bar',1,'dash'),F('sq','bar',5,'solid')],ans:0}],
+
+/* 25 · spatial · which set of pieces builds the shape (turn, don't flip) */
+[{id:'S25A',cat:'spatial',d:'extreme',prompt:FT_P.assemble,asm:{target:'#####/#####/#....'},
+  sub:pzTargetSVG(pzParse('#####/#####/#....')),
+  opts:[PZS(L3,J4,S4),PZS(L3,L4,S4),PZS(L3,L4,Z4),PZS(I3,J4,S4),PZS(I3,J4,Z4),PZS(I3,L4,Z4)],ans:0},
+ {id:'S25B',cat:'spatial',d:'extreme',prompt:FT_P.assemble,asm:{target:'#####/#####/.#...'},
+  sub:pzTargetSVG(pzParse('#####/#####/.#...')),
+  opts:[PZS(I3,L4,S4h),PZS(I3,J4,S4h),PZS(I3,J4,Z4h),PZS(L3,L4,S4h),PZS(L3,L4,Z4h),PZS(L3,J4,Z4h)],ans:0}],
+
+/* 26 · logic · truth-teller constraint satisfaction */
+[{id:'S26A',cat:'logic',d:'extreme',
+  prompt:L('Three people each say one thing. Ana: "Ben is lying." Ben: "Cara is lying." Cara: "Ana and Ben are both lying." Exactly one of the three is telling the truth. Who?',
+   'שלושה אנשים, כל אחד אומר משפט אחד. אנה: «בן משקר.» בן: «קארה משקרת.» קארה: «אנה ובן שניהם משקרים.» בדיוק אחד מהשלושה דובר אמת. מי?',
+   'Tres personas dicen una cosa cada una. Ana: «Ben miente.» Ben: «Cara miente.» Cara: «Ana y Ben mienten los dos.» Exactamente una de las tres dice la verdad. ¿Quién?',
+   'Три человека говорят по одной фразе. Аня: «Бен лжёт.» Бен: «Кара лжёт.» Кара: «Аня и Бен оба лгут.» Ровно один из троих говорит правду. Кто?',
+   'ثلاثة أشخاص يقول كل منهم جملة واحدة. آنا: «بن يكذب.» بن: «كارا تكذب.» كارا: «آنا وبن كلاهما يكذب.» واحد فقط من الثلاثة يقول الحقيقة. من؟'),
+  tt:{names:['Ana','Ben','Cara'],says:[['lies',1],['lies',2],['bothLie',0,1]]},
+  opts:[LV('Ben','בן','Ben','Бен','بن'),LV('Ana','אנה','Ana','Аня','آنا'),LV('Cara','קארה','Cara','Кара','كارا'),
+        LV('No consistent answer exists','אין תשובה עקבית','No existe respuesta consistente','Непротиворечивого ответа нет','لا توجد إجابة متسقة')],ans:0},
+ {id:'S26B',cat:'logic',d:'extreme',
+  prompt:L('Three people each say one thing. Leo: "Mia is telling the truth." Mia: "Tom is lying." Tom: "Leo and Mia are both lying." Exactly one of the three is telling the truth. Who?',
+   'שלושה אנשים, כל אחד אומר משפט אחד. ליאו: «מיה דוברת אמת.» מיה: «תום משקר.» תום: «ליאו ומיה שניהם משקרים.» בדיוק אחד מהשלושה דובר אמת. מי?',
+   'Tres personas dicen una cosa cada una. Leo: «Mia dice la verdad.» Mia: «Tom miente.» Tom: «Leo y Mia mienten los dos.» Exactamente una de las tres dice la verdad. ¿Quién?',
+   'Три человека говорят по одной фразе. Лео: «Мия говорит правду.» Мия: «Том лжёт.» Том: «Лео и Мия оба лгут.» Ровно один из троих говорит правду. Кто?',
+   'ثلاثة أشخاص يقول كل منهم جملة واحدة. ليو: «ميا تقول الحقيقة.» ميا: «توم يكذب.» توم: «ليو وميا كلاهما يكذب.» واحد فقط من الثلاثة يقول الحقيقة. من؟'),
+  tt:{names:['Leo','Mia','Tom'],says:[['truthful',1],['lies',2],['bothLie',0,1]]},
+  opts:[LV('Tom','תום','Tom','Том','توم'),LV('Leo','ליאו','Leo','Лео','ليو'),LV('Mia','מיה','Mia','Мия','ميا'),
+        LV('No consistent answer exists','אין תשובה עקבית','No existe respuesta consistente','Непротиворечивого ответа нет','لا توجد إجابة متسقة')],ans:0}],
+
+/* 27 · numerical · two interleaved series */
+[{id:'S27A',cat:'numerical',d:'extreme',prompt:P.nextnum,num:true,seq:[3,20,6,17,12,14,24],opts:N(11,48,21,28,10,8),ans:0},
+ {id:'S27B',cat:'numerical',d:'extreme',prompt:P.nextnum,num:true,seq:[2,30,6,25,18,20,54],opts:N(15,162,49,60,14,10),ans:0}],
+
+/* 28 · pattern · matrix: two angular rules + handedness constant in a column/row */
+[{id:'S28A',cat:'pattern',d:'extreme',prompt:P.matrixgrid,
+  matrix:[G('flag',0),G('flag',45,1),G('flag',90), G('flag',90),G('flag',135,1),G('flag',180), G('flag',180),G('flag',225,1),null],
+  opts:[G('flag',270),G('flag',270,1),G('flag',315),G('flag',225),G('flag',180),G('flag',315,1)],ans:0},
+ {id:'S28B',cat:'pattern',d:'extreme',prompt:P.matrixgrid,
+  matrix:[G('ell',0),G('ell',90),G('ell',180), G('ell',45,1),G('ell',135,1),G('ell',225,1), G('ell',90),G('ell',180),null],
+  opts:[G('ell',270),G('ell',270,1),G('ell',315),G('ell',225),G('ell',180),G('ell',225,1)],ans:0}],
+
+/* 29 · verbal (working memory) · six digits backward, shown then hidden */
+[{id:'S29A',cat:'verbal',d:'extreme',prompt:FT_P.wm(6),wm:{digits:'518396',ms:6000},sub:ftWmSub('S29A','518396',6000),
+  opts:[DG('693815'),DG('518396'),DG('698315'),DG('693851'),DG('963815'),DG('693715')],ans:0},
+ {id:'S29B',cat:'verbal',d:'extreme',prompt:FT_P.wm(6),wm:{digits:'472918',ms:6000},sub:ftWmSub('S29B','472918',6000),
+  opts:[DG('819274'),DG('472918'),DG('812974'),DG('819247'),DG('189274'),DG('819374')],ans:0}],
+
+/* 30 · spatial · two independent series rules (turn +135°, handedness alternates) */
+[{id:'S30A',cat:'spatial',d:'extreme',prompt:FT_P.twoRules,
+  seq:[G('barb',0),G('barb',135,1),G('barb',270),G('barb',45,1)],
+  opts:[G('barb',180),G('barb',180,1),G('barb',45),G('barb',315),G('barb',270),G('barb',45,1)],ans:0},
+ {id:'S30B',cat:'spatial',d:'extreme',prompt:FT_P.twoRules,
+  seq:[G('ell',90),G('ell',225,1),G('ell',0),G('ell',135,1)],
+  opts:[G('ell',270),G('ell',270,1),G('ell',135),G('ell',45),G('ell',0),G('ell',135,1)],ans:0}]
 ];}
 
+/* Canonical form of every slot, unshuffled. Kept so that console checks and
+   anything else that asks for "the free test" still gets 30 items. A real
+   sitting comes from ftBuildTest(). */
+function QB(){ return FT_BANK().map(forms=>forms[0]); }
+
+/* ---------- building a sitting ---------- */
+let ftPlan=null;
+function ftNewPlan(){
+  const bank=FT_BANK();
+  let last=null; try{ last=load('etsem_ft_forms',null); }catch(e){}
+  const pick=bank.map((forms,i)=>{
+    let c=forms.map((_,j)=>j);
+    if(Array.isArray(last) && forms.length>1 && c.length>1) c=c.filter(j=>j!==last[i]);
+    return c[Math.floor(Math.random()*c.length)];
+  });
+  try{ store('etsem_ft_forms',pick); }catch(e){}
+  ftPlan={pick};
+  return ftPlan;
+}
+/* the word shown on the memorise screen for this sitting */
+function ftRecallWord(){
+  const plan=ftPlan||ftNewPlan();
+  const slot=FT_BANK().findIndex(forms=>forms[0].recall);
+  const r=FT_RECALL[slot<0?0:plan.pick[slot]]||FT_RECALL[0];
+  return r.w;
+}
+/* Fisher–Yates on the option order; the key travels with its option */
+function ftShuffleItem(q){
+  const idx=q.opts.map((_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+  return Object.assign({},q,{opts:idx.map(i=>q.opts[i]),ans:idx.indexOf(q.ans),order:idx});
+}
+/* How lopsided a sitting's keys are: items are grouped by option count, and
+   the score is the largest gap between a position's key count and its fair
+   share (m/k) inside any group. The measure treats every position of a group
+   alike, so preferring low scores can never favour one letter: relabelling a
+   group's positions maps a sitting to one with the same score. Each item's key
+   stays exactly uniform over its positions (QUESTION-AUDIT §8 has the
+   simulation; a check across all letters at once biased D by 0.7 points). */
+function ftKeySpread(items){
+  const g={};
+  items.forEach(q=>{ const k=q.opts.length; (g[k]=g[k]||{m:0,c:new Array(k).fill(0)}); g[k].m++; g[k].c[q.ans]++; });
+  let worst=0;
+  Object.keys(g).forEach(k=>g[k].c.forEach(x=>{ worst=Math.max(worst,Math.abs(x-g[k].m/k)); }));
+  return worst;
+}
+function ftBuildTest(){
+  const plan=ftPlan||ftNewPlan(); ftPlan=null;
+  const items=FT_BANK().map((forms,i)=>forms[plan.pick[i]]||forms[0]);
+  /* first draw within 2 of fair share in every group wins; else the most even of 60 */
+  let best=null, bestSpread=Infinity;
+  for(let tries=0;tries<60;tries++){
+    const out=items.map(ftShuffleItem), sp=ftKeySpread(out);
+    if(sp<bestSpread){ best=out; bestSpread=sp; }
+    if(sp<=2) break;
+  }
+  return best;
+}
+
+/* ---------- the timed digit display (slots 14 and 29) ----------
+   Options stay hidden until the digits have been shown and withdrawn —
+   seeing both at once would make it a matching task, not a memory task.
+   State is kept per form id, so a re-render (language switch, anything that
+   rebuilds the question) restores it instead of granting a second look. */
+const ftWm={};
+function ftWmReset(){ Object.keys(ftWm).forEach(k=>delete ftWm[k]); clearTimeout(ftWmApply.t); }
+function ftWmStart(btn){
+  const box=btn&&btn.closest('.ft-wm'); if(!box) return;
+  if(!ftWm[box.dataset.ft]) ftWm[box.dataset.ft]=Date.now();
+  ftWmApply();
+}
+function ftWmApply(){
+  const mount=document.getElementById('question-mount'); if(!mount) return;
+  clearTimeout(ftWmApply.t);
+  const box=mount.querySelector('.ft-wm');
+  if(!box){ mount.classList.remove('ft-wm-wait'); return; }
+  const ms=+box.dataset.ms||4000, t0=ftWm[box.dataset.ft];
+  const left=t0?ms-(Date.now()-t0):Infinity;
+  const state=!t0?'idle':(left>0?'show':'done');
+  const dg=box.querySelector('.ft-wm-digits');
+  box.classList.toggle('show',state==='show');
+  box.classList.toggle('done',state==='done');
+  mount.classList.toggle('ft-wm-wait',state!=='done');
+  if(state==='show'){
+    if(!dg.childElementCount) dg.innerHTML=[...box.dataset.dg].map(d=>`<i>${d}</i>`).join('');
+    const bar=box.querySelector('.ft-wm-bar span');
+    if(bar){ bar.style.transition='none'; bar.style.transform=`scaleX(${Math.max(0,left/ms)})`;
+      void bar.offsetWidth; bar.style.transition=`transform ${Math.max(0,left)}ms linear`; bar.style.transform='scaleX(0)'; }
+    ftWmApply.t=setTimeout(ftWmApply,left+30);
+  } else {
+    dg.innerHTML=state==='done'?[...box.dataset.dg].map(()=>'<i>•</i>').join(''):'';
+    if(state==='done'){   /* keyboard users land on the options, not on nothing */
+      const first=mount.querySelector('.options-grid .option'), a=document.activeElement;
+      if(first&&(!a||a===document.body||box.contains(a))) first.focus({preventScroll:true}); }
+  }
+}
+(function(){
+  const m=document.getElementById('question-mount');
+  if(m && window.MutationObserver) new MutationObserver(ftWmApply).observe(m,{childList:true});
+})();
 
 /* ====================================================================
    FREE TEST — ITEM AUDIT
    ====================================================================
-   One row per item in QB(), in the same order. This is the machine-readable
-   half of docs/QUESTION-AUDIT.md; the prose reasoning for every verdict is
-   in that file. Keeping the table next to the bank means an item cannot be
-   added without an audit row: FREE_TEST_AUDIT.length has to equal QB().length
-   and auditSelfCheck() says so loudly in the console if it does not.
+   One row per FORM in FT_BANK(). This is the machine-readable half of
+   docs/QUESTION-AUDIT.md §3; the prose reasoning for every verdict is
+   there. auditSelfCheck() warns in the console if a form has no row, a
+   row has no form, a slot has fewer than two forms or its forms are not
+   parallel (same category, band and option count).
 
    con     cognitive construct the item is meant to tap
    diff    difficulty band, which is also the score weight
-   status  approved | reworded-2026 | replaced-2026 | approved-with-note
+   ans     the key, in words
+   status  approved        new in the October 2026 rebuild, passed review
+           approved-kept   carried over from the 2026-09 bank, re-reviewed
    src     the documented construct the item type comes from. No item is
            copied from, traced from or adapted from any published test.
+   note    why each distractor fails, in one line
    ==================================================================== */
 const FREE_TEST_AUDIT=[
-{id:'Q01',cat:'pattern',  con:'quantitative pairwise progression (+1 per step)',diff:'easy',ans:'4 dots',status:'approved',src:'CJS90',note:'Original. Dot lattice is fixed-position so the count reads without counting speed mattering.'},
-{id:'Q02',cat:'numerical',con:'arithmetic series, constant difference',         diff:'easy',ans:'10',     status:'approved',src:'series',note:'Original. Culture-free: Arabic numerals only.'},
-{id:'Q03',cat:'pattern',  con:'periodic alternation (period 2)',                diff:'easy',ans:'blue',   status:'approved-with-note',src:'SK63',note:'Colour is the varying attribute. The answer is blue against a red/blue alternation, which stays separable under red-green colour blindness; the green and amber distractors are never needed to solve it. Kept as the only colour-carried item in the bank.'},
-{id:'Q04',cat:'spatial',  con:'constant angular progression (mental rotation)', diff:'easy',ans:'270°',   status:'approved',src:'SM71',note:'Original. Only chiral glyphs are used, so no rotation is ambiguous.'},
-{id:'Q05',cat:'verbal',   con:'antonym-relation analogy',                       diff:'easy',ans:'Slow',   status:'approved',src:'St77',note:'Original. Distractor "Quick" is a synonym of the stem, which is the intended trap.'},
-{id:'Q06',cat:'spatial',  con:'transformation analogy (rotation mapping)',      diff:'easy',ans:'ell 90°',status:'approved',src:'St77',note:'Original.'},
-{id:'Q07',cat:'pattern',  con:'odd-one-out on a single attribute',              diff:'easy',ans:'green',  status:'approved',src:'CJS90',note:'Original.'},
-{id:'Q08',cat:'numerical',con:'geometric series, constant ratio',               diff:'medium',ans:'32',   status:'approved',src:'series',note:'Original.'},
-{id:'Q09',cat:'spatial',  con:'reflection vs rotation discrimination',          diff:'medium',ans:'mirrored ell',status:'approved',src:'SM71',note:'Original. Verified that the mirrored option is not visually identical to any rotation of the same glyph.'},
-{id:'Q10',cat:'logic',    con:'quantified syllogism, undetermined conclusion',  diff:'medium',ans:'may be true or false',status:'reworded-2026',src:'logic',note:'Old wording asked "does it follow?" against True/False/Cannot-be-determined options, which made two answers defensible. The claim is now named and the options are about its truth value only.'},
-{id:'Q11',cat:'pattern',  con:'quantitative progression (+2 per step)',         diff:'medium',ans:'7 dots',status:'approved',src:'CJS90',note:'Original.'},
-{id:'Q12',cat:'verbal',   con:'item-to-institution analogy',                    diff:'medium',ans:'Museum',status:'approved-with-note',src:'St77',note:'Relies on knowing that paintings are collected in museums. That is close to universal, but it is the most culture-loaded item in the bank and is flagged for replacement if the audience widens.'},
-{id:'Q13',cat:'pattern',  con:'matrix, multiplicative row/column rule',         diff:'medium',ans:'9 dots',status:'approved',src:'CJS90',note:'Original.'},
-{id:'Q14',cat:'spatial',  con:'constant angular progression',                   diff:'medium',ans:'270°',  status:'approved',src:'SM71',note:'Original.'},
-{id:'Q15',cat:'pattern',  con:'odd-one-out on handedness',                      diff:'medium',ans:'mirrored flag',status:'approved',src:'CJS90',note:'Original. Tests the rotation/reflection distinction without naming it.'},
-{id:'Q16',cat:'numerical',con:'recursive series (sum of previous two)',         diff:'hard',ans:'13',      status:'approved',src:'series',note:'Original. The Fibonacci rule is a structure to be induced, not a fact to be recalled.'},
-{id:'Q17',cat:'logic',    con:'affirming the consequent',                       diff:'hard',ans:'No — something else could have wet it',status:'reworded-2026',src:'logic',note:'Old wording ("did it necessarily rain?" / Yes / No / Cannot be determined) gave "No" and "Cannot be determined" equal claim to being right. The options now state the reasoning rather than labelling it.'},
-{id:'Q18',cat:'spatial',  con:'matrix, two independent angular rules',          diff:'hard',ans:'270°',    status:'approved',src:'CJS90',note:'Original. +45° across, +90° down.'},
-{id:'Q19',cat:'spatial',  con:'angular progression, 45° step',                  diff:'hard',ans:'135°',    status:'approved',src:'SM71',note:'Original.'},
-{id:'Q20',cat:'verbal',   con:'delayed recall (verbal working memory)',         diff:'hard',ans:'the shown word',status:'approved',src:'Bad03',note:'Original. The word and its distractors are localised per language so the memory load is comparable across all five.'},
-{id:'Q21',cat:'spatial',  con:'reflection analogy',                             diff:'hard',ans:'mirrored ell 90°',status:'approved',src:'St77',note:'Original. Checked that no distractor renders identically to the key.'},
-{id:'Q22',cat:'logic',    con:'valid syllogism (Ferio form)',                   diff:'hard',ans:'Yes',     status:'approved',src:'logic',note:'Original. "Some doctors are teachers; all teachers are patient" does entail that some doctors are patient.'},
-{id:'Q23',cat:'spatial',  con:'reflection vs rotation at an oblique angle',     diff:'hard',ans:'mirrored barb 45°',status:'approved',src:'SM71',note:'Original. A mirrored chiral glyph can never coincide with a pure rotation of itself, so the key is unique by construction.'},
-{id:'Q24',cat:'numerical',con:'recursive series (multiply by position)',        diff:'extreme',ans:'720',  status:'approved',src:'series',note:'Original. Solvable as ×2, ×3, ×4, ×5 without knowing the word factorial.'},
-{id:'Q25',cat:'spatial',  con:'matrix, two independent angular rules',          diff:'extreme',ans:'270°', status:'approved',src:'CJS90',note:'Original. +90° across, +45° down — the inverse pairing of Q18, which is why both can sit in one bank.'},
-{id:'Q26',cat:'logic',    con:'truth-teller / liar constraint satisfaction',    diff:'extreme',ans:'Ben',  status:'replaced-2026',src:'logic',note:'The previous item listed three statements without saying who made which, and used an undefined "us", so it was under-specified rather than hard. Replaced with a fully specified three-speaker item; exactly one assignment satisfies all three statements at once.'},
-{id:'Q27',cat:'spatial',  con:'two independent series rules (turn + handedness)',diff:'extreme',ans:'mirrored ell 270°',status:'reworded-2026',src:'CJS90',note:'The old prompt said the figure "rotates 90° AND mirrors at each step". A reflection composed with a rotation is a reflection, so applying it twice returns the original and the stated rule could not generate the series shown. The prompt now describes the two independent rules the figures actually follow; the figures and the key are unchanged.'},
-{id:'Q28',cat:'pattern',  con:'matrix, figure addition across a row',           diff:'extreme',ans:'9 dots',status:'approved',src:'CJS90',note:'Original. Third column equals the sum of the first two.'},
-{id:'Q29',cat:'numerical',con:'second-difference progression',                  diff:'extreme',ans:'22',   status:'approved',src:'series',note:'Original. Gaps are 1, 2, 3, 4, 5.'},
-{id:'Q30',cat:'verbal',   con:'antonym retrieval (crystallised ability)',       diff:'extreme',ans:'Enduring',status:'approved-with-note',src:'St77',note:'This is the one clearly crystallised item in the bank — it measures vocabulary rather than fluid reasoning, which is legitimate in a mixed battery but should be read that way. The same key word previously appeared in a Word Recall item; that item was swapped in the 2026 audit so the test cannot be answered from the game.'}
+{id:'S01A',cat:'pattern',con:'matrix: constant in a row (shape) + pairwise progression (count +1)',diff:'easy',ans:'triangle, 3 dots',status:'approved',src:'CJS90',note:'triangle·2 stops the count; circle·3 takes the shape from the row above; circle·2 fails both. Shape and count each split 2/2 across the options.'},
+{id:'S01B',cat:'pattern',con:'matrix: constant in a row (shape) + pairwise progression (count +1)',diff:'easy',ans:'square, 4 bars',status:'approved',src:'CJS90',note:'square·3 stops the count; diamond·4 takes the shape from the row above; diamond·3 fails both. Shape and count each split 2/2.'},
+{id:'S02A',cat:'numerical',con:'arithmetic series, constant difference (+4)',diff:'easy',ans:'19',status:'approved',src:'series',note:'18 and 20 step by 3 or 5; 23 skips a term (15+8).'},
+{id:'S02B',cat:'numerical',con:'arithmetic series, constant difference (+6)',diff:'easy',ans:'28',status:'approved',src:'series',note:'27 and 29 step by 5 or 7; 34 skips a term (22+12).'},
+{id:'S03A',cat:'spatial',con:'constant angular progression (+90°)',diff:'easy',ans:'flag 270°',status:'approved',src:'SM71',note:'270° mirrored has the right turn and the wrong handedness; 180° repeats the last figure; 0° mirrored goes back to the start, flipped.'},
+{id:'S03B',cat:'spatial',con:'constant angular progression (+90°)',diff:'easy',ans:'ell 0°',status:'approved',src:'SM71',note:'0° mirrored has the right turn and the wrong handedness; 270° repeats the last figure; 90° mirrored goes back to the start, flipped.'},
+{id:'S04A',cat:'verbal',con:'antonym analogy',diff:'easy',ans:'Night',status:'approved',src:'St77',note:'Sun and Light go with day but are not its opposite; Morning is part of the day. One opposite in each of the five languages.'},
+{id:'S04B',cat:'verbal',con:'antonym analogy',diff:'easy',ans:'Closed',status:'approved',src:'St77',note:'Door and Window are things that open; Wide is close to open in meaning. One opposite in each of the five languages.'},
+{id:'S05A',cat:'logic',con:'figure weights: one scale, scale up',diff:'easy',ans:'6 circles',status:'approved',src:'WAIS',note:'3 counts one circle per square; 5 adds (2+3) instead of multiplying; 4 is two squares\' worth, not three.'},
+{id:'S05B',cat:'logic',con:'figure weights: one scale, scale up',diff:'easy',ans:'6 circles',status:'approved',src:'WAIS',note:'2 counts one circle per triangle; 5 adds (3+2) instead of multiplying; 3 is one triangle\'s worth, not two.'},
+{id:'S06A',cat:'pattern',con:'figure series: alternation (period 2) + progression (+1)',diff:'easy',ans:'square, 5 dots',status:'approved',src:'SK63',note:'circle·5 breaks the alternation; square·4 stops the count; circle·4 repeats the last figure.'},
+{id:'S06B',cat:'pattern',con:'figure series: alternation (period 2) + progression (+1)',diff:'easy',ans:'hexagon, 5 bars',status:'approved',src:'SK63',note:'diamond·5 breaks the alternation; hexagon·4 stops the count; diamond·4 repeats the last figure.'},
+{id:'S07A',cat:'numerical',con:'arithmetic word problem: multiply, then add',diff:'easy',ans:'26',status:'approved',src:'WAIS',note:'24 forgets the loose pencils; 12 adds every number (6+4+2); 36 multiplies 6×(4+2).'},
+{id:'S07B',cat:'numerical',con:'arithmetic word problem: multiply, then add',diff:'easy',ans:'38',status:'approved',src:'WAIS',note:'35 forgets the loose apples; 15 adds every number (5+7+3); 50 multiplies 5×(7+3).'},
+{id:'S08A',cat:'pattern',con:'matrix: mark constant in a row + count +1 across and down',diff:'medium',ans:'square, 5 dots',status:'approved',src:'CJS90',note:'dots·4 copies the left neighbour; bars·5 takes the mark from the row above; bars·4 and bars·6 fail on both. Bars outnumber dots, so the most common mark is a wrong one. Marks were chosen to stay countable at 5 and 6.'},
+{id:'S08B',cat:'pattern',con:'matrix: mark constant in a row + count +1 across and down',diff:'medium',ans:'circle, 5 bars',status:'approved',src:'CJS90',note:'bars·4 copies the left neighbour; dots·5 takes the mark from the row above; dots·4 and dots·6 fail on both.'},
+{id:'S09A',cat:'numerical',con:'geometric series (×2)',diff:'medium',ans:'48',status:'approved',src:'series',note:'36 repeats the last difference (+12); 30 adds the first difference (+6); 72 uses ×3; 96 skips a term.'},
+{id:'S09B',cat:'numerical',con:'geometric series (×3)',diff:'medium',ans:'162',status:'approved',src:'series',note:'90 repeats the last difference (+36); 58 adds the first difference (+4); 108 uses ×2; 486 skips a term.'},
+{id:'S10A',cat:'spatial',con:'rotation vs reflection, quarter turns',diff:'medium',ans:'flag 90°',status:'approved',src:'SM71',note:'Every distractor is the mirror image at some angle, one of them at the key\'s own angle. The flag is chiral, so no mirror image can be turned into it.'},
+{id:'S10B',cat:'spatial',con:'rotation vs reflection, quarter turns',diff:'medium',ans:'ell 270°',status:'approved',src:'SM71',note:'Every distractor is the mirror image at some angle, one of them at the key\'s own angle. The ell is chiral.'},
+{id:'S11A',cat:'logic',con:'quantified syllogism, undetermined conclusion',diff:'medium',ans:'may be true or false',status:'approved',src:'logic',note:'"Must be true" over-reads "some": the small blue things need not be squares. "Must be false" claims what the facts never deny. Neutral content, so belief cannot decide it.'},
+{id:'S11B',cat:'logic',con:'quantified syllogism, undetermined conclusion',diff:'medium',ans:'may be true or false',status:'approved',src:'logic',note:'"Must be true" over-reads "some": the white smooth things need not be stones. "Must be false" claims what the facts never deny.'},
+{id:'S12A',cat:'verbal',con:'similarities as odd-one-out: abstract category (instruments that measure)',diff:'medium',ans:'Hammer',status:'approved',src:'WAIS',note:'Thermometer, ruler, clock and scale each measure a quantity (temperature, length, time, weight); a hammer does not. Checked for a second basis in all five languages: no other option is singled out by a stronger shared property. Hebrew uses מאזניים, not משקל, which can also mean "weight" (a quantity, not an object).'},
+{id:'S12B',cat:'verbal',con:'similarities as odd-one-out: abstract category (appliances that heat)',diff:'medium',ans:'Fridge',status:'approved',src:'WAIS',note:'Grill, oven, toaster and microwave heat food; the fridge cools it. All five are kitchen appliances that act on food (a kettle was dropped: "the only one for water" would be a second basis), so nothing else singles one out.'},
+{id:'S13A',cat:'logic',con:'figure weights: two scales, substitution',diff:'medium',ans:'3 circles',status:'approved',src:'WAIS',note:'2 circles replaces the square and drops the circle; 2 squares (4) treats the triangle as two squares; 4 circles and square+square+circle (5) substitute wrongly. Square+circle, the scale-2 pan itself, is left out on purpose.'},
+{id:'S13B',cat:'logic',con:'figure weights: two scales, substitution',diff:'medium',ans:'4 circles',status:'approved',src:'WAIS',note:'3 circles drops the extra circle; 2 triangles is 6; 5 circles is one too many; 2 triangles + circle is 7.'},
+{id:'S14A',cat:'verbal',con:'working memory: digit span backward (4 digits, 4 s, hidden before the options show)',diff:'medium',ans:'4 9 2 7',status:'approved',src:'Bad03',note:'Forward order; middle pair swapped; first pair swapped; one digit changed (2→5). Reported under Verbal, as digit span was in the WAIS-III Verbal scale.'},
+{id:'S14B',cat:'verbal',con:'working memory: digit span backward (4 digits, 4 s, hidden before the options show)',diff:'medium',ans:'6 1 8 3',status:'approved',src:'Bad03',note:'Forward order; middle pair swapped; first pair swapped; one digit changed (8→7).'},
+{id:'S15A',cat:'spatial',con:'visual puzzle: complete the square (turn, no flip)',diff:'medium',ans:'the L-shaped piece, turned',status:'approved',src:'WAIS',note:'The mirror-image piece fits only if flipped, which the rules forbid; S, Z and T have the right area and the wrong shape. The two chiral pairs (L/J-type and S/Z) make the key no more frequent than any other shape.'},
+{id:'S15B',cat:'spatial',con:'visual puzzle: complete the square (turn, no flip)',diff:'medium',ans:'the S-shaped piece, turned',status:'approved',src:'WAIS',note:'The Z piece fits only if flipped; L, J and T have the right area and the wrong shape.'},
+{id:'S16A',cat:'numerical',con:'second-difference series (gaps 3, 5, 7, 9)',diff:'hard',ans:'37',status:'approved',src:'series',note:'35 repeats the last gap; 43 adds the last two terms; 50 skips a term; 52 doubles. n²+1 gives the same 37.'},
+{id:'S16B',cat:'numerical',con:'second-difference series (gaps 1, 3, 5, 7)',diff:'hard',ans:'28',status:'approved',src:'series',note:'26 repeats the last gap; 31 adds the last two terms; 39 skips a term; 38 doubles. (n−1)²+3 gives the same 28.'},
+{id:'S17A',cat:'logic',con:'conditional reasoning: affirming the consequent',diff:'hard',ans:'No — something else could have wet it',status:'approved-kept',src:'logic',note:'Both "yes" options add a premise the stem never gives (rain is the only cause; the ground was dry before).'},
+{id:'S17B',cat:'logic',con:'conditional reasoning: affirming the consequent',diff:'hard',ans:'No — something else could have warmed it',status:'approved',src:'logic',note:'Both "yes" options add a premise the stem never gives (the oven is the only cause; the kitchen was cold before).'},
+{id:'S18A',cat:'pattern',con:'matrix: distribution of three on shape and on count',diff:'hard',ans:'diamond, 1 ring',status:'approved',src:'CJS90',note:'diamond·3 repeats a count in the row; hexagon·1 repeats a shape; hexagon·3 copies the left neighbour; circle·3 and hexagon·2 fail on both. The most common shape and count among the options are both wrong.'},
+{id:'S18B',cat:'pattern',con:'matrix: distribution of three on shape and on count',diff:'hard',ans:'square, 4 dots',status:'approved',src:'CJS90',note:'square·3 repeats a count; diamond·4 repeats a shape; diamond·2 copies the left neighbour; circle·2 and diamond·3 fail on both.'},
+{id:'S19A',cat:'spatial',con:'rotation vs reflection at 45° steps',diff:'hard',ans:'barb 135°',status:'approved',src:'SM71',note:'All five distractors are mirror images, one at the key\'s angle and one at the target\'s. The single barb makes the arrow chiral.'},
+{id:'S19B',cat:'spatial',con:'rotation vs reflection at 45° steps',diff:'hard',ans:'flag 180°',status:'approved',src:'SM71',note:'All five distractors are mirror images, one at the key\'s angle and one at the target\'s.'},
+{id:'S20A',cat:'verbal',con:'delayed recognition of a word shown before item 1, related lures',diff:'hard',ans:'LANTERN',status:'approved',src:'Bad03',note:'Lures are other light sources (candle, lamp, match), so the gist "something that gives light" is not enough; only the exact word is. No word is shared with another form or used anywhere else in the test.'},
+{id:'S20B',cat:'verbal',con:'delayed recognition of a word shown before item 1, related lures',diff:'hard',ans:'MIRROR',status:'approved',src:'Bad03',note:'Lures are related to the target (glass, frame, lens), so only the exact word counts. No word is shared with another form or used elsewhere in the test.'},
+{id:'S20C',cat:'verbal',con:'delayed recognition of a word shown before item 1, related lures',diff:'hard',ans:'PILLOW',status:'approved',src:'Bad03',note:'Lures are other bedding (blanket, mattress, sheet), so only the exact word counts. No word is shared with another form or used elsewhere in the test.'},
+{id:'S21A',cat:'numerical',con:'arithmetic word problem: combined work rate',diff:'hard',ans:'2',status:'approved',src:'WAIS',note:'4½ averages the two times; 9 adds them; 3 is the faster tap alone; 1½ halves the faster time, as if both taps were fast.'},
+{id:'S21B',cat:'numerical',con:'arithmetic word problem: combined work rate',diff:'hard',ans:'4',status:'approved',src:'WAIS',note:'9 averages the two times; 18 adds them; 6 is the faster machine alone; 3 halves the faster time.'},
+{id:'S22A',cat:'logic',con:'figure weights: three scales, substitute then subtract',diff:'hard',ans:'square + diamond',status:'approved',src:'WAIS',note:'square+square (6) forgets to take the circle off; diamond+diamond and square+circle (4) take off too much; square+square+circle (7) adds the circle instead.'},
+{id:'S22B',cat:'logic',con:'figure weights: three scales, substitute then subtract',diff:'hard',ans:'diamond + triangle',status:'approved',src:'WAIS',note:'diamond+diamond (6) forgets to take the circle off; triangle+triangle and diamond+circle (4) take off too much; diamond+diamond+circle (7) adds it instead.'},
+{id:'S23A',cat:'verbal',con:'relational analogy: early stage → mature form',diff:'hard',ans:'Caterpillar : Butterfly',status:'approved',src:'St77',note:'Butterfly : Caterpillar has the relation backwards; Branch : Tree is part to whole; Forest : Tree is group to member; Nest : Bird is home to inhabitant. Pairs use ":", not an arrow, so they read correctly in RTL.'},
+{id:'S23B',cat:'verbal',con:'relational analogy: early stage → mature form',diff:'hard',ans:'Child : Adult',status:'approved',src:'St77',note:'Adult : Child is backwards; Petal : Flower is part to whole; Garden : Flower is place to thing; Bee : Flower is visitor to thing.'},
+{id:'S24A',cat:'pattern',con:'matrix: shape by column + figure addition (count) + distribution of three (outline)',diff:'extreme',ans:'hexagon, 5 dots, dashed',status:'approved',src:'CJS90',note:'hexagon·1·dashed subtracts (3−2) instead of adding; hexagon·5·solid repeats an outline in the row; circle·5·dashed takes the middle column\'s shape; circle·1·solid and circle·5·thick fail twice.'},
+{id:'S24B',cat:'pattern',con:'matrix: shape by column + figure addition (count) + distribution of three (outline)',diff:'extreme',ans:'circle, 5 bars, thick',status:'approved',src:'CJS90',note:'circle·1·thick subtracts instead of adding; circle·5·dashed repeats an outline in the row; square·5·thick takes the middle column\'s shape; square·1·dashed and square·5·solid fail twice.'},
+{id:'S25A',cat:'spatial',con:'visual puzzle: assemble a chiral shape from three pieces (turn, no flip)',diff:'extreme',ans:'bent 3 + J + S',status:'approved',src:'WAIS',note:'Solver-checked: only the key tiles the shape. Sets with an L or a Z need a piece flipped; no set with the straight 3 can tile it at all. Each piece type is in exactly three of the six sets.'},
+{id:'S25B',cat:'spatial',con:'visual puzzle: assemble a chiral shape from three pieces (turn, no flip)',diff:'extreme',ans:'straight 3 + L + S',status:'approved',src:'WAIS',note:'Solver-checked: only the key tiles the shape. Sets with a J or a Z need a piece flipped; no set with the bent 3 can tile it at all. Each piece type is in exactly three sets.'},
+{id:'S26A',cat:'logic',con:'truth-teller constraint satisfaction',diff:'extreme',ans:'Ben',status:'approved-kept',src:'logic',note:'Brute force over the three cases: Ana or Cara as the truth-teller each give a contradiction, so "no consistent answer" is wrong too.'},
+{id:'S26B',cat:'logic',con:'truth-teller constraint satisfaction',diff:'extreme',ans:'Tom',status:'approved',src:'logic',note:'If Leo is truthful, so is Mia (two truth-tellers). If Mia is, Leo\'s statement comes true (a contradiction). Only Tom works.'},
+{id:'S27A',cat:'numerical',con:'two interleaved series (×2 and −3)',diff:'extreme',ans:'11',status:'approved',src:'SK63',note:'48 continues the other strand; 21 applies −3 to the last term; 28 applies ×2 to the wrong strand; 10 and 8 mis-step the −3 strand.'},
+{id:'S27B',cat:'numerical',con:'two interleaved series (×3 and −5)',diff:'extreme',ans:'15',status:'approved',src:'SK63',note:'162 continues the other strand; 49 applies −5 to the last term; 60 applies ×3 to the wrong strand; 14 and 10 mis-step the −5 strand.'},
+{id:'S28A',cat:'pattern',con:'matrix: two angular rules (+45° across, +90° down) + handedness constant in a column',diff:'extreme',ans:'flag 270°',status:'approved',src:'CJS90',note:'270° mirrored: only the middle column is mirrored; 315° adds 90° to the left neighbour; 225° copies the left neighbour unmirrored; 180° does not turn; 315° mirrored keeps the neighbour\'s mirror.'},
+{id:'S28B',cat:'pattern',con:'matrix: two angular rules (+90° across, +45° down) + handedness constant in a row',diff:'extreme',ans:'ell 270°',status:'approved',src:'CJS90',note:'270° mirrored: only the middle row is mirrored; 315° adds 90° to the cell above; 225° copies the cell above unmirrored; 180° repeats the left neighbour; 225° mirrored copies the cell above.'},
+{id:'S29A',cat:'verbal',con:'working memory: digit span backward (6 digits, 6 s, hidden before the options show)',diff:'extreme',ans:'6 9 3 8 1 5',status:'approved',src:'Bad03',note:'Forward order; middle pair swapped; last pair swapped; first pair swapped; one digit changed (8→7).'},
+{id:'S29B',cat:'verbal',con:'working memory: digit span backward (6 digits, 6 s, hidden before the options show)',diff:'extreme',ans:'8 1 9 2 7 4',status:'approved',src:'Bad03',note:'Forward order; middle pair swapped; last pair swapped; first pair swapped; one digit changed (2→3).'},
+{id:'S30A',cat:'spatial',con:'two independent series rules (turn +135°; handedness alternates)',diff:'extreme',ans:'barb 180°',status:'approved',src:'SK63',note:'180° mirrored breaks the alternation; 45° steps once from the last unmirrored figure instead of twice; 315° steps once too far; 270° repeats the last unmirrored figure; 45° mirrored repeats the last figure.'},
+{id:'S30B',cat:'spatial',con:'two independent series rules (turn +135°; handedness alternates)',diff:'extreme',ans:'ell 270°',status:'approved',src:'SK63',note:'270° mirrored breaks the alternation; 135° steps once from the last unmirrored figure; 45° steps once too far; 0° repeats the last unmirrored figure; 135° mirrored repeats the last figure.'}
 ];
 
 /* Reference keys used above. Full citations, with URLs, are in
@@ -3262,6 +3790,7 @@ const AUDIT_SOURCES={
   St77 :'Sternberg (1977), Psychological Review 84(4) 353-378 — components of analogical reasoning.',
   SK63 :'Simon & Kotovsky (1963), Psychological Review 70(6) 534-546 — serial pattern concepts.',
   Bad03:'Baddeley (2003), Nature Reviews Neuroscience 4, 829-839 — working memory.',
+  WAIS :'Wechsler, WAIS-IV (2008) / WAIS-5 (2024) — published descriptions of Figure Weights, Visual Puzzles and Arithmetic. Construct descriptions only; no Wechsler item is used.',
   series:'Standard number-series induction, as used in group reasoning tests since Thurstone (1938).',
   logic :'Categorical and conditional reasoning; the errors targeted are affirming the consequent and over-reading a quantifier.'
 };
@@ -3270,11 +3799,22 @@ const AUDIT_SOURCES={
    of step with its audit is a bug worth seeing in the console. */
 function auditSelfCheck(){
   try{
-    const n=QB().length;
-    if(n!==FREE_TEST_AUDIT.length)
-      console.warn(`[audit] QB() has ${n} items but FREE_TEST_AUDIT has ${FREE_TEST_AUDIT.length}. Every item needs a row.`);
-    const bad=FREE_TEST_AUDIT.filter(a=>!AUDIT_SOURCES[a.src]);
-    if(bad.length) console.warn('[audit] unknown source key on:',bad.map(a=>a.id).join(', '));
+    const bank=FT_BANK(), ids=new Set(), rows=new Set(FREE_TEST_AUDIT.map(a=>a.id)), bad=[];
+    if(bank.length!==30) bad.push(`FT_BANK() has ${bank.length} slots, expected 30`);
+    bank.forEach((forms,i)=>{
+      if(forms.length<2) bad.push(`slot ${i+1} has only ${forms.length} form`);
+      forms.forEach(q=>{
+        if(ids.has(q.id)) bad.push('duplicate id '+q.id); ids.add(q.id);
+        if(!rows.has(q.id)) bad.push(q.id+' has no audit row');
+        if(q.cat!==forms[0].cat||q.d!==forms[0].d||q.opts.length!==forms[0].opts.length) bad.push(q.id+' is not parallel to '+forms[0].id);
+        if(!(q.ans>=0&&q.ans<q.opts.length)) bad.push(q.id+' key out of range');
+      });
+    });
+    FREE_TEST_AUDIT.forEach(a=>{
+      if(!ids.has(a.id)) bad.push('audit row '+a.id+' has no item');
+      if(!AUDIT_SOURCES[a.src]) bad.push('unknown source key on '+a.id);
+    });
+    if(bad.length) console.warn('[audit] '+bad.join('; '));
   }catch(e){ /* never let a self-check break the page */ }
 }
 
@@ -4183,9 +4723,11 @@ const MEM_DISTRACTORS={
   en:['HARBOR','VELVET','GRANITE'], he:['נָמָל','קְטִיפָה','גְּרָנִיט'],
   es:['PUERTO','TERCIOPELO','GRANITO'], ru:['ГАВАНЬ','БАРХАТ','ГРАНИТ'],
   ar:['مِيناء','مُخمَل','جرانيت']};
-const memWord=()=>MEM_WORDS[lang]||MEM_WORDS.en;
+/* The word to memorise belongs to the recall form drawn for this sitting. */
+const memWord=()=>{ try{ return loc(ftRecallWord()); }catch(e){ return MEM_WORDS[lang]||MEM_WORDS.en; } };
 
 function beginTest(){
+  ftNewPlan();               /* pick this sitting's parallel forms first */
   document.getElementById('memorize-word').textContent=memWord();
   if(showScreen('screen-memorize')){
     armActivity('test');
@@ -4193,9 +4735,12 @@ function beginTest(){
   }
 }
 
+/* One form per slot, options shuffled per item (the key moves with its
+   option), 30 items, 22 minutes. See ftBuildTest() and QUESTION-AUDIT §8. */
 function startMainQuiz(){
-  engine={mode:'main',qs:QB(),cur:0,answers:[],sel:null,timer:null,left:1320,limit:1320,
+  engine={mode:'main',qs:ftBuildTest(),cur:0,answers:[],sel:null,timer:null,left:1320,limit:1320,
           streak:0,bestStreak:0,correct:0};
+  ftWmReset();
   armActivity('test');
   showScreen('screen-quiz');
   renderQuestion();
@@ -4380,7 +4925,16 @@ function finishQuiz(){
   }
 }
 
-/* weighted scoring by difficulty */
+/* Weighted scoring by difficulty (unchanged formula, re-checked for the
+   October 2026 bank). Each item is worth DIFF_WEIGHT of its band (easy 1,
+   medium 1.6, hard 2.3, extreme 3.2; 60.6 in all) and
+       IQ = 68 + 80 × (weight earned / total weight)
+   so all wrong = 68 and all correct = 148, the top of the scale. With 3–6
+   options per item, pure guessing earns 0.206 of the weight on average:
+   IQ ≈ 84 (10 000 simulated sittings: mean 84.4, sd 6.3), and every
+   "always the same letter" strategy lands at the same place, because the
+   options are shuffled. This is a transparent linear transform, not a
+   normed IQ; docs/QUESTION-AUDIT.md §8 has the full table. */
 function buildResults(){
   const qs=engine.qs;
   let earned=0,total=0;
