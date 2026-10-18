@@ -1156,6 +1156,125 @@
     .bob-fab{animation:none !important;}
   }
 </style>
+<style id="games-v2">
+  /* ============ GAMES v2 — feedback, rewards, a11y ============
+     Additive only: every rule here is scoped to elements the games own.
+     Movement is transform/opacity; reduced motion keeps colour + text cues. */
+
+  /* shared chips */
+  .gx-combo-row{display:flex;justify-content:center;gap:8px;min-height:26px;margin:-6px 0 10px;flex-wrap:wrap;}
+  .gx-combo[hidden],.gx-mode[hidden]{display:none !important;}
+  .gx-mode{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);font-size:12px;}
+  .gx-snd{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--white);
+    color:var(--muted);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;}
+  .gx-snd svg{width:20px;height:20px;}
+  .gx-snd[aria-pressed="true"]{color:var(--accent-ink);border-color:var(--accent);background:var(--accent-soft);}
+  .levelmap-head .gx-snd{margin-top:14px;margin-inline-start:8px;vertical-align:middle;}
+  .gx-snd:focus-visible,.mm-cell:focus-visible,.grid-tile:focus-visible,.gx-player summary:focus-visible{
+    outline:3px solid var(--accent);outline-offset:3px;}
+
+  /* Memory Matrix cells are real buttons now */
+  button.mm-cell{font:inherit;padding:0;cursor:pointer;color:var(--ink);min-width:0;min-height:0;}
+  button.mm-cell[aria-disabled="true"]{cursor:default;}
+  .mm-cell.seqlit{background:linear-gradient(145deg,#A985FF,var(--accent));border-color:var(--accent);
+    transform:scale(1.06);box-shadow:0 6px 22px rgba(124,77,255,.5);}
+  .mm-cell.picked{color:#04241E;}
+  .mm-cell .ord{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;}
+  .mm-cell.strike{background:var(--chip-ext-bg);border-color:var(--reveal);color:var(--chip-ext-ink);animation:shake .35s;}
+  .mm-cell.reveal{outline:3px dashed var(--accent);outline-offset:-5px;}
+  .mm-status.count{font-size:34px;color:var(--accent-ink);animation:gxBeat .45s ease-out;}
+  @keyframes gxBeat{0%{transform:scale(.6);opacity:0;}60%{transform:scale(1.12);opacity:1;}100%{transform:scale(1);}}
+  .mm-grid.mirror-hint{position:relative;}
+  .mm-grid.mirror-hint::after{content:'';position:absolute;top:-6px;bottom:-6px;left:50%;width:0;
+    border-left:2px dashed var(--accent);opacity:.55;pointer-events:none;}
+
+  /* Logic Quest tiles: label colour per fill, shape cue per colour */
+  .grid-tile{flex-direction:column;gap:2px;line-height:1;position:relative;}
+  .grid-tile .pz-shape{width:56%;height:56%;}
+  .grid-tile .pz-shape.mini{position:absolute;top:6%;inset-inline-start:6%;width:30%;height:30%;opacity:.95;}
+  .grid-tile .pz-num{font-size:clamp(15px,4.6vw,21px);font-weight:700;}
+  .grid-tile.hid{border:2px dashed var(--line);}
+  .grid-tile.is-miss{background:var(--chip-ext-bg) !important;color:var(--chip-ext-ink) !important;
+    box-shadow:inset 0 0 0 2px var(--reveal);animation:shake .35s;}
+  .pz-swatch{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;
+    vertical-align:-7px;margin:0 6px;box-shadow:0 2px 6px rgba(0,0,0,.18);}
+  .pz-swatch svg{width:18px;height:18px;}
+  .pz-swatch.q{background:var(--bg-soft);color:var(--ink);font-weight:700;border:1.5px dashed var(--accent);}
+  .pz-swname{font-weight:600;color:var(--ink);}
+  .pz-count{color:var(--accent-ink);}
+
+  /* quiz games: pop on a right answer */
+  .option.is-correct .option-letter,.option.is-wrong .option-letter{color:inherit;}
+  .option.gx-pop{animation:gxPop .38s cubic-bezier(.2,1.5,.4,1),okPulse .45s ease-out;}
+  @keyframes gxPop{0%{transform:scale(1);}45%{transform:scale(1.045);}100%{transform:scale(1);}}
+  .option .gx-mark{margin-inline-start:auto;font-weight:700;font-size:16px;}
+
+  /* level result extras */
+  .lr-extra{min-height:8px;margin:-14px auto 22px;max-width:440px;}
+  .gx-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:10px;}
+  .gx-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:5px 12px;
+    border-radius:14px;background:var(--bg-soft);color:var(--ink);border:1px solid var(--line);}
+  .gx-chip.xp{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent);}
+  .gx-chip.up{background:var(--teal-soft);color:var(--teal-ink);border-color:var(--teal);}
+  .gx-chip.rec{background:#FFF5DF;color:#8A5B00;border-color:var(--gold);}
+  :root[data-theme="dark"] .gx-chip.rec{background:#3A2B08;color:#FFD98A;}
+  @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .gx-chip.rec{background:#3A2B08;color:#FFD98A;} }
+  .gx-nudge{font-size:14px;color:var(--accent-ink);font-weight:600;margin:0;}
+
+  /* achievement toast */
+  .gx-toast{position:fixed;z-index:70;top:calc(var(--nav-h) + 12px);left:50%;
+    transform:translate(-50%,-16px);opacity:0;pointer-events:none;transition:opacity .28s,transform .28s;
+    display:flex;align-items:center;gap:12px;background:var(--white);border:1.5px solid var(--gold);
+    border-radius:16px;padding:12px 18px;box-shadow:var(--shadow-lift);max-width:min(380px,calc(100vw - 32px));}
+  .gx-toast.show{opacity:1;transform:translate(-50%,0);}
+  .gx-toast .gx-trophy{width:38px;height:38px;flex-shrink:0;}
+  .gx-toast small{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;}
+  .gx-toast b{display:block;font-family:'Space Grotesk',sans-serif;font-size:16px;color:var(--ink);}
+  .gx-toast span{display:block;font-size:12.5px;color:var(--muted);}
+
+  /* confetti (three stars) */
+  .gx-conf{position:absolute;top:-14px;width:8px;height:12px;border-radius:2px;opacity:0;will-change:transform,opacity;
+    animation-name:gxFall;animation-timing-function:cubic-bezier(.25,.6,.4,1);animation-fill-mode:forwards;}
+  @keyframes gxFall{0%{opacity:1;transform:translate(0,0) rotate(0);}
+    85%{opacity:1;}100%{opacity:0;transform:translate(var(--dx),78vh) rotate(var(--rot));}}
+
+  /* games hub: player panel */
+  .gx-player{display:grid;grid-template-columns:auto 1fr;gap:16px 18px;align-items:center;background:var(--white);
+    border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin-bottom:24px;box-shadow:var(--shadow-card);}
+  .gx-lvl{width:62px;height:62px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:linear-gradient(145deg,#A985FF,var(--accent-btn));color:#fff;font-family:'Space Grotesk',sans-serif;line-height:1;}
+  .gx-lvl b{font-size:24px;} .gx-lvl small{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;opacity:.9;margin-top:2px;}
+  .gx-pinfo{min-width:0;}
+  .gx-pinfo .ttl{font-weight:700;font-size:15px;margin-bottom:6px;}
+  .gx-xpbar{height:8px;border-radius:4px;background:var(--bg-soft);overflow:hidden;margin-bottom:6px;}
+  .gx-xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--reveal));border-radius:4px;}
+  .gx-pinfo .sub{font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px;}
+  .gx-pinfo .sub .on{color:var(--accent-ink);font-weight:600;}
+  .gx-player details{grid-column:1 / -1;border-top:1px solid var(--line);padding-top:12px;}
+  .gx-player summary{cursor:pointer;font-weight:600;font-size:13.5px;min-height:44px;display:flex;align-items:center;gap:8px;}
+  .gx-achs{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .gx-achs li{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;background:var(--bg-soft);font-size:12.5px;min-width:0;}
+  .gx-achs li .gx-trophy{width:26px;height:26px;flex-shrink:0;}
+  .gx-achs li.locked .gx-trophy{filter:grayscale(1);opacity:.35;}
+  .gx-achs li b{display:block;font-size:13px;color:var(--ink);}
+  .gx-achs li span{color:var(--muted);}
+  .level-label .gx-tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--accent-ink);background:var(--accent-soft);border-radius:8px;padding:1px 7px;margin-inline-start:6px;}
+
+  /* Word Wit analogy line */
+  .q-sub.gx-ana{font-size:17px;font-family:'Space Grotesk',sans-serif;font-weight:600;}
+
+  @media (max-width:560px){
+    .gx-achs{grid-template-columns:1fr;}
+    .gx-player{padding:16px;gap:12px 14px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .gx-conf{display:none;}
+    .gx-toast{transition:opacity .2s;transform:translate(-50%,0);}
+    .mm-status.count,.option.gx-pop,.grid-tile.is-miss,.mm-cell.strike{animation:none !important;}
+    .mm-cell.seqlit,.mm-cell.lit{transform:none;}
+  }
+</style>
 </head>
 <body>
 <div class="ticker-bar"><span class="ticker-dot"></span><span id="ticker-text"></span></div>
@@ -1651,6 +1770,7 @@
       <h2 id="lm-title"></h2>
       <p id="lm-sub"></p>
       <div class="stars-total"><span class="s">★</span> <span id="lm-stars">0</span></div>
+      <button class="gx-snd" type="button" onclick="gToggleSound()"></button>
     </div>
     <div class="level-path" id="level-path"></div>
   </div>
@@ -1663,10 +1783,12 @@
       <button class="back-link" style="margin:0;" onclick="openLevelMap(currentGameKey)" data-i18n="btn.levels"></button>
       <span class="pill"><span data-i18n="game.level"></span> <b id="mm-level"></b></span>
       <span class="pill"><span data-i18n="game.round"></span> <b id="mm-round"></b></span>
+      <button class="gx-snd" type="button" onclick="gToggleSound()"></button>
     </div>
     <div class="bob-stage quiet" id="mm-bob" style="justify-content:center" aria-live="polite"></div>
+    <div class="gx-combo-row"><span class="pill gx-mode" id="mm-mode" hidden></span><span class="streak-chip gx-combo" id="mm-combo" hidden></span></div>
     <div class="mm-round-dots" id="mm-dots"></div>
-    <div class="mm-status" id="mm-status"></div>
+    <div class="mm-status" id="mm-status" aria-live="polite"></div>
     <div class="mm-grid" id="mm-grid"></div>
     <div class="puzzle-actions">
       <button class="btn-secondary" onclick="startMemMatrix(currentLevel)" data-i18n="btn.restart"></button>
@@ -1681,11 +1803,13 @@
       <button class="back-link" style="margin:0;" onclick="openLevelMap('puzzle')" data-i18n="btn.levels"></button>
       <span class="pill"><span data-i18n="game.level"></span> <b id="pz-level"></b></span>
       <span class="pill"><span data-i18n="game.moves"></span> <b id="pz-moves"></b></span>
+      <button class="gx-snd" type="button" onclick="gToggleSound()"></button>
     </div>
     <div class="bob-stage quiet" id="pz-bob" style="justify-content:center" aria-live="polite"></div>
+    <div class="gx-combo-row"><span class="streak-chip gx-combo" id="pz-combo" hidden></span></div>
     <div class="puzzle-target" id="pz-target"></div>
     <div class="grid-board" id="pz-board"></div>
-    <div class="puzzle-msg" id="pz-msg"></div>
+    <div class="puzzle-msg" id="pz-msg" aria-live="polite"></div>
     <div class="puzzle-actions">
       <button class="btn-secondary" onclick="loadPuzzleLevel(currentLevel)" data-i18n="btn.restart"></button>
     </div>
@@ -1833,9 +1957,10 @@
     <div class="bob-stage quiet" id="lr-bob" style="justify-content:center" aria-live="polite"></div>
     <div class="kicker" id="lr-kicker"></div>
     <div class="pass-tag" id="lr-passtag"></div>
-    <div class="win-stars" id="lr-stars"></div>
+    <div class="win-stars" id="lr-stars" role="img"></div>
     <div class="mini-score" id="lr-score"></div>
     <div class="mini-blurb" id="lr-blurb"></div>
+    <div class="lr-extra" id="lr-extra" aria-live="polite"></div>
     <div class="mini-actions">
       <button class="btn-primary" id="lr-next" onclick="advanceLevel()"></button>
       <button class="btn-secondary" id="lr-retry" onclick="retryLevel()"></button>
@@ -5091,6 +5216,18 @@ function gLater(fn,ms,screenId){
 }
 function gRand(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
 function gShuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+const SND_ON='<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.6v4.8h3.2L11 17V5L7.2 8.6Z"/><path d="M14.4 8.2a4 4 0 0 1 0 5.6M16.8 6a7 7 0 0 1 0 10"/></svg>';
+const SND_OFF='<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.6v4.8h3.2L11 17V5L7.2 8.6Z"/><path d="M14.5 8.5l5 5M19.5 8.5l-5 5"/></svg>';
+/* In-game sound switch: the same preference as Settings → Click sounds. */
+function gSyncSoundChips(){
+  document.querySelectorAll('.gx-snd').forEach(b=>{
+    b.innerHTML=sfxOn?SND_ON:SND_OFF;
+    b.setAttribute('aria-pressed',sfxOn?'true':'false');
+    b.setAttribute('aria-label',t('set.sfx'));
+    b.title=t(sfxOn?'gx.soundon':'gx.soundoff');
+  });
+}
+function gToggleSound(){ toggleSfx(); gSyncSoundChips(); }
 function gEsc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 /* ==================== GAME BANKS (quiz-style games) ==================== */
@@ -5320,7 +5457,7 @@ function showPlusGate(key){
   bobNudge();
 }
 
-function openGamesHub(){ gStopRun(); renderGamesHub(); showScreen('screen-games'); }
+function openGamesHub(){ renderGamesHub(); if(showScreen('screen-games')) gStopRun(); }
 
 function renderGamesHub(){
   const st=document.getElementById('games-member-state');
@@ -5380,11 +5517,11 @@ function levelsFor(key){
 
 function openLevelMap(key){
   if(isLocked(key)){ showPlusGate(key); return; }
-  gStopRun();
   currentGameKey=key;
   const m=gameMeta(key);
   document.getElementById('lm-title').textContent=m.name;
   document.getElementById('lm-sub').textContent=gameGoal(key);
+  gSyncSoundChips();
   const LV=levelsFor(key);
   document.getElementById('lm-stars').textContent=`${starsFor(key)} / ${LV*3}`;
   const prog=progFor(key), high=highestLevel(key), unlocked=Math.min(high+1,LV);
@@ -5402,7 +5539,9 @@ function openLevelMap(key){
     </div>`;
   }
   document.getElementById('level-path').innerHTML=html;
-  showScreen('screen-levelmap');
+  /* Stop the running level only once the move is confirmed — "Stay" on the
+     exit warning must leave it untouched. */
+  if(showScreen('screen-levelmap')) gStopRun();
 }
 
 function playLevel(key,lvl){
@@ -5522,8 +5661,32 @@ function mmFinish(){
 }
 
 
-/* ==================== LOGIC QUEST PUZZLE (40 levels, 7 rule types) ==================== */
+/* ==================== LOGIC QUEST PUZZLE (50 levels, 10 rule bands) ==================== */
 const TILE_COLORS=['#7C4DFF','#12B39B','#4C6FE0','#F0B429','#FF4D9D','#22C3E6','#8BD450'];
+/* Each colour also has its own shape, so a colour rule can be played by
+   shape alone — nothing in Logic Quest depends on colour vision. */
+const TILE_SHAPES=['circle','square','triangle','diamond','star','hex','cross'];
+const PZ_SHAPE_PATH={
+  circle:'<circle cx="12" cy="12" r="7.2"/>',
+  square:'<rect x="5.2" y="5.2" width="13.6" height="13.6" rx="1.6"/>',
+  triangle:'<path d="M12 3.8 20.6 19.4H3.4Z"/>',
+  diamond:'<path d="M12 3 21 12 12 21 3 12Z"/>',
+  star:'<path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6L12 16.9l-5.4 2.9 1.1-6-4.5-4.2 6.1-.8Z"/>',
+  hex:'<path d="M7.6 4.2h8.8L20.8 12l-4.4 7.8H7.6L3.2 12Z"/>',
+  cross:'<path d="M9.3 3.8h5.4v5.5h5.5v5.4h-5.5v5.5H9.3v-5.5H3.8V9.3h5.5Z"/>'
+};
+function pzShapeSVG(ci,cls){
+  return `<svg class="${cls||'pz-shape'}" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor">${PZ_SHAPE_PATH[TILE_SHAPES[ci]]}</g></svg>`;
+}
+/* Label colour per tile: whichever of white or near-black has the higher
+   contrast on that fill. White on the yellow and teal tiles failed WCAG. */
+function _gLum(hex){
+  const n=parseInt(hex.slice(1),16);
+  return [n>>16&255,n>>8&255,n&255].map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);})
+    .reduce((a,v,i)=>a+v*[0.2126,0.7152,0.0722][i],0);
+}
+const PZ_INK=TILE_COLORS.map(c=>{ const L=_gLum(c), D=_gLum('#14101F');
+  return (1.05/(L+0.05))>=((L+0.05)/(D+0.05)) ? '#FFFFFF' : '#14101F'; });
 const PZ_LEVELS=50;
 let pzState=null;
 
@@ -5542,8 +5705,10 @@ function pzConfig(lvl){
   else if(lvl<=46){      mode='chain';      size=6;          colors=6; }
   else {                 mode='chainrule';  size=6;          colors=5;
                          extra.rule=['even','odd','div3','gt'][ (lvl-47)%4 ]; }
-  const tight=Math.max(0,4-Math.floor(lvl/9));   /* move slack shrinks as levels rise, hits 0 well before the end */
-  return {mode,size,colors,slack:tight,extra};
+  /* Spare moves shrink as levels rise (4 → 1). A wrong tap spends one; the
+     level fails only once the targets left outnumber the moves left. */
+  const slack=Math.max(1,4-Math.floor(lvl/10));
+  return {mode,size,colors,slack,extra};
 }
 
 const PZ_RULE_TEXT={
@@ -5577,82 +5742,82 @@ function pzRuleText(mode,extra){
 function loadPuzzleLevel(lvl){
   currentGameKey='puzzle'; currentLevel=lvl;
   armActivity('game');
+  const tok=gNewRun();
   const cfg=pzConfig(lvl);
   const total=cfg.size*cfg.size;
-  const palette=TILE_COLORS.slice(0,cfg.colors);
+  const palette=[...Array(cfg.colors).keys()];          /* colour indices */
+  const rc=arr=>arr[Math.floor(Math.random()*arr.length)];
 
-  /* build tiles: colour + number */
+  /* build tiles: colour + unique number */
   const nums=[];
-  while(nums.length<total) {
+  while(nums.length<total){
     const v=1+Math.floor(Math.random()*(total+6));
     if(!nums.includes(v)) nums.push(v);
   }
-  let tiles=nums.map(n=>({n,c:palette[Math.floor(Math.random()*palette.length)]}));
+  let tiles=nums.map(n=>({n,c:rc(palette)}));
 
   let target=null, targets=[], ordered=false, hideAfter=0, extra={...cfg.extra};
 
   if(cfg.mode==='color'||cfg.mode==='memory'||cfg.mode==='combo'||cfg.mode==='chain'){
-    target=palette[Math.floor(Math.random()*palette.length)];
+    target=rc(palette);
     /* guarantee a sensible count of the target colour */
     const want=Math.max(3,Math.min(3+Math.floor(lvl/6),Math.floor(total*0.45)));
-    const idx=[...tiles.keys()];
-    for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    const idx=gShuffle([...tiles.keys()]);
     const others=palette.filter(c=>c!==target);
-    idx.forEach((ix,k)=> tiles[ix].c = k<want ? target : others[Math.floor(Math.random()*others.length)]);
-    targets=tiles.map((t,i)=>t.c===target?i:-1).filter(i=>i>=0);
+    idx.forEach((ix,k)=> tiles[ix].c = k<want ? target : rc(others));
+    targets=tiles.map((tl,i)=>tl.c===target?i:-1).filter(i=>i>=0);
     ordered = (cfg.mode==='combo'||cfg.mode==='chain');
     if(cfg.mode==='memory') hideAfter=Math.max(1400,3200-lvl*70);
     if(cfg.mode==='chain') hideAfter=3000;
   }
   else if(cfg.mode==='notcolor'){
-    target=palette[Math.floor(Math.random()*palette.length)];
+    target=rc(palette);
     const want=Math.max(3,Math.floor(total*0.35));
-    const idx=[...tiles.keys()];
-    for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    const idx=gShuffle([...tiles.keys()]);
     const others=palette.filter(c=>c!==target);
-    idx.forEach((ix,k)=> tiles[ix].c = k<want ? target : others[Math.floor(Math.random()*others.length)]);
-    targets=tiles.map((t,i)=>t.c!==target?i:-1).filter(i=>i>=0);
+    idx.forEach((ix,k)=> tiles[ix].c = k<want ? target : rc(others));
+    targets=tiles.map((tl,i)=>tl.c!==target?i:-1).filter(i=>i>=0);
   }
   else if(cfg.mode==='ascending'){
-    targets=[...tiles.keys()].sort((a,b)=>tiles[a].n-tiles[b].n);
+    targets=[...tiles.keys()];
     ordered=true;
   }
   else if(cfg.mode==='mathrule'||cfg.mode==='chainrule'){
     const rule=cfg.extra.rule;
     if(rule==='gt'){
-      const sorted=[...tiles].map(t=>t.n).sort((a,b)=>a-b);
+      const sorted=tiles.map(tl=>tl.n).sort((a,b)=>a-b);
       extra.n=sorted[Math.floor(total*0.55)];
-      targets=tiles.map((t,i)=>t.n>extra.n?i:-1).filter(i=>i>=0);
+      targets=tiles.map((tl,i)=>tl.n>extra.n?i:-1).filter(i=>i>=0);
     } else {
       const test={even:n=>n%2===0,odd:n=>n%2===1,div3:n=>n%3===0}[rule];
-      targets=tiles.map((t,i)=>test(t.n)?i:-1).filter(i=>i>=0);
-      /* make sure there are at least 3 valid targets */
+      targets=tiles.map((tl,i)=>test(tl.n)?i:-1).filter(i=>i>=0);
+      /* Make sure there are at least 3 valid targets. The repair moves a tile
+         to the next unused number that satisfies the rule, so numbers stay
+         unique and an ordered level can never have two "next" tiles. (The old
+         "even" repair added 2 to odd numbers, which kept them odd.) */
+      const used=new Set(tiles.map(tl=>tl.n));
       let guard=0;
-      while(targets.length<3 && guard++<50){
+      while(targets.length<3 && guard++<60){
         const ix=Math.floor(Math.random()*total);
-        tiles[ix].n = rule==='even' ? tiles[ix].n+(tiles[ix].n%2) + (tiles[ix].n%2===0?0:1)
-                    : rule==='odd' ? (tiles[ix].n%2===1?tiles[ix].n:tiles[ix].n+1)
-                    : tiles[ix].n - (tiles[ix].n%3);
-        if(tiles[ix].n<1) tiles[ix].n=rule==='div3'?3:1;
-        targets=tiles.map((t,i)=>test(t.n)?i:-1).filter(i=>i>=0);
+        if(test(tiles[ix].n)) continue;
+        let v=tiles[ix].n+1;
+        while(!test(v)||used.has(v)) v++;
+        used.delete(tiles[ix].n); tiles[ix].n=v; used.add(v);
+        targets=tiles.map((tl,i)=>test(tl.n)?i:-1).filter(i=>i>=0);
       }
     }
   }
   else if(cfg.mode==='majority'){
     /* one colour is most common — the player must count to find it */
-    const counts={};
-    palette.forEach(c=>counts[c]=0);
-    const winner=palette[Math.floor(Math.random()*palette.length)];
+    const winner=rc(palette);
     const winCount=Math.floor(total*0.32)+1;
-    const idx=[...tiles.keys()];
-    for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    const idx=gShuffle([...tiles.keys()]);
     const others=palette.filter(c=>c!==winner);
     idx.forEach((ix,k)=>{
-      if(k<winCount) tiles[ix].c=winner;
-      else tiles[ix].c=others[(k-winCount)%others.length];   /* spread evenly so winner is clearly top */
+      tiles[ix].c = k<winCount ? winner : others[(k-winCount)%others.length];  /* spread evenly so the winner is clearly top */
     });
     target=winner;
-    targets=tiles.map((t,i)=>t.c===winner?i:-1).filter(i=>i>=0);
+    targets=tiles.map((tl,i)=>tl.c===winner?i:-1).filter(i=>i>=0);
   }
 
   if(cfg.mode==='chainrule'){ ordered=true; hideAfter=Math.max(1500,3200-(lvl-47)*300); }
@@ -5660,102 +5825,156 @@ function loadPuzzleLevel(lvl){
 
   const showNums = ['ascending','mathrule','chainrule','combo','chain'].includes(cfg.mode);
   const showRuleColor = ['color','notcolor','memory','combo','chain'].includes(cfg.mode);
+  const showShape = showRuleColor || cfg.mode==='majority';
 
-  pzState={tiles,targets,ordered,cfg,mode:cfg.mode,target,extra,showNums,
-    progress:0,cleared:new Set(),done:false,hidden:false,
+  pzState={tok,tiles,targets,ordered,cfg,mode:cfg.mode,target,extra,showNums,showShape,
+    progress:0,cleared:new Set(),flashing:new Set(),misses:0,done:false,hidden:false,
+    streak:0,bestStreak:0,runXp:0,
     movesLeft:targets.length+cfg.slack,maxMoves:targets.length+cfg.slack};
 
   document.getElementById('pz-level').textContent=lvl;
   document.getElementById('pz-moves').textContent=pzState.movesLeft;
+  gSyncSoundChips();
+  gComboChip('pz-combo',0);
 
-  const swatch = showRuleColor && target
-    ? ` <span style="display:inline-block;width:18px;height:18px;border-radius:6px;background:${target};vertical-align:-4px;margin:0 6px;box-shadow:0 2px 6px rgba(0,0,0,.18)"></span>`
-    : (cfg.mode==='majority' ? ' ❓' : '');
+  let swatch='';
+  if(showRuleColor && target!==null){
+    swatch=` <span class="pz-swatch" style="background:${TILE_COLORS[target]};color:${PZ_INK[target]}">${pzShapeSVG(target)}</span>`+
+           `<span class="pz-swname">${t('gx.col.'+target)} · ${t('gx.shp.'+target)}</span>`;
+  } else if(cfg.mode==='majority'){
+    swatch=` <span class="pz-swatch q" aria-hidden="true">?</span><span class="pz-swname">${t('pz.mostoften')}</span>`;
+  }
   document.getElementById('pz-target').innerHTML=
-    `${pzRuleText(cfg.mode,extra)}${swatch} <b style="color:var(--accent-ink)">(${targets.length})</b>`;
+    `${pzRuleText(cfg.mode,extra)}${swatch} <b class="pz-count">(${targets.length})</b>`;
 
-  document.getElementById('pz-msg').textContent='';
-  document.getElementById('pz-msg').className='puzzle-msg';
+  const msg=document.getElementById('pz-msg');
+  msg.textContent=''; msg.className='puzzle-msg';
   renderPzBoard();
   showScreen('screen-puzzle-play');
   bobSetStage('pz-bob','testStart',bobLine('levelStart'),'warm');
 
   if(hideAfter){
-    setTimeout(()=>{
-      if(!pzState||pzState.done) return;
+    gLater(()=>{
+      if(!pzState||pzState.done||pzState.tok!==tok) return;
       pzState.hidden=true; renderPzBoard();
-      const m=document.getElementById('pz-msg');
-      m.textContent=({en:'Board hidden — go from memory!',he:'הלוח מוסתר — מהזיכרון!',es:'Tablero oculto — ¡de memoria!',ru:'Доска скрыта — по памяти!',ar:'اللوحة مخفية — من الذاكرة!'})[lang];
-      m.className='puzzle-msg good';
-    },hideAfter);
+      msg.textContent=t('pz.hidden');
+      msg.className='puzzle-msg good';
+    },hideAfter,'screen-puzzle-play');
   }
 }
 
+function pzTileInner(i){
+  const s=pzState, tl=s.tiles[i];
+  const cleared=s.cleared.has(i), hid=s.hidden&&!cleared;
+  if(cleared) return {html:'✓',aria:t('pz.foundtile'),bg:TILE_COLORS[tl.c],ink:PZ_INK[tl.c]};
+  if(hid) return {html:'?',aria:t('pz.hiddentile'),bg:'var(--bg-soft)',ink:'var(--muted)'};
+  const shape = s.showShape ? pzShapeSVG(tl.c, s.showNums?'pz-shape mini':'pz-shape') : '';
+  const num = s.showNums ? `<span class="pz-num">${tl.n}</span>` : '';
+  const aria = s.showShape ? `${t('gx.col.'+tl.c)} ${t('gx.shp.'+tl.c)}${s.showNums?', '+tl.n:''}` : String(tl.n);
+  return {html:shape+num,aria,bg:TILE_COLORS[tl.c],ink:PZ_INK[tl.c]};
+}
 function renderPzBoard(){
   const b=document.getElementById('pz-board');
   b.style.gridTemplateColumns=`repeat(${pzState.cfg.size},1fr)`;
-  b.innerHTML=pzState.tiles.map((t,i)=>{
-    const cleared=pzState.cleared.has(i);
-    const bg = (pzState.hidden && !cleared) ? 'var(--bg-soft)' : t.c;
-    const label = cleared ? '' : (pzState.hidden ? '?' : (pzState.showNums ? t.n : ''));
-    const col = (pzState.hidden && !cleared) ? 'var(--lock)' : '#FFFFFF';
-    return `<button class="grid-tile${cleared?' faded':''}" data-i="${i}"
-      style="background:${bg};color:${col}" onclick="tapTile(${i})">${label}</button>`;
+  b.innerHTML=pzState.tiles.map((tl,i)=>{
+    const x=pzTileInner(i), cleared=pzState.cleared.has(i);
+    return `<button class="grid-tile${cleared?' faded':''}${pzState.hidden&&!cleared?' hid':''}" data-i="${i}"
+      style="background:${x.bg};color:${x.ink}" aria-label="${gEsc(x.aria)}" onclick="tapTile(${i})">${x.html}</button>`;
   }).join('');
+  gGridKeys(b,pzState.cfg.size);
+}
+function pzRefreshTile(i){
+  const el=document.querySelector(`#pz-board .grid-tile[data-i="${i}"]`);
+  if(!el||!pzState) return;
+  const x=pzTileInner(i);
+  el.classList.remove('is-miss','pop');
+  el.classList.toggle('hid',pzState.hidden&&!pzState.cleared.has(i));
+  el.style.background=x.bg; el.style.color=x.ink;
+  el.setAttribute('aria-label',x.aria);
+  el.innerHTML=x.html;
 }
 
 function tapTile(i){
-  if(!pzState||pzState.done||pzState.cleared.has(i)) return;
-  const el=document.querySelector(`.grid-tile[data-i="${i}"]`);
+  const s=pzState;
+  if(!s||s.done||s.cleared.has(i)||s.flashing.has(i)) return;
+  const el=document.querySelector(`#pz-board .grid-tile[data-i="${i}"]`);
   const msg=document.getElementById('pz-msg');
+  const ok = s.ordered ? s.targets[s.progress]===i : s.targets.includes(i);
 
-  let ok;
-  if(pzState.ordered){
-    ok = pzState.targets[pzState.progress]===i;          /* must be the exact next one */
-  } else {
-    ok = pzState.targets.includes(i);
-  }
-
-  pzState.cleared.add(i);
-  pzState.movesLeft--;
-  document.getElementById('pz-moves').textContent=pzState.movesLeft;
-  el.classList.add('pop');
+  s.movesLeft--;
+  document.getElementById('pz-moves').textContent=s.movesLeft;
 
   if(ok){
-    pzState.progress++;
-    el.style.background=pzState.tiles[i].c;
-    el.textContent='✓';
-    setTimeout(()=>el.classList.add('faded'),150);
-    msg.textContent=`${pzState.progress}/${pzState.targets.length} ${t('pz.found')}`;
+    s.cleared.add(i);
+    s.progress++;
+    s.streak++; s.bestStreak=Math.max(s.bestStreak,s.streak);
+    const mult=gMult(s.streak), gain=mult;
+    s.runXp+=gain;
+    pzRefreshTile(i);
+    el.classList.add('pop');
+    gLater(()=>el.classList.add('faded'),160,'screen-puzzle-play');
+    msg.textContent=`${s.progress}/${s.targets.length} ${t('pz.found')}`;
     msg.className='puzzle-msg good';
-    pzState.streak=(pzState.streak||0)+1;
-    fxBurst(el,{count:8,spread:52,colors:[pzState.tiles[i].c,'#F0B429']});
-    if(pzState.streak===3) bobSetStage('pz-bob','streak',bobLine('streak3'),'hot',2000);
-    else if(pzState.streak>0 && pzState.streak%5===0) bobSetStage('pz-bob','streak',bobLine('streak5'),'hot',2400);
+    fxBurst(el,{count:8,spread:52,colors:[TILE_COLORS[s.tiles[i].c],'#F0B429']});
+    gComboChip('pz-combo',s.streak);
+    if(mult>1) gXpFloat(el,gain,mult);
+    if(s.streak===3){ bobSetStage('pz-bob','streak',bobLine('streak3'),'hot',2000); gSfx('combo',2); }
+    else if(s.streak===6){ bobSetStage('pz-bob','streak',bobLine('combo'),'hot',2200); gSfx('combo',3); }
+    else if(s.streak>0 && s.streak%5===0) bobSetStage('pz-bob','streak',bobLine('streak5'),'hot',2400);
   } else {
-    pzState.streak=0;
+    /* A wrong tap costs a move but the tile stays in play — in an ordered
+       mode it may be a later target, and clearing it here used to make the
+       level impossible to finish. */
+    s.misses++; s.streak=0;
+    gComboChip('pz-combo',0);
+    s.flashing.add(i);
+    el.classList.remove('pop'); void el.offsetWidth;
+    el.classList.add('is-miss');
+    el.innerHTML='✕';
     bobSetStage('pz-bob','wrong',bobLine('wrong'),'',1600);
-    el.style.background='var(--chip-ext-bg)'; el.style.color='var(--chip-ext-ink)';
-    el.textContent='✕';
-    msg.textContent = pzState.ordered
-      ? ({en:'Wrong order — costs a move.',he:'סדר שגוי — עולה מהלך.',es:'Orden incorrecto — cuesta un movimiento.',ru:'Неверный порядок — минус ход.',ar:'ترتيب خاطئ — يكلّف حركة.'})[lang]
-      : t('pz.wrongtile');
+    msg.textContent = s.ordered ? t('pz.wrongorder') : t('pz.wrongtile');
     msg.className='puzzle-msg bad';
+    gLater(()=>{ s.flashing.delete(i); pzRefreshTile(i); },560,'screen-puzzle-play');
   }
 
-  if(pzState.progress===pzState.targets.length){
-    pzState.done=true;
-    const used=pzState.maxMoves-pzState.movesLeft;
-    const pct=Math.round(pzState.targets.length/used*100);
-    setTimeout(()=>finishLevel(pct,`${pzState.progress}/${pzState.targets.length}`),520);
-  } else if(pzState.movesLeft<=0){
-    pzState.done=true;
+  const remaining=s.targets.length-s.progress;
+  if(remaining===0){
+    s.done=true;
+    const m2=Math.max(1,Math.floor(s.cfg.slack/2));
+    const stars = s.misses===0?3:(s.misses<=m2?2:1);
+    const pct=Math.round(s.targets.length/(s.targets.length+s.misses)*100);
+    const nudge = stars===3?'' : (stars===2?t('lr.nudgeclean',{s:'★★★'}):t('lr.nudgemiss',{m:m2,s:'★★'}));
+    gLater(()=>finishLevel(pct,`${s.progress}/${s.targets.length}`,
+      {passed:true,stars,nudge,runXp:s.runXp,combo:s.bestStreak}),520,'screen-puzzle-play');
+  } else if(s.movesLeft<remaining){
+    /* Not enough moves left to finish: say so, and fail — never "out of
+       moves" followed by "level passed". */
+    s.done=true;
     msg.textContent=t('pz.outofmoves'); msg.className='puzzle-msg bad';
-    setTimeout(()=>finishLevel(Math.round(pzState.progress/pzState.targets.length*100),
-      `${pzState.progress}/${pzState.targets.length}`),800);
+    gLater(()=>finishLevel(Math.round(s.progress/s.targets.length*100),`${s.progress}/${s.targets.length}`,
+      {passed:false,reason:t('lr.outofmoves',{f:s.progress,n:s.targets.length}),
+       nudge:t('lr.nudgemiss',{m:s.cfg.slack,s:'★'}),runXp:s.runXp,combo:s.bestStreak}),800,'screen-puzzle-play');
   }
 }
 
+/* Arrow-key movement across a square grid of buttons (RTL-aware). */
+function gGridKeys(grid,size){
+  grid.onkeydown=e=>{
+    const k=e.key; if(!/^Arrow/.test(k)) return;
+    const btns=[...grid.querySelectorAll('button')];
+    const i=btns.indexOf(document.activeElement); if(i<0) return;
+    const rtl=document.documentElement.dir==='rtl';
+    let j=-1;
+    if(k==='ArrowRight'||k==='ArrowLeft'){
+      const d=((k==='ArrowRight')!==rtl)?1:-1, c=i%size+d;
+      if(c>=0&&c<size) j=i+d;
+    } else {
+      const d=k==='ArrowDown'?size:-size;
+      if(i+d>=0&&i+d<btns.length) j=i+d;
+    }
+    if(j>=0){ e.preventDefault(); btns[j].focus(); }
+  };
+}
 
 /* ==================== HARDCORE — RUN ENGINE ====================
    Hardcore has no level ladder: it is one run of HC_ITEMS items drawn at
@@ -5837,47 +6056,225 @@ function finishHardcore(){
   if(rank>=2||beat) setTimeout(()=>fxBurst('#hc-score-val',{count:beat?28:18,spread:beat?160:110}),260);
 }
 
-/* ==================== SHARED LEVEL RESULT ==================== */
-function finishLevel(pct,scoreLabel){
-  disarmActivity();
-  const passed=pct>=PASS_PCT;
-  const stars=pct>=95?3:(pct>=80?2:(passed?1:0));
-  if(passed){
-    const prog=progFor(currentGameKey);
-    prog[currentLevel]=Math.max(prog[currentLevel]||0,stars);
-    saveProgress();
+/* ==================== GAMES v2 — rewards ====================
+   Everything lives inside the per-user gameProgress (key "_meta"), so it is
+   saved, loaded and switched with the account exactly like the stars are:
+     xp        total experience; the player level is derived from it
+     day       {last:'YYYY-MM-DD', n, best} consecutive days played
+     ach       {id: unlockedAt}
+     pb        {'game:level': best %} — personal best per game AND level
+     combo     best combo reached in any run
+     seen      recently seen item ids per game (no-repeat windows)
+     hc        Hardcore best {pct, secs}                                   */
+function gMeta(){
+  let m=gameProgress._meta;
+  if(!m||typeof m!=='object') m=gameProgress._meta={};
+  m.xp=+m.xp||0; m.ach=m.ach||{}; m.pb=m.pb||{}; m.seen=m.seen||{};
+  m.day=m.day||{last:'',n:0,best:0}; m.combo=+m.combo||0;
+  return m;
+}
+const XP_PER_STAR=10, XP_NEW_STAR=20;
+/* Level 2 at 100 XP, then each level needs 50 more than the one before. */
+function gLevelInfo(xp){
+  let L=1, need=100, left=Math.max(0,Math.floor(xp||0));
+  while(left>=need){ left-=need; L++; need=100+50*(L-1); }
+  return {L,into:left,need};
+}
+/* Combo multiplier: ×2 from three in a row, ×3 from six. */
+function gMult(streak){ return streak>=6?3:(streak>=3?2:1); }
+function gToday(d){ d=d||new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function gYesterday(){ const d=new Date(); d.setDate(d.getDate()-1); return gToday(d); }
+/* Marks today as played. Returns the new streak length when it advanced. */
+function gTouchDay(){
+  const m=gMeta(), today=gToday();
+  if(m.day.last===today) return 0;
+  m.day.n = (m.day.last===gYesterday()) ? (m.day.n||0)+1 : 1;
+  m.day.last=today; m.day.best=Math.max(m.day.best||0,m.day.n);
+  return m.day.n;
+}
+function gDayStreak(){ const m=gMeta(); return (m.day.last===gToday()||m.day.last===gYesterday())?(m.day.n||0):0; }
+
+const CORE_GAMES=['memmatrix','speed','spatial','wordrecall','puzzle'];
+const ACHS=[
+  {id:'first',    ok:s=>s.cleared>=1},
+  {id:'three',    ok:s=>s.three>=1},
+  {id:'ten',      ok:s=>s.cleared>=10},
+  {id:'combo10',  ok:s=>s.combo>=10},
+  {id:'allfive',  ok:s=>s.five},
+  {id:'streak5',  ok:s=>s.day>=5},
+  {id:'hc70',     ok:s=>s.hc>=70},
+  {id:'lvl30',    ok:s=>s.top>=30},
+  {id:'fifty',    ok:s=>s.cleared>=50},
+  {id:'stars100', ok:s=>s.stars>=100}
+];
+function gStats(){
+  const m=gMeta(); let cleared=0,three=0,stars=0,top=0;
+  CATALOG.filter(c=>c.type!=='hardcore' && typeof c.launch!=='function').forEach(c=>{
+    const p=gameProgress[c.key]||{};
+    Object.keys(p).forEach(l=>{ const v=+p[l]||0; if(v>0){ cleared++; stars+=v; top=Math.max(top,+l||0); if(v>=3) three++; } });
+  });
+  return {cleared,three,stars,top,
+    five:CORE_GAMES.every(k=>highestLevel(k)>0),
+    combo:m.combo, hc:Math.max(bestFor('hardcore'),(m.hc&&m.hc.pct)||0),
+    day:Math.max(m.day.best||0,gDayStreak())};
+}
+function gCheckAchievements(){
+  const m=gMeta(), s=gStats(), fresh=[];
+  ACHS.forEach(a=>{ if(!m.ach[a.id] && a.ok(s)){ m.ach[a.id]=Date.now(); fresh.push(a.id); } });
+  return fresh;
+}
+/* Books a finished run: XP, the day streak and achievements, then saves. */
+function gBookRun(o){
+  const m=gMeta();
+  const before=gLevelInfo(m.xp).L;
+  const xp=Math.max(0,Math.round(o.xp||0));
+  m.xp+=xp;
+  if(o.combo) m.combo=Math.max(m.combo,o.combo);
+  const day=gTouchDay();
+  const after=gLevelInfo(m.xp).L;
+  const ach=gCheckAchievements();
+  saveProgress();
+  return {xp,levelUp:after>before?after:0,day,ach};
+}
+/* What the result screens do with a booked run: toasts, Bob's day cheer. */
+function gAfterBooking(b){
+  if(b.ach.length) setTimeout(()=>gAchToast(b.ach),900);
+  if(b.day>=2) setTimeout(()=>bobMoment('streak',bobLine('dayStreak').replace('{n}',b.day),3600),b.ach.length?4600:1500);
+}
+
+const TROPHY_SVG='<svg class="gx-trophy" viewBox="0 0 32 32" aria-hidden="true"><path d="M10 5h12v6a6 6 0 0 1-12 0Z" fill="#F0B429" stroke="#B87F00" stroke-width="1.4"/>'+
+  '<path d="M10 7H6.5a3.5 3.5 0 0 0 3.8 5M22 7h3.5a3.5 3.5 0 0 1-3.8 5" fill="none" stroke="#B87F00" stroke-width="1.6"/>'+
+  '<path d="M14 17h4v4h-4zM11 22h10v4H11z" fill="#B87F00"/></svg>';
+const _achQ=[]; let _achBusy=false;
+function gAchToast(ids){ _achQ.push(...ids); if(!_achBusy) _gNextToast(); }
+function _gNextToast(){
+  const id=_achQ.shift();
+  if(!id){ _achBusy=false; return; }
+  _achBusy=true;
+  let el=document.getElementById('gx-toast');
+  if(!el){
+    el=document.createElement('div'); el.id='gx-toast'; el.className='gx-toast';
+    el.setAttribute('role','status'); el.setAttribute('aria-live','polite');
+    document.body.appendChild(el);
   }
-  const m=gameMeta(currentGameKey);
-  document.getElementById('lr-kicker').textContent=`${m.name} · ${t('game.level')} ${currentLevel}`;
+  el.innerHTML=`${TROPHY_SVG}<div><small>${t('gx.achunlocked')}</small><b>${t('ach.'+id+'.n')}</b><span>${t('ach.'+id+'.d')}</span></div>`;
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  gSfx('ach');
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(_gNextToast,380); },3400);
+}
+
+/* In-run juice shared by every game. */
+function gXpFloat(el,n,mult){ if(el) fxPop(el,`+${n} XP${mult>1?' ×'+mult:''}`,mult>1?'gold':''); }
+function gComboChip(id,streak){
+  const chip=document.getElementById(id); if(!chip) return;
+  const m=gMult(streak);
+  if(streak<2){ chip.hidden=true; return; }
+  chip.hidden=false;
+  chip.textContent=`🔥 ${streak}`+(m>1?` · ${t('gx.combo',{m})}`:'');
+  chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump');
+}
+/* Light CSS confetti for a three-star finish. Nothing at all with reduced motion. */
+function gConfetti(){
+  if(REDUCED()) return;
+  const layer=fxLayer(), cols=['#7C4DFF','#12B39B','#F0B429','#FF4D9D','#22C3E6','#8BD450'];
+  for(let i=0;i<34;i++){
+    const d=document.createElement('i');
+    d.className='gx-conf';
+    d.style.cssText=`left:${Math.random()*100}%;background:${cols[i%cols.length]};`+
+      `--dx:${Math.round((Math.random()-.5)*160)}px;--rot:${Math.round(Math.random()*720-360)}deg;`+
+      `animation-delay:${Math.round(Math.random()*350)}ms;animation-duration:${1400+Math.round(Math.random()*900)}ms;`+
+      (i%3===0?'border-radius:50%;':'');
+    layer.appendChild(d);
+    setTimeout(()=>d.remove(),2800);
+  }
+}
+/* "1 more correct for ★★" — the smallest number of extra correct answers
+   that reaches the next star threshold, or '' when there is none. */
+function gNudgeCorrect(have,total,stars){
+  if(stars>=3||!total) return '';
+  const thr=[PASS_PCT,80,95][stars];
+  let n=have+1;
+  while(n<=total && Math.round(n/total*100)<thr) n++;
+  if(n>total) return '';
+  const k=n-have, s='★'.repeat(stars+1);
+  return k===1?t('lr.nudge1',{s}):t('lr.nudgen',{n:k,s});
+}
+
+/* ==================== SHARED LEVEL RESULT ====================
+   finishLevel(pct, label, opts)
+     opts.passed  override the pass rule (Logic Quest: out of moves = fail)
+     opts.stars   override the star rule
+     opts.reason  blurb to show instead of the generic one on a fail
+     opts.nudge   "1 more correct for ★★" line (computed by the game)
+     opts.runXp   XP earned during the run (combo-weighted)
+     opts.combo   best combo of the run                                    */
+const _gFails={};
+function finishLevel(pct,scoreLabel,opts){
+  const o=opts||{};
+  gStopRun();
+  disarmActivity();
+  const key=currentGameKey, lvl=currentLevel;
+  const passed = o.passed!==undefined ? !!o.passed : pct>=PASS_PCT;
+  const stars = !passed ? 0 : (o.stars!==undefined ? o.stars : (pct>=95?3:(pct>=80?2:1)));
+  const prog=progFor(key), prevStars=prog[lvl]||0;
+  if(passed) prog[lvl]=Math.max(prevStars,stars);
+  const newStars=Math.max(0,stars-prevStars);
+
+  /* Personal best per game and level, so "new record" compares like with like. */
+  const m=gMeta(), pbk=key+':'+lvl, prevPb=m.pb[pbk];
+  const beat = passed && prevPb!==undefined && pct>prevPb;
+  m.pb[pbk]=Math.max(prevPb||0,pct);
+
+  const xp=(o.runXp||0)+stars*XP_PER_STAR+newStars*XP_NEW_STAR;
+  const booked=gBookRun({xp,combo:o.combo||0});
+  _gFails[key] = passed ? 0 : (_gFails[key]||0)+1;
+
+  const gm=gameMeta(key);
+  document.getElementById('lr-kicker').textContent=`${gm.name} · ${t('game.level')} ${lvl}`;
   const tag=document.getElementById('lr-passtag');
   tag.className='pass-tag '+(passed?'pass':'fail');
   tag.textContent=passed?t('lr.passed'):t('lr.failed');
   document.getElementById('lr-stars').innerHTML=passed
     ? [1,2,3].map(i=>`<span class="${i<=stars?'':'dim'}">★</span>`).join('') : '';
+  document.getElementById('lr-stars').setAttribute('aria-label',passed?`${stars} / 3 ★`:'');
   document.getElementById('lr-score').textContent=scoreLabel+` · ${pct}%`;
   document.getElementById('lr-blurb').textContent=passed
     ? (stars===3?t('lr.perfect'):(stars===2?t('lr.good'):t('lr.ok')))
-    : t('lr.needmore',{n:PASS_PCT});
+    : (o.reason||t('lr.needmore',{n:PASS_PCT}));
+
+  const extra=[];
+  if(booked.xp) extra.push(`<span class="gx-chip xp">${t('lr.xp',{n:booked.xp})}</span>`);
+  if(booked.levelUp) extra.push(`<span class="gx-chip up">${t('lr.levelup',{n:booked.levelUp})}</span>`);
+  if(beat) extra.push(`<span class="gx-chip rec">★ ${t('lr.record',{p:prevPb})}</span>`);
+  else if(prevPb!==undefined) extra.push(`<span class="gx-chip">${t('lr.best',{p:m.pb[pbk]})}</span>`);
+  const ex=document.getElementById('lr-extra');
+  ex.innerHTML=(extra.length?`<div class="gx-chips">${extra.join('')}</div>`:'')+
+    (o.nudge?`<p class="gx-nudge">${o.nudge}</p>`:'');
+
   const nb=document.getElementById('lr-next'), rb=document.getElementById('lr-retry');
-  if(passed && currentLevel<levelsFor(currentGameKey)){ nb.style.display=''; nb.textContent=t('btn.nextlevel'); }
+  if(passed && lvl<levelsFor(key)){ nb.style.display=''; nb.textContent=t('btn.nextlevel'); }
   else nb.style.display='none';
   rb.style.display=''; rb.textContent=passed?t('btn.restart'):t('btn.tryagain');
-  playChime(passed);
+  if(stars===3) gSfx('fanfare'); else playChime(passed);
   showScreen('screen-levelresult',{force:true});
 
   /* Bob closes the level out. A beaten personal best gets the biggest state
-     he has; a plain pass gets a short one so replaying stays quick. */
-  const beat = passed && recordBest(currentGameKey,pct);
+     he has; two fails in a row get encouragement rather than another "no". */
+  const twice=!passed && _gFails[key]>=2;
   const state = beat ? 'newRecord' : (passed ? (stars===3?'highScore':'celebrate') : 'encouraging');
   const line  = beat ? bobLine('newRecord')
-              : (passed ? (stars===3?bobLine('highScore'):bobLine('levelPass')) : bobLine('levelFail'));
+              : (passed ? (stars===3?bobLine('highScore'):(booked.levelUp?bobLine('levelUp'):bobLine('levelPass')))
+                        : (twice?bobLine('failTwice'):bobLine('levelFail')));
   bobSetStage('lr-bob',state,line,beat?'hot':(passed?'good':'warm'));
   if(passed){
     setTimeout(()=>{
       fxBurst('#lr-stars',{count:beat?26:16,spread:beat?150:110});
       if(beat) fxPop('#lr-score',t('hc.newbest'),'gold');
+      if(stars===3) gConfetti();
     },180);
   }
+  gAfterBooking(booked);
 }
 function advanceLevel(){ playLevel(currentGameKey,currentLevel+1); }
 function retryLevel(){ playLevel(currentGameKey,currentLevel); }
@@ -7462,6 +7859,33 @@ function playChime(up){
     g.gain.exponentialRampToValueAtTime(0.0001,t0+0.34);
     o.connect(g); g.connect(ctx.destination);
     o.start(t0); o.stop(t0+0.36);
+  });
+}
+
+/* Game cues, on the same "Click sounds" switch and at the same low level as
+   playChime. Short sine/triangle blips only — nothing that would grate after
+   a hundred plays. */
+function gSfx(kind,arg){
+  if(!sfxOn) return;
+  const ctx=audioCtx(); if(!ctx) return;
+  const seq={
+    ach:[[659.25,0],[783.99,.08],[987.77,.16],[1318.5,.26]],
+    fanfare:[[523.25,0],[659.25,.1],[783.99,.2],[1046.5,.32]],
+    combo:[[440*Math.pow(2,(Math.min(arg||1,3)*4)/12),0]],
+    tick:[[880,0]],
+    go:[[1174.66,0]],
+    flash:[[740,0]]
+  }[kind];
+  if(!seq) return;
+  const vol=kind==='tick'||kind==='flash'?0.05:0.08;
+  seq.forEach(([hz,dt])=>{
+    const t0=ctx.currentTime+dt, o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=kind==='tick'?'triangle':'sine'; o.frequency.value=hz;
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.exponentialRampToValueAtTime(vol,t0+0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+(kind==='fanfare'||kind==='ach'?0.42:0.18));
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t0); o.stop(t0+0.45);
   });
 }
 
