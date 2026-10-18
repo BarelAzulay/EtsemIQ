@@ -1156,6 +1156,142 @@
     .bob-fab{animation:none !important;}
   }
 </style>
+<style id="newgames">
+  /* ============ NEW GAMES: Brain Bites (trivia) + Brain Twins (pass the phone) ============
+     Everything is scoped to .ng-* classes and reads the theme tokens, so both
+     themes and both text directions come for free. Motion is transform/opacity
+     only; the global reduced-motion rule and the extra block at the end of
+     this sheet turn it into plain state changes. */
+  .ng-shell{max-width:660px;margin:0 auto;padding:40px var(--gutter) 100px;position:relative;z-index:1;}
+  .ng-shell [hidden]{display:none !important;}
+  .ng-center{text-align:center;}
+  .ng-sr{position:absolute !important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);
+    white-space:nowrap;margin:-1px;padding:0;border:0;}
+  .ng-shell button:focus-visible,.ng-shell input:focus-visible,.ng-shell summary:focus-visible{
+    outline:3px solid var(--accent);outline-offset:3px;}
+  .ng-hero{text-align:center;margin:4px 0 22px;}
+  .ng-bigbob{flex-direction:column;justify-content:center;gap:10px;margin:0 auto 12px;min-height:0;}
+  .ng-bigbob .bob{width:96px;height:96px;}
+  .ng-bigbob .bob-line{text-align:center;border-bottom-left-radius:14px;max-width:440px;}
+  [dir="rtl"] .ng-bigbob .bob-line{border-bottom-right-radius:14px;}
+  .ng-title{font-size:clamp(26px,6.5vw,36px);font-weight:700;margin-bottom:8px;}
+  .ng-sub{color:var(--muted);font-size:15.5px;max-width:480px;margin:0 auto;}
+  .ng-h3{font-size:16px;font-weight:600;margin:0 0 12px;}
+  .ng-kicker{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;}
+  .ng-card{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:20px;
+    box-shadow:var(--shadow-card);}
+
+  .ng-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 18px;}
+  .ng-stat{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:12px 8px;
+    text-align:center;min-width:0;}
+  .ng-stat b{display:block;font-family:'Space Grotesk',sans-serif;font-size:22px;color:var(--accent-ink);line-height:1.15;}
+  .ng-stat span{font-size:12px;color:var(--muted);}
+  .ng-cta{display:grid;gap:12px;margin-bottom:28px;}
+  .ng-cta-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .ng-big{min-height:56px;width:100%;font-size:16px;border-radius:28px;padding:12px 18px;}
+  .ng-daily{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.3;font-weight:600;}
+  .ng-daily small{font-size:12.5px;color:var(--muted);font-weight:500;}
+  .ng-cats{display:flex;flex-wrap:wrap;gap:8px;}
+  .ng-cat{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;
+    background:var(--bg-soft);border:1px solid var(--line);font-size:13px;color:var(--ink);}
+
+  /* --- shared in-game chrome --- */
+  .ng-hud{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;}
+  .ng-hud .back-link{margin:0;}
+  .ng-hud .pill{white-space:nowrap;}
+  .pill.ng-bump{animation:chipBump .38s cubic-bezier(.2,1.6,.4,1);}
+  .ng-progress{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:8px 0 14px;}
+  .ng-progress-fill{height:100%;width:100%;transform:scaleX(0);transform-origin:left center;
+    background:linear-gradient(90deg,var(--accent),var(--reveal));border-radius:4px;
+    transition:transform .45s cubic-bezier(.2,1,.3,1);}
+  [dir="rtl"] .ng-progress-fill{transform-origin:right center;}
+  .ng-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:14px;font-size:13px;color:var(--muted);}
+  .ng-count{font-weight:600;color:var(--ink);}
+  .ng-cat-tag{display:inline-flex;gap:5px;align-items:center;background:var(--bg-soft);border:1px solid var(--line);
+    border-radius:12px;padding:2px 10px;font-size:12px;font-weight:600;color:var(--ink);}
+  .ng-q{font-size:clamp(19px,5vw,24px);font-weight:600;line-height:1.35;margin:4px 0 20px;outline:none;}
+
+  /* --- Brain Bites options --- */
+  .ng-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+  .ng-opt{width:100%;min-height:58px;text-align:start;color:var(--ink);font-size:15.5px;line-height:1.35;
+    padding:12px 14px;gap:12px;}
+  .ng-opt.ng-in{animation:ngPop .42s cubic-bezier(.2,1.4,.4,1) backwards;animation-delay:calc(var(--i,0) * 55ms);}
+  .ng-opt:disabled{cursor:default;}
+  .ng-opt:disabled:hover{transform:none;}
+  .ng-opt.is-correct{color:var(--teal-ink);font-weight:600;animation:okPulse .45s ease-out,ngBounce .5s cubic-bezier(.2,1.6,.4,1);}
+  .ng-opt.is-wrong{color:var(--chip-ext-ink);}
+  .ng-opt.dimmed{border-color:var(--line);}
+  .ng-key{flex-shrink:0;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;
+    justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;
+    background:var(--bg-soft);color:var(--muted);border:1px solid var(--line);}
+  .ng-opt.is-correct .ng-key{background:var(--teal);color:#fff;border-color:var(--teal);}
+  .ng-opt.is-wrong .ng-key{background:var(--reveal);color:#fff;border-color:var(--reveal);}
+  .ng-opt-t{flex:1;min-width:0;}
+  .ng-mark{flex-shrink:0;font-weight:700;font-size:17px;}
+
+  .ng-explain{margin-top:18px;border-radius:16px;padding:16px 18px;border:1.5px solid var(--line);
+    border-inline-start-width:5px;background:var(--white);box-shadow:var(--shadow-card);
+    animation:ngRise .4s cubic-bezier(.2,1.25,.4,1);}
+  .ng-explain.ok{border-color:var(--teal);}
+  .ng-explain.no{border-color:var(--reveal);}
+  .ng-verdict{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;display:flex;
+    align-items:center;gap:8px;margin-bottom:6px;}
+  .ng-explain.ok .ng-verdict{color:var(--teal-ink);}
+  .ng-explain.no .ng-verdict{color:var(--chip-ext-ink);}
+  .ng-answer{margin:0 0 6px;font-size:14.5px;}
+  .ng-why{margin:0;font-size:14.5px;line-height:1.6;color:var(--ink);}
+  .ng-why b{color:var(--accent-ink);margin-inline-end:4px;}
+  .ng-next-row{display:flex;justify-content:flex-end;gap:12px;margin-top:18px;flex-wrap:wrap;}
+  .ng-next-row .btn-primary{min-height:52px;padding:13px 30px;}
+
+  /* --- results --- */
+  .ng-bigscore{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(48px,14vw,68px);
+    line-height:1.05;color:var(--accent-ink);animation:ngBounce .7s cubic-bezier(.2,1.6,.4,1);}
+  .ng-scorecap{color:var(--muted);font-size:14px;margin:2px 0 14px;}
+  .ng-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:22px;}
+  .ng-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:14px;font-size:13px;
+    font-weight:600;background:var(--bg-soft);border:1px solid var(--line);color:var(--ink);}
+  .ng-chip.gold{background:var(--gold);color:#3D2A00;border-color:var(--gold);animation:chipBump .5s .3s backwards;}
+  .ng-breakdown{text-align:start;margin-bottom:18px;}
+  .ng-breakdown h3{font-size:15px;margin-bottom:12px;}
+  .ng-catrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;margin-bottom:10px;font-size:14px;}
+  .ng-catrow .bar{grid-column:1 / -1;height:7px;background:var(--bg-soft);border-radius:4px;overflow:hidden;}
+  .ng-catrow .bar i{display:block;height:100%;width:100%;background:var(--teal);border-radius:4px;
+    transform-origin:left center;transition:transform .8s cubic-bezier(.2,1,.3,1);}
+  [dir="rtl"] .ng-catrow .bar i{transform-origin:right center;}
+  .ng-catrow b{font-family:'Space Grotesk',sans-serif;}
+  .ng-review{text-align:start;margin:0 0 22px;}
+  .ng-review summary{cursor:pointer;font-weight:600;padding:12px 4px;min-height:44px;color:var(--accent-ink);}
+  .ng-review ol{margin:0;padding-inline-start:22px;}
+  .ng-review li{padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;}
+  .ng-review li span{display:block;color:var(--muted);font-size:13px;margin-top:2px;}
+  .ng-actions button{min-height:48px;}
+
+  .ng-conf{position:absolute;top:-16px;border-radius:2px;will-change:transform,opacity;}
+
+  @keyframes ngPop{from{opacity:0;transform:translateY(10px) scale(.94);}to{opacity:1;transform:none;}}
+  @keyframes ngBounce{0%{transform:scale(1);}40%{transform:scale(1.06);}70%{transform:scale(.98);}100%{transform:scale(1);}}
+  @keyframes ngRise{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+  @keyframes ngFlip{from{opacity:0;transform:perspective(600px) rotateX(-70deg) translateY(-8px);}to{opacity:1;transform:none;}}
+  @keyframes ngWiggle{0%,100%{transform:rotate(0);}20%{transform:rotate(-12deg);}40%{transform:rotate(10deg);}60%{transform:rotate(-6deg);}80%{transform:rotate(0);}}
+
+  @media (max-width:560px){
+    .ng-opts{grid-template-columns:1fr;}
+    .ng-cta-2{grid-template-columns:1fr;}
+    .ng-shell{padding-top:26px;}
+    .ng-bigbob .bob{width:80px;height:80px;}
+    .ng-next-row .btn-primary{width:100%;}
+  }
+  @media (max-width:380px){
+    .ng-choices[data-n="3"]{grid-template-columns:1fr;}
+    .ng-choices[data-n="3"] .ng-choice{min-height:64px;flex-direction:row;}
+    .ng-stat b{font-size:19px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .ng-opt,.ng-choice,.ng-rcard,.ng-explain,.ng-bigscore,.ng-pass-card,.ng-phone,.ng-chip,.ng-badge{animation:none !important;}
+    .ng-progress-fill,.ng-meter i,.ng-catrow .bar i{transition:none !important;}
+  }
+</style>
 </head>
 <body>
 <div class="ticker-bar"><span class="ticker-dot"></span><span id="ticker-text"></span></div>
@@ -1843,6 +1979,69 @@
     </div>
   </div>
 </section>
+
+<!-- NEWGAMES:SCREENS -->
+<!-- BRAIN BITES: home -->
+<section class="screen" id="screen-bites">
+  <div class="ng-shell">
+    <button class="back-link" onclick="openGamesHub()" data-i18n="btn.backgames"></button>
+    <div class="ng-hero">
+      <div class="bob-stage ng-bigbob" id="bbh-bob" aria-live="polite"></div>
+      <h2 class="ng-title" data-i18n="bb.name"></h2>
+      <p class="ng-sub" data-i18n="bb.sub"></p>
+    </div>
+    <div class="ng-stats" id="bbh-stats"></div>
+    <div class="ng-cta">
+      <button class="btn-primary ng-big" onclick="bbStart('round')" data-i18n="bb.start"></button>
+      <button class="btn-secondary ng-big ng-daily" id="bbh-daily" onclick="bbStart('daily')"></button>
+    </div>
+    <h3 class="ng-h3" data-i18n="bb.topics"></h3>
+    <div class="ng-cats" id="bbh-cats"></div>
+  </div>
+</section>
+
+<!-- BRAIN BITES: play -->
+<section class="screen" id="screen-bites-play">
+  <div class="ng-shell">
+    <div class="ng-hud">
+      <button class="back-link" onclick="bbOpenHome()" data-i18n="bb.quit"></button>
+      <span class="pill" id="bb-scorepill"><span data-i18n="bb.score"></span> <b id="bb-score">0</b></span>
+    </div>
+    <div class="ng-progress" aria-hidden="true"><div class="ng-progress-fill" id="bb-prog"></div></div>
+    <div class="ng-meta">
+      <span class="ng-count" id="bb-count"></span>
+      <span class="ng-cat-tag" id="bb-cat"></span>
+      <span class="diff-pill" id="bb-diff"></span>
+      <span class="streak-chip" id="bb-streak" hidden></span>
+    </div>
+    <div class="bob-stage quiet" id="bb-bob"></div>
+    <h2 class="ng-q" id="bb-q" tabindex="-1"></h2>
+    <div class="ng-opts" id="bb-opts" role="group" aria-labelledby="bb-q"></div>
+    <div class="ng-explain" id="bb-explain" hidden></div>
+    <div class="ng-sr" id="bb-live" aria-live="assertive" aria-atomic="true"></div>
+    <div class="ng-next-row"><button class="btn-primary" id="bb-next" onclick="bbNext()" hidden></button></div>
+  </div>
+</section>
+
+<!-- BRAIN BITES: result -->
+<section class="screen" id="screen-bites-result">
+  <div class="ng-shell ng-center">
+    <div class="bob-stage ng-bigbob" id="bbr-bob" aria-live="polite"></div>
+    <div class="ng-kicker" id="bbr-kicker"></div>
+    <div class="ng-bigscore" id="bbr-score">0</div>
+    <div class="ng-scorecap" data-i18n="bb.points"></div>
+    <div class="ng-chips" id="bbr-chips"></div>
+    <div class="ng-card ng-breakdown"><h3 data-i18n="bb.bycat"></h3><div id="bbr-cats"></div></div>
+    <details class="ng-review"><summary data-i18n="bb.review"></summary><ol id="bbr-review"></ol></details>
+    <div class="mini-actions ng-actions">
+      <button class="btn-primary" onclick="bbStart('round')" data-i18n="bb.again"></button>
+      <button class="btn-secondary" onclick="bbOpenHome()" data-i18n="bb.home"></button>
+      <button class="btn-secondary" onclick="openGamesHub()" data-i18n="btn.backgames"></button>
+    </div>
+  </div>
+</section>
+
+<!-- /NEWGAMES:SCREENS -->
 
 <footer>
   <div class="footer-inner">
@@ -7170,6 +7369,851 @@ function armAudio(){
     },1600);
   }
 })();
+</script>
+<script id="newgames">
+/* ====================================================================
+   NEW GAMES — Brain Bites (trivia, PLUS) and Brain Twins (pass the phone,
+   free). Strings, Bob lines, state, screens logic and hub registration all
+   live in this one block. It is parsed after the app block, i.e. after boot.
+   ==================================================================== */
+/* ---- strings: merged into T exactly the way T_EXT is ---- */
+const T_NEWGAMES={
+en:{
+  'ng.play':'Play','ng.stay':'Keep playing','ng.leave':'Leave',
+  'bb.name':'Brain Bites',
+  'bb.desc':'Bite-sized trivia across science, space, history and more. Every answer comes with a fascinating "why".',
+  'bb.meta':'10 questions · 9 topics','bb.progress':'Best: {n} pts',
+  'bb.sub':'Ten quick questions, easy to hard. Right or wrong, you walk away knowing something new.',
+  'bb.start':'Start a round','bb.daily':'Daily Bites','bb.dailysub':'5 questions — the same set for everyone today',
+  'bb.dailydone':'Done today: {c}/5 · play again for fun','bb.topics':'Topics in the mix',
+  'bb.best':'Best round','bb.rounds':'Rounds played','bb.today':'Daily Bites today',
+  'bb.quit':'← Quit round','bb.score':'Score','bb.qof':'Question {n} of {t}','bb.combo':'Combo ×{n}',
+  'bb.right':'Correct!','bb.wrongt':'Not quite','bb.answeris':'The answer:','bb.why':'Why?',
+  'bb.next':'Next question','bb.finish':'See my score',
+  'bb.points':'points','bb.round':'Round complete','bb.dailyt':'Daily Bites · {d}',
+  'bb.correctof':'{c}/{t} correct','bb.beststreak':'Best streak {n}','bb.newbest':'New best!','bb.bestis':'Best: {n}',
+  'bb.dailypractice':'Practice replay — your first score today is the one that counts.',
+  'bb.bycat':'How you did by topic','bb.review':'Review the answers','bb.again':'Play another round','bb.home':'Brain Bites home',
+  'bb.exit':'Leaving now ends this round. Your score for it will not be saved.',
+  'bb.cat.sci':'Science','bb.cat.nat':'Nature','bb.cat.body':'Body & brain','bb.cat.geo':'Geography','bb.cat.hist':'History',
+  'bb.cat.space':'Space','bb.cat.math':'Maths','bb.cat.words':'Language & words','bb.cat.tech':'Inventions & tech',
+},
+he:{
+  'ng.play':'שחקו','ng.stay':'להמשיך לשחק','ng.leave':'לצאת',
+  'bb.name':'נשנושי ידע',
+  'bb.desc':'טריוויה בביסים קטנים: מדע, חלל, היסטוריה ועוד. כל תשובה מגיעה עם "למה" מרתק.',
+  'bb.meta':'10 שאלות · 9 נושאים','bb.progress':'שיא: {n} נק׳',
+  'bb.sub':'עשר שאלות קצרות, מקלות לקשות. צדקתם או לא — תצאו עם משהו חדש בראש.',
+  'bb.start':'להתחיל סבב','bb.daily':'הנשנוש היומי','bb.dailysub':'5 שאלות — אותו סט לכולם היום',
+  'bb.dailydone':'שוחק היום: {c}/5 · אפשר שוב בשביל הכיף','bb.topics':'הנושאים במשחק',
+  'bb.best':'הסבב הכי טוב','bb.rounds':'סבבים ששוחקו','bb.today':'הנשנוש היומי',
+  'bb.quit':'← יציאה מהסבב','bb.score':'ניקוד','bb.qof':'שאלה {n} מתוך {t}','bb.combo':'קומבו ×{n}',
+  'bb.right':'נכון!','bb.wrongt':'לא בדיוק','bb.answeris':'התשובה:','bb.why':'למה?',
+  'bb.next':'לשאלה הבאה','bb.finish':'לניקוד שלי',
+  'bb.points':'נקודות','bb.round':'הסבב הושלם','bb.dailyt':'הנשנוש היומי · {d}',
+  'bb.correctof':'{c}/{t} נכונות','bb.beststreak':'רצף שיא {n}','bb.newbest':'שיא חדש!','bb.bestis':'שיא: {n}',
+  'bb.dailypractice':'סבב תרגול — רק הניקוד הראשון של היום נספר.',
+  'bb.bycat':'איך הלך לכם לפי נושא','bb.review':'לעבור על התשובות','bb.again':'עוד סבב','bb.home':'לדף נשנושי ידע',
+  'bb.exit':'יציאה עכשיו מסיימת את הסבב. הניקוד שלו לא יישמר.',
+  'bb.cat.sci':'מדע','bb.cat.nat':'טבע','bb.cat.body':'גוף ומוח','bb.cat.geo':'גאוגרפיה','bb.cat.hist':'היסטוריה',
+  'bb.cat.space':'חלל','bb.cat.math':'מתמטיקה','bb.cat.words':'שפה ומילים','bb.cat.tech':'המצאות וטכנולוגיה',
+},
+es:{
+  'ng.play':'Jugar','ng.stay':'Seguir jugando','ng.leave':'Salir',
+  'bb.name':'Bocados de saber',
+  'bb.desc':'Trivia en bocados: ciencia, espacio, historia y más. Cada respuesta trae un "porqué" fascinante.',
+  'bb.meta':'10 preguntas · 9 temas','bb.progress':'Récord: {n} pts',
+  'bb.sub':'Diez preguntas rápidas, de fáciles a difíciles. Aciertes o no, te llevas algo nuevo.',
+  'bb.start':'Empezar una ronda','bb.daily':'Bocados del día','bb.dailysub':'5 preguntas: las mismas para todos hoy',
+  'bb.dailydone':'Hecho hoy: {c}/5 · repite por diversión','bb.topics':'Temas en juego',
+  'bb.best':'Mejor ronda','bb.rounds':'Rondas jugadas','bb.today':'Bocados de hoy',
+  'bb.quit':'← Salir de la ronda','bb.score':'Puntos','bb.qof':'Pregunta {n} de {t}','bb.combo':'Combo ×{n}',
+  'bb.right':'¡Correcto!','bb.wrongt':'No exactamente','bb.answeris':'La respuesta:','bb.why':'¿Por qué?',
+  'bb.next':'Siguiente pregunta','bb.finish':'Ver mi puntuación',
+  'bb.points':'puntos','bb.round':'Ronda completada','bb.dailyt':'Bocados del día · {d}',
+  'bb.correctof':'{c}/{t} correctas','bb.beststreak':'Mejor racha {n}','bb.newbest':'¡Nuevo récord!','bb.bestis':'Récord: {n}',
+  'bb.dailypractice':'Repetición de práctica: solo cuenta tu primera puntuación de hoy.',
+  'bb.bycat':'Tu resultado por tema','bb.review':'Repasar las respuestas','bb.again':'Jugar otra ronda','bb.home':'Inicio de Bocados',
+  'bb.exit':'Si sales ahora, la ronda termina y su puntuación no se guardará.',
+  'bb.cat.sci':'Ciencia','bb.cat.nat':'Naturaleza','bb.cat.body':'Cuerpo y cerebro','bb.cat.geo':'Geografía','bb.cat.hist':'Historia',
+  'bb.cat.space':'Espacio','bb.cat.math':'Matemáticas','bb.cat.words':'Lenguas y palabras','bb.cat.tech':'Inventos y tecnología',
+},
+ru:{
+  'ng.play':'Играть','ng.stay':'Продолжить игру','ng.leave':'Выйти',
+  'bb.name':'Пища для ума',
+  'bb.desc':'Викторина небольшими порциями: наука, космос, история и не только. К каждому ответу — увлекательное «почему».',
+  'bb.meta':'10 вопросов · 9 тем','bb.progress':'Рекорд: {n} оч.',
+  'bb.sub':'Десять коротких вопросов — от простых к сложным. Угадали или нет, узнаете что-то новое.',
+  'bb.start':'Начать раунд','bb.daily':'Порция дня','bb.dailysub':'5 вопросов — сегодня у всех одинаковые',
+  'bb.dailydone':'Сегодня: {c}/5 · можно ещё раз для удовольствия','bb.topics':'Темы в игре',
+  'bb.best':'Лучший раунд','bb.rounds':'Сыграно раундов','bb.today':'Порция дня',
+  'bb.quit':'← Выйти из раунда','bb.score':'Очки','bb.qof':'Вопрос {n} из {t}','bb.combo':'Комбо ×{n}',
+  'bb.right':'Верно!','bb.wrongt':'Не совсем','bb.answeris':'Ответ:','bb.why':'Почему?',
+  'bb.next':'Следующий вопрос','bb.finish':'Мой результат',
+  'bb.points':'очков','bb.round':'Раунд завершён','bb.dailyt':'Порция дня · {d}',
+  'bb.correctof':'{c}/{t} верно','bb.beststreak':'Лучшая серия {n}','bb.newbest':'Новый рекорд!','bb.bestis':'Рекорд: {n}',
+  'bb.dailypractice':'Тренировочный повтор — засчитывается только первый результат за день.',
+  'bb.bycat':'Результат по темам','bb.review':'Разобрать ответы','bb.again':'Ещё раунд','bb.home':'К «Пище для ума»',
+  'bb.exit':'Если выйти сейчас, раунд закончится и его очки не сохранятся.',
+  'bb.cat.sci':'Наука','bb.cat.nat':'Природа','bb.cat.body':'Тело и мозг','bb.cat.geo':'География','bb.cat.hist':'История',
+  'bb.cat.space':'Космос','bb.cat.math':'Математика','bb.cat.words':'Языки и слова','bb.cat.tech':'Изобретения и техника',
+},
+ar:{
+  'ng.play':'العب','ng.stay':'متابعة اللعب','ng.leave':'خروج',
+  'bb.name':'لُقيمات المعرفة',
+  'bb.desc':'معلومات عامة بلقيمات صغيرة: علوم وفضاء وتاريخ وأكثر. كل إجابة تأتي مع "لماذا" مدهشة.',
+  'bb.meta':'10 أسئلة · 9 مواضيع','bb.progress':'الأفضل: {n} نقطة',
+  'bb.sub':'عشرة أسئلة سريعة من السهل إلى الصعب. أصبت أم أخطأت، ستخرج بمعلومة جديدة.',
+  'bb.start':'ابدأ جولة','bb.daily':'لُقيمات اليوم','bb.dailysub':'5 أسئلة — المجموعة نفسها للجميع اليوم',
+  'bb.dailydone':'أنجزتها اليوم: {c}/5 · العب مجدداً للمتعة','bb.topics':'المواضيع في اللعبة',
+  'bb.best':'أفضل جولة','bb.rounds':'جولات لُعبت','bb.today':'لُقيمات اليوم',
+  'bb.quit':'← الخروج من الجولة','bb.score':'النقاط','bb.qof':'السؤال {n} من {t}','bb.combo':'كومبو ×{n}',
+  'bb.right':'صحيح!','bb.wrongt':'ليس تماماً','bb.answeris':'الإجابة:','bb.why':'لماذا؟',
+  'bb.next':'السؤال التالي','bb.finish':'اعرض نتيجتي',
+  'bb.points':'نقطة','bb.round':'اكتملت الجولة','bb.dailyt':'لُقيمات اليوم · {d}',
+  'bb.correctof':'{c}/{t} صحيحة','bb.beststreak':'أطول سلسلة {n}','bb.newbest':'رقم قياسي جديد!','bb.bestis':'الأفضل: {n}',
+  'bb.dailypractice':'إعادة للتدريب — تُحتسب نتيجتك الأولى اليوم فقط.',
+  'bb.bycat':'أداؤك حسب الموضوع','bb.review':'راجع الإجابات','bb.again':'جولة أخرى','bb.home':'صفحة لُقيمات المعرفة',
+  'bb.exit':'الخروج الآن ينهي هذه الجولة ولن تُحفظ نقاطها.',
+  'bb.cat.sci':'علوم','bb.cat.nat':'طبيعة','bb.cat.body':'الجسم والدماغ','bb.cat.geo':'جغرافيا','bb.cat.hist':'تاريخ',
+  'bb.cat.space':'فضاء','bb.cat.math':'رياضيات','bb.cat.words':'لغات وكلمات','bb.cat.tech':'اختراعات وتقنية',
+}
+};
+Object.keys(T_NEWGAMES).forEach(l=>{ if(T[l]) Object.assign(T[l], T_NEWGAMES[l]); });
+
+/* ---- Bob's lines for these games, merged into his voice table so bobLine()
+   keeps its no-immediate-repeat behaviour. Correct / wrong / streak beats
+   reuse his existing pools. ---- */
+const NG_BOB_LINES={
+en:{
+  ngBitesHome:['Ten questions, nine topics, one excellent excuse to learn something.','Every answer comes with a "why". That\'s the tasty part.','Pick a round. I\'ll bring the fun facts.'],
+  ngBitesStart:['Easy ones first — it gets spicier.','Here we go. Read the "why" after each one.','Ten bites. Chew slowly.'],
+  ngDailyStart:['Today\'s five — the same set for everyone on the planet.','Daily Bites! Five questions, one shot at a clean sheet.'],
+  ngBitesR4:['Ten out of ten. I\'m taking notes from you now.','A perfect round. Frame it.'],
+  ngBitesR3:['That\'s a seriously well-stocked brain.','Excellent round — barely a crumb dropped.'],
+  ngBitesR2:['Solid round, and you picked up a few new facts on the way.','Good going. The misses taught you the most.'],
+  ngBitesR1:['Tough set — but now you know things most people don\'t.','Every miss came with a free fact. Not a bad deal.'],
+  ngBitesBest:['New personal best! Your brain is on a roll.'],
+},
+he:{
+  ngBitesHome:['עשר שאלות, תשעה נושאים ותירוץ מצוין ללמוד משהו.','כל תשובה מגיעה עם "למה". זה החלק הטעים.','בחרו סבב. אני אביא את העובדות המגניבות.'],
+  ngBitesStart:['קודם הקלות — אחר כך זה מתחמם.','יוצאים לדרך. קראו את ה"למה" אחרי כל שאלה.','עשרה ביסים. ללעוס לאט.'],
+  ngDailyStart:['החמש של היום — אותו סט לכל העולם.','הנשנוש היומי! חמש שאלות, הזדמנות אחת לניקוד מושלם.'],
+  ngBitesR4:['עשר מתוך עשר. עכשיו אני לומד מכם.','סבב מושלם. שווה מסגרת.'],
+  ngBitesR3:['זה מוח מצויד היטב.','סבב מצוין — כמעט בלי פירורים.'],
+  ngBitesR2:['סבב יציב, ובדרך אספתם כמה עובדות חדשות.','יפה מאוד. דווקא הטעויות לימדו הכי הרבה.'],
+  ngBitesR1:['סט קשוח — אבל עכשיו אתם יודעים דברים שרוב האנשים לא.','כל טעות הגיעה עם עובדה במתנה. לא רע בכלל.'],
+  ngBitesBest:['שיא אישי חדש! המוח שלכם בתנופה.'],
+},
+es:{
+  ngBitesHome:['Diez preguntas, nueve temas y una excusa perfecta para aprender algo.','Cada respuesta trae su "porqué". Esa es la parte sabrosa.','Elige ronda. Yo pongo los datos curiosos.'],
+  ngBitesStart:['Primero las fáciles; luego se pone picante.','Allá vamos. Lee el "porqué" después de cada una.','Diez bocados. Mastica despacio.'],
+  ngDailyStart:['Las cinco de hoy: las mismas para todo el planeta.','¡Bocados del día! Cinco preguntas y una sola oportunidad de pleno.'],
+  ngBitesR4:['Diez de diez. Ahora soy yo quien toma apuntes.','Ronda perfecta. Para enmarcar.'],
+  ngBitesR3:['Eso es un cerebro muy bien surtido.','Ronda excelente: apenas se te cayó una miga.'],
+  ngBitesR2:['Buena ronda, y por el camino aprendiste datos nuevos.','Bien hecho. Los fallos son los que más enseñan.'],
+  ngBitesR1:['Ronda difícil, pero ahora sabes cosas que casi nadie sabe.','Cada fallo vino con un dato de regalo. No está nada mal.'],
+  ngBitesBest:['¡Nuevo récord personal! Tu cerebro está en racha.'],
+},
+ru:{
+  ngBitesHome:['Десять вопросов, девять тем и отличный повод узнать что-то новое.','К каждому ответу — «почему». Это самое вкусное.','Выбирайте раунд. Интересные факты — с меня.'],
+  ngBitesStart:['Сначала простые — дальше будет острее.','Поехали. Читайте «почему» после каждого вопроса.','Десять кусочков. Жуйте не спеша.'],
+  ngDailyStart:['Сегодняшние пять — одинаковые для всей планеты.','Порция дня! Пять вопросов и один шанс на чистый результат.'],
+  ngBitesR4:['Десять из десяти. Теперь я конспектирую за вами.','Идеальный раунд. Хоть в рамку.'],
+  ngBitesR3:['Вот это хорошо укомплектованный мозг.','Отличный раунд — почти ни одной крошки мимо.'],
+  ngBitesR2:['Крепкий раунд, и по пути вы узнали пару новых фактов.','Хорошо идёте. Больше всего учат как раз промахи.'],
+  ngBitesR1:['Трудный набор — зато теперь вы знаете то, чего не знают многие.','Каждый промах шёл с бесплатным фактом. Неплохая сделка.'],
+  ngBitesBest:['Новый личный рекорд! Мозг в ударе.'],
+},
+ar:{
+  ngBitesHome:['عشرة أسئلة وتسعة مواضيع وعذر ممتاز لتتعلم شيئاً.','كل إجابة تأتي مع "لماذا". هذا هو الجزء اللذيذ.','اختر جولة، وعليّ أنا المعلومات الممتعة.'],
+  ngBitesStart:['السهلة أولاً، ثم يحمى الوطيس.','لننطلق. اقرأ "لماذا" بعد كل سؤال.','عشر لقيمات. امضغها على مهل.'],
+  ngDailyStart:['أسئلة اليوم الخمسة — المجموعة نفسها لكل سكان الكوكب.','لُقيمات اليوم! خمسة أسئلة وفرصة واحدة للعلامة الكاملة.'],
+  ngBitesR4:['عشرة من عشرة. صرت أنا من يدوّن الملاحظات.','جولة مثالية. تستحق الإطار.'],
+  ngBitesR3:['هذا دماغ عامر بالمعلومات.','جولة ممتازة — بالكاد سقطت منك فتات.'],
+  ngBitesR2:['جولة متينة، وجمعت في الطريق معلومات جديدة.','أحسنت. الأخطاء هي أكثر ما يعلّم.'],
+  ngBitesR1:['مجموعة صعبة، لكنك الآن تعرف أشياء لا يعرفها معظم الناس.','كل خطأ جاء مع معلومة مجانية. صفقة لا بأس بها.'],
+  ngBitesBest:['رقم شخصي جديد! دماغك في أوج نشاطه.'],
+}
+};
+Object.keys(NG_BOB_LINES).forEach(l=>{ if(BOB_LINES[l]) Object.assign(BOB_LINES[l], NG_BOB_LINES[l]); });
+
+/* ---- small shared helpers ---- */
+const NG_LANGS=['en','he','es','ru','ar'];
+const ngEl=id=>document.getElementById(id);
+const ngL=o=>(o&&(o[lang]||o.en))||'';
+const ngActive=id=>{ const e=ngEl(id); return !!(e&&e.classList.contains('active')); };
+function ngShuffle(a,rnd){
+  const r=rnd||Math.random, c=a.slice();
+  for(let i=c.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); const x=c[i]; c[i]=c[j]; c[j]=x; }
+  return c;
+}
+/* Deterministic PRNG (FNV-1a seed → mulberry32) for the date-seeded daily set. */
+function ngRng(seed){
+  let h=2166136261>>>0;
+  for(let i=0;i<seed.length;i++){ h^=seed.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+  return function(){
+    h=(h+0x6D2B79F5)|0;
+    let x=Math.imul(h^(h>>>15),1|h);
+    x=(x+Math.imul(x^(x>>>7),61|x))^x;
+    return ((x^(x>>>14))>>>0)/4294967296;
+  };
+}
+function ngNum(n){
+  try{ return Number(n).toLocaleString(lang==='ar'?'ar-u-nu-latn':lang); }catch(e){ return String(n); }
+}
+/* Literal placeholder substitution. Unlike String.replace with a string
+   pattern, split/join never interprets "$&"-style sequences in user names. */
+function ngTpl(s,vars){
+  Object.keys(vars||{}).forEach(k=>{ s=s.split('{'+k+'}').join(String(vars[k])); });
+  return s;
+}
+/* Writes t(key) into el as DOM nodes. Every substituted value becomes its own
+   <bdi> text node, so a name typed by a player is never parsed as HTML and a
+   Latin name inside a Hebrew or Arabic sentence keeps its own direction. */
+function ngFill(el,key,vars){
+  if(!el) return;
+  el.textContent='';
+  t(key).split(/(\{\w+\})/).forEach(part=>{
+    const m=part.match(/^\{(\w+)\}$/);
+    if(m && vars && Object.prototype.hasOwnProperty.call(vars,m[1])){
+      const b=document.createElement('bdi'); b.textContent=String(vars[m[1]]); el.appendChild(b);
+    } else if(part) el.appendChild(document.createTextNode(part));
+  });
+}
+function ngBump(el){
+  if(!el||REDUCED()) return;
+  el.classList.remove('ng-bump'); void el.offsetWidth; el.classList.add('ng-bump');
+}
+/* Round-end confetti: a few dozen light rectangles on the shared fx layer.
+   transform/opacity only, removed as they finish, skipped on reduced motion. */
+function ngConfetti(n){
+  if(REDUCED()) return;
+  const layer=fxLayer(), W=window.innerWidth, H=window.innerHeight;
+  const colors=['#7C4DFF','#12B39B','#F0B429','#FF4D9D','#22C3E6','#8BD450'];
+  for(let i=0;i<(n||60);i++){
+    const d=document.createElement('i');
+    d.className='ng-conf';
+    const w=5+Math.random()*6, h=8+Math.random()*8;
+    d.style.cssText=`left:${Math.random()*W}px;width:${w}px;height:${h}px;background:${colors[i%colors.length]};`;
+    layer.appendChild(d);
+    const drift=(Math.random()-.5)*180, spin=(Math.random()<.5?-1:1)*(240+Math.random()*540);
+    d.animate(
+      [{transform:'translate(0,0) rotate(0deg)',opacity:1},
+       {transform:`translate(${drift*.5}px,${H*.5}px) rotate(${spin*.5}deg)`,opacity:1,offset:.6},
+       {transform:`translate(${drift}px,${H+40}px) rotate(${spin}deg)`,opacity:0}],
+      {duration:1700+Math.random()*1300,delay:Math.random()*350,easing:'cubic-bezier(.25,.55,.45,1)',fill:'forwards'}
+    ).onfinish=()=>d.remove();
+  }
+}
+
+/* ---- the exit guard: two new activity kinds, added without touching the
+   original ACTIVITY_FLOW literal. The leave dialog gets wording that talks
+   about a round / a game rather than a level. ---- */
+const NG_EXIT={bites:'bb.exit'};
+ACTIVITY_FLOW.bites=['screen-bites-play','screen-bites-result'];
+const _ngConfirmLeave=confirmLeaveActivity;
+confirmLeaveActivity=function(proceed){
+  if(!NG_EXIT[activity]) return _ngConfirmLeave(proceed);
+  openDialog({
+    alarm:true, bob:'encouraging', title:t('exit.title'),
+    body:t(NG_EXIT[activity]),
+    actions:[
+      {label:t('ng.stay'),kind:'primary',fn:null},
+      {label:t('ng.leave'),kind:'danger',fn:()=>{ disarmActivity(); proceed(); }}
+    ]
+  });
+};
+
+/* ====================================================================
+   BRAIN BITES — trivia rounds with an explanation after every answer
+   ====================================================================
+   Bank format, one object per question:
+     {id, c:category, d:1|2|3, src:'reference for auditing (not shown)',
+      q:{en,he,es,ru,ar}, o:[{en..},{en..},{en..},{en..}], a:index, x:{en..}}
+   The key's stored position was randomised when the bank was written, and
+   the options are shuffled again every time a question is shown.          */
+const BB_CATS=['sci','nat','body','geo','hist','space','math','words','tech'];
+const BB_ICON={sci:'🔬',nat:'🌿',body:'🧠',geo:'🌍',hist:'🏛️',space:'🪐',math:'➗',words:'💬',tech:'💡'};
+const BB_BANK=[
+{id:'sci1',c:'sci',d:1,src:"Royal Society of Chemistry: Periodic Table — Gold",
+ q:{en:"What is the chemical symbol for gold?",he:"מהו הסמל הכימי של זהב?",es:"¿Cuál es el símbolo químico del oro?",ru:"Какой химический символ у золота?",ar:"ما الرمز الكيميائي للذهب؟"},
+ o:[{en:"Ag",he:"Ag",es:"Ag",ru:"Ag",ar:"Ag"},
+   {en:"Au",he:"Au",es:"Au",ru:"Au",ar:"Au"},
+   {en:"Gd",he:"Gd",es:"Gd",ru:"Gd",ar:"Gd"},
+   {en:"Go",he:"Go",es:"Go",ru:"Go",ar:"Go"}],
+ a:1,
+ x:{en:"Au comes from \"aurum\", the Latin word for gold. Ag is silver, from the Latin \"argentum\".",he:"Au בא מ־\"aurum\", המילה הלטינית לזהב. Ag הוא כסף, מהמילה הלטינית \"argentum\".",es:"Au viene de \"aurum\", oro en latín. Ag es la plata, del latín \"argentum\".",ru:"Au — от латинского «aurum», «золото». Ag — серебро, от латинского «argentum».",ar:"الرمز Au مشتق من الكلمة اللاتينية \"aurum\" أي الذهب، أما Ag فهو الفضة من اللاتينية \"argentum\"."}},
+{id:'sci2',c:'sci',d:1,src:"Britannica: mercury (chemical element)",
+ q:{en:"Which metal is liquid at ordinary room temperature?",he:"איזו מתכת נוזלית בטמפרטורת חדר רגילה?",es:"¿Qué metal es líquido a temperatura ambiente normal?",ru:"Какой металл жидкий при обычной комнатной температуре?",ar:"أي معدن يكون سائلاً في درجة حرارة الغرفة العادية؟"},
+ o:[{en:"Aluminium",he:"אלומיניום",es:"Aluminio",ru:"Алюминий",ar:"الألومنيوم"},
+   {en:"Copper",he:"נחושת",es:"Cobre",ru:"Медь",ar:"النحاس"},
+   {en:"Iron",he:"ברזל",es:"Hierro",ru:"Железо",ar:"الحديد"},
+   {en:"Mercury",he:"כספית",es:"Mercurio",ru:"Ртуть",ar:"الزئبق"}],
+ a:3,
+ x:{en:"Mercury melts at about −39 °C, so it stays liquid in a normal room. That is why it was used in old thermometers.",he:"כספית נמסה בכ־‎−39‎ מעלות, ולכן היא נשארת נוזלית בחדר רגיל. בגלל זה השתמשו בה במדחומים ישנים.",es:"El mercurio se funde a unos −39 °C, así que en una habitación normal sigue líquido. Por eso se usaba en los termómetros antiguos.",ru:"Ртуть плавится примерно при −39 °C, поэтому в обычной комнате она жидкая. Именно поэтому её использовали в старых термометрах.",ar:"ينصهر الزئبق عند نحو 39 درجة تحت الصفر، لذا يبقى سائلاً في الغرفة العادية، ولهذا استُخدم في موازين الحرارة القديمة."}},
+{id:'sci3',c:'sci',d:1,src:"USGS Water Science School: boiling point and altitude",
+ q:{en:"At sea level, pure water boils at about what temperature?",he:"בגובה פני הים, מים טהורים רותחים בערך באיזו טמפרטורה?",es:"Al nivel del mar, ¿a qué temperatura hierve aproximadamente el agua pura?",ru:"При какой температуре примерно кипит чистая вода на уровне моря?",ar:"عند مستوى سطح البحر، عند أي درجة حرارة تقريباً يغلي الماء النقي؟"},
+ o:[{en:"90 °C",he:"90 °C",es:"90 °C",ru:"90 °C",ar:"90 °C"},
+   {en:"80 °C",he:"80 °C",es:"80 °C",ru:"80 °C",ar:"80 °C"},
+   {en:"100 °C",he:"100 °C",es:"100 °C",ru:"100 °C",ar:"100 °C"},
+   {en:"120 °C",he:"120 °C",es:"120 °C",ru:"120 °C",ar:"120 °C"}],
+ a:2,
+ x:{en:"The boiling point depends on air pressure. High on a mountain the pressure is lower, so water boils below 100 °C — around 70 °C near the top of Everest.",he:"נקודת הרתיחה תלויה בלחץ האוויר. גבוה על הר הלחץ נמוך יותר, ולכן מים רותחים מתחת ל־100 מעלות — בסביבות 70 מעלות ליד פסגת האוורסט.",es:"El punto de ebullición depende de la presión del aire. En lo alto de una montaña la presión es menor y el agua hierve por debajo de 100 °C: cerca de la cima del Everest, a unos 70 °C.",ru:"Температура кипения зависит от давления воздуха. Высоко в горах давление ниже, и вода кипит ниже 100 °C — у вершины Эвереста примерно при 70 °C.",ar:"تعتمد درجة الغليان على ضغط الهواء. في أعالي الجبال يكون الضغط أقل فيغلي الماء تحت 100 درجة، ونحو 70 درجة قرب قمة إيفرست."}},
+{id:'sci4',c:'sci',d:2,src:"NASA Earth Fact Sheet: atmospheric composition",
+ q:{en:"Which gas makes up most of the air in Earth's atmosphere?",he:"איזה גז מהווה את רוב האוויר באטמוספרה של כדור הארץ?",es:"¿Qué gas forma la mayor parte del aire de la atmósfera terrestre?",ru:"Какой газ составляет большую часть воздуха в атмосфере Земли?",ar:"أي غاز يشكّل معظم هواء الغلاف الجوي للأرض؟"},
+ o:[{en:"Oxygen",he:"חמצן",es:"Oxígeno",ru:"Кислород",ar:"الأكسجين"},
+   {en:"Argon",he:"ארגון",es:"Argón",ru:"Аргон",ar:"الأرغون"},
+   {en:"Carbon dioxide",he:"פחמן דו־חמצני",es:"Dióxido de carbono",ru:"Углекислый газ",ar:"ثاني أكسيد الكربون"},
+   {en:"Nitrogen",he:"חנקן",es:"Nitrógeno",ru:"Азот",ar:"النيتروجين"}],
+ a:3,
+ x:{en:"Dry air is about 78% nitrogen and 21% oxygen. Carbon dioxide, despite its huge effect on climate, is only around 0.04%.",he:"אוויר יבש הוא בערך 78% חנקן ו־21% חמצן. פחמן דו־חמצני, למרות השפעתו העצומה על האקלים, הוא רק כ־0.04%.",es:"El aire seco tiene alrededor de un 78 % de nitrógeno y un 21 % de oxígeno. El dióxido de carbono, pese a su gran efecto en el clima, ronda solo el 0,04 %.",ru:"Сухой воздух примерно на 78% состоит из азота и на 21% из кислорода. Углекислого газа, несмотря на его огромное влияние на климат, всего около 0,04%.",ar:"يتكوّن الهواء الجاف من نحو 78% نيتروجين و21% أكسجين، أما ثاني أكسيد الكربون فرغم أثره الكبير في المناخ لا يتجاوز نحو 0.04%."}},
+{id:'sci5',c:'sci',d:2,src:"Britannica: carbon — allotropes (diamond, graphite)",
+ q:{en:"Diamond and pencil \"lead\" (graphite) are both made of which element?",he:"יהלום ו\"עופרת\" של עיפרון (גרפיט) עשויים שניהם מאיזה יסוד?",es:"El diamante y la \"mina\" del lápiz (grafito) están hechos del mismo elemento. ¿Cuál?",ru:"Алмаз и грифель карандаша (графит) состоят из одного элемента. Какого?",ar:"الألماس و\"رصاص\" قلم الرصاص (الغرافيت) مصنوعان من العنصر نفسه. ما هو؟"},
+ o:[{en:"Carbon",he:"פחמן",es:"Carbono",ru:"Углерод",ar:"الكربون"},
+   {en:"Lead",he:"עופרת",es:"Plomo",ru:"Свинец",ar:"الرصاص"},
+   {en:"Silicon",he:"צורן",es:"Silicio",ru:"Кремний",ar:"السيليكون"},
+   {en:"Sulfur",he:"גופרית",es:"Azufre",ru:"Сера",ar:"الكبريت"}],
+ a:0,
+ x:{en:"Both are pure carbon; only the arrangement differs. In diamond every atom is locked in a rigid 3D lattice, while graphite forms sheets that slide apart onto paper. Pencils never contained lead.",he:"שניהם פחמן טהור, ורק סידור האטומים שונה: ביהלום כל אטום נעול בסריג תלת־ממדי קשיח, ובגרפיט יש שכבות שמחליקות זו מעל זו אל הנייר. בעפרונות מעולם לא הייתה עופרת.",es:"Ambos son carbono puro; solo cambia la disposición. En el diamante cada átomo está fijo en una red 3D rígida, y el grafito forma láminas que se deslizan sobre el papel. Los lápices nunca llevaron plomo.",ru:"Оба — чистый углерод, отличается лишь расположение атомов. В алмазе каждый атом закреплён в жёсткой объёмной решётке, а графит состоит из слоёв, которые легко соскальзывают на бумагу. Свинца в карандашах никогда не было.",ar:"كلاهما كربون نقي، والفرق في ترتيب الذرات فقط: في الألماس تُثبَّت كل ذرة في شبكة ثلاثية الأبعاد صلبة، بينما يتكوّن الغرافيت من طبقات تنزلق على الورق. ولم يحتوِ قلم الرصاص على الرصاص قط."}},
+{id:'sci6',c:'sci',d:2,src:"Britannica: sound — speed of sound in different media",
+ q:{en:"Sound travels fastest through which of these?",he:"דרך מה מבין אלה הקול נע הכי מהר?",es:"¿A través de cuál de estos viaja más rápido el sonido?",ru:"Через что из этого звук распространяется быстрее всего?",ar:"عبر أيٍّ من هذه ينتقل الصوت بأسرع ما يمكن؟"},
+ o:[{en:"A vacuum",he:"ריק (ואקום)",es:"El vacío",ru:"Вакуум",ar:"الفراغ"},
+   {en:"Water",he:"מים",es:"Agua",ru:"Вода",ar:"الماء"},
+   {en:"Air",he:"אוויר",es:"Aire",ru:"Воздух",ar:"الهواء"},
+   {en:"Steel",he:"פלדה",es:"Acero",ru:"Сталь",ar:"الفولاذ"}],
+ a:3,
+ x:{en:"Sound is a vibration passed from particle to particle, and stiff solids pass it on quickly: about 5,900 m/s in steel, 1,480 m/s in water and 343 m/s in air. In a vacuum there is nothing to carry it at all.",he:"קול הוא רטט שעובר מחלקיק לחלקיק, ומוצקים קשיחים מעבירים אותו מהר: כ־5,900 מ׳ לשנייה בפלדה, 1,480 במים ו־343 באוויר. בריק אין בכלל מה שיישא אותו.",es:"El sonido es una vibración que pasa de partícula en partícula, y los sólidos rígidos la transmiten deprisa: unos 5900 m/s en el acero, 1480 m/s en el agua y 343 m/s en el aire. En el vacío no hay nada que lo transporte.",ru:"Звук — это колебание, передающееся от частицы к частице, а жёсткие твёрдые тела передают его быстро: около 5900 м/с в стали, 1480 м/с в воде и 343 м/с в воздухе. В вакууме его просто нечему переносить.",ar:"الصوت اهتزاز ينتقل من جسيم إلى آخر، والمواد الصلبة القاسية تنقله بسرعة: نحو 5900 م/ث في الفولاذ و1480 م/ث في الماء و343 م/ث في الهواء. أما في الفراغ فلا شيء يحمله أصلاً."}},
+{id:'sci7',c:'sci',d:2,src:"USGS Water Science School: ice and the density of water",
+ q:{en:"What happens to water's volume when it freezes into ice?",he:"מה קורה לנפח של מים כשהם קופאים לקרח?",es:"¿Qué le pasa al volumen del agua cuando se congela?",ru:"Что происходит с объёмом воды, когда она замерзает?",ar:"ماذا يحدث لحجم الماء عندما يتجمّد؟"},
+ o:[{en:"It stays exactly the same",he:"הוא נשאר בדיוק אותו דבר",es:"Se queda exactamente igual",ru:"Остаётся точно таким же",ar:"يبقى كما هو تماماً"},
+   {en:"It shrinks by about 9%",he:"הוא קטן בכ־9%",es:"Disminuye alrededor de un 9 %",ru:"Уменьшается примерно на 9%",ar:"ينقص بنحو 9%"},
+   {en:"It shrinks to half",he:"הוא מתכווץ לחצי",es:"Se reduce a la mitad",ru:"Уменьшается вдвое",ar:"ينكمش إلى النصف"},
+   {en:"It expands by about 9%",he:"הוא גדל בכ־9%",es:"Aumenta alrededor de un 9 %",ru:"Увеличивается примерно на 9%",ar:"يزداد بنحو 9%"}],
+ a:3,
+ x:{en:"As water freezes, its molecules lock into an open hexagonal pattern that takes up more room. That is why ice floats and why frozen pipes can burst.",he:"כשמים קופאים, המולקולות ננעלות במבנה משושה פתוח שתופס יותר מקום. לכן קרח צף, ולכן צינורות קפואים עלולים להתפוצץ.",es:"Al congelarse, las moléculas de agua se ordenan en una estructura hexagonal abierta que ocupa más espacio. Por eso el hielo flota y las tuberías heladas pueden reventar.",ru:"При замерзании молекулы воды выстраиваются в рыхлую шестиугольную решётку, которая занимает больше места. Поэтому лёд плавает, а замёрзшие трубы могут лопнуть.",ar:"عندما يتجمّد الماء تنتظم جزيئاته في بنية سداسية مفتوحة تشغل حيزاً أكبر، ولهذا يطفو الجليد وقد تنفجر الأنابيب المتجمدة."}},
+{id:'sci8',c:'sci',d:2,src:"NASA Science: The Electromagnetic Spectrum — visible light",
+ q:{en:"Which colour of visible light has the longest wavelength?",he:"לאיזה צבע של אור נראה יש אורך הגל הארוך ביותר?",es:"¿Qué color de la luz visible tiene la longitud de onda más larga?",ru:"У какого цвета видимого света самая большая длина волны?",ar:"أي لون من الضوء المرئي له أطول طول موجي؟"},
+ o:[{en:"Violet",he:"סגול",es:"Violeta",ru:"Фиолетовый",ar:"البنفسجي"},
+   {en:"Blue",he:"כחול",es:"Azul",ru:"Синий",ar:"الأزرق"},
+   {en:"Red",he:"אדום",es:"Rojo",ru:"Красный",ar:"الأحمر"},
+   {en:"Green",he:"ירוק",es:"Verde",ru:"Зелёный",ar:"الأخضر"}],
+ a:2,
+ x:{en:"Red light waves are about 700 nanometres long, nearly twice the length of violet ones. Just beyond red lies infrared, which we can't see but feel as heat.",he:"גלי אור אדום ארוכים כ־700 ננומטר, כמעט פי שניים מגלי אור סגול. ממש מעבר לאדום נמצא האינפרה־אדום, שאיננו רואים אך מרגישים כחום.",es:"Las ondas de luz roja miden unos 700 nanómetros, casi el doble que las violetas. Justo más allá del rojo está el infrarrojo, que no vemos pero sentimos como calor.",ru:"Длина волны красного света — около 700 нанометров, почти вдвое больше, чем у фиолетового. Сразу за красным идёт инфракрасное излучение: его не видно, но оно ощущается как тепло.",ar:"يبلغ طول موجة الضوء الأحمر نحو 700 نانومتر، أي قرابة ضعف موجة الضوء البنفسجي. وبعد الأحمر مباشرة تأتي الأشعة تحت الحمراء التي لا نراها لكننا نشعر بها حرارةً."}},
+{id:'sci9',c:'sci',d:3,src:"NASA: Universe — Big Bang nucleosynthesis; element abundance",
+ q:{en:"Which element is the most abundant in the universe?",he:"איזה יסוד הוא הנפוץ ביותר ביקום?",es:"¿Cuál es el elemento más abundante del universo?",ru:"Какой элемент самый распространённый во Вселенной?",ar:"ما أكثر العناصر وفرةً في الكون؟"},
+ o:[{en:"Carbon",he:"פחמן",es:"Carbono",ru:"Углерод",ar:"الكربون"},
+   {en:"Hydrogen",he:"מימן",es:"Hidrógeno",ru:"Водород",ar:"الهيدروجين"},
+   {en:"Helium",he:"הליום",es:"Helio",ru:"Гелий",ar:"الهيليوم"},
+   {en:"Oxygen",he:"חמצן",es:"Oxígeno",ru:"Кислород",ar:"الأكسجين"}],
+ a:1,
+ x:{en:"About three-quarters of all ordinary matter by mass is hydrogen, most of it made in the first minutes after the Big Bang. Stars like the Sun shine by fusing it into helium.",he:"כשלושה רבעים ממסת החומר הרגיל ביקום הם מימן, שרובו נוצר בדקות הראשונות אחרי המפץ הגדול. כוכבים כמו השמש מאירים בזכות היתוך שלו להליום.",es:"Cerca de tres cuartas partes de la masa de la materia ordinaria es hidrógeno, casi todo formado en los primeros minutos tras el Big Bang. Estrellas como el Sol brillan fusionándolo en helio.",ru:"Около трёх четвертей массы обычного вещества — это водород, и почти весь он образовался в первые минуты после Большого взрыва. Звёзды вроде Солнца светят, превращая его в гелий.",ar:"نحو ثلاثة أرباع كتلة المادة العادية في الكون هيدروجين، تكوّن معظمه في الدقائق الأولى بعد الانفجار العظيم، والنجوم مثل الشمس تتوهج بدمجه وتحويله إلى هيليوم."}},
+{id:'sci10',c:'sci',d:3,src:"NIST: SI units — kelvin and absolute zero",
+ q:{en:"Absolute zero, the lowest possible temperature, is approximately:",he:"האפס המוחלט, הטמפרטורה הנמוכה ביותר האפשרית, הוא בערך:",es:"El cero absoluto, la temperatura más baja posible, es aproximadamente:",ru:"Абсолютный ноль — самая низкая возможная температура — это примерно:",ar:"الصفر المطلق، أدنى درجة حرارة ممكنة، يساوي تقريباً:"},
+ o:[{en:"−1000 °C",he:"−1000 °C",es:"−1000 °C",ru:"−1000 °C",ar:"−1000 °C"},
+   {en:"−273 °C",he:"−273 °C",es:"−273 °C",ru:"−273 °C",ar:"−273 °C"},
+   {en:"−173 °C",he:"−173 °C",es:"−173 °C",ru:"−173 °C",ar:"−173 °C"},
+   {en:"−373 °C",he:"−373 °C",es:"−373 °C",ru:"−373 °C",ar:"−373 °C"}],
+ a:1,
+ x:{en:"At 0 kelvin (−273.15 °C) particles have the least energy physics allows. Labs have cooled atoms to within a billionth of a degree of it, but it can never quite be reached.",he:"ב־0 קלווין (‎−273.15‎ מעלות) לחלקיקים יש את האנרגיה המינימלית שהפיזיקה מתירה. במעבדות קיררו אטומים עד מיליארדית מעלה ממנו, אבל אי אפשר להגיע אליו ממש.",es:"A 0 kelvin (−273,15 °C) las partículas tienen la mínima energía que permite la física. En laboratorio se han enfriado átomos hasta una milmillonésima de grado de él, pero nunca puede alcanzarse del todo.",ru:"При 0 кельвинов (−273,15 °C) у частиц минимально возможная энергия. В лабораториях атомы охлаждали до миллиардных долей градуса от него, но достичь его полностью невозможно.",ar:"عند 0 كلفن (‎−273.15‎ درجة مئوية) تكون طاقة الجسيمات في أدنى حد تسمح به الفيزياء. وقد بُرِّدت ذرات في المختبرات حتى جزء من مليار من الدرجة فوقه، لكن بلوغه تماماً مستحيل."}},
+{id:'sci11',c:'sci',d:3,src:"Zanotto (1998), American Journal of Physics 66(5): \"Do cathedral glasses flow?\"",
+ q:{en:"Some very old church windows are thicker at the bottom. Why?",he:"חלונות כנסייה עתיקים מאוד עבים לפעמים יותר בתחתית. למה?",es:"Algunas vidrieras muy antiguas son más gruesas por abajo. ¿Por qué?",ru:"Некоторые очень старые церковные стёкла толще внизу. Почему?",ar:"بعض نوافذ الكنائس القديمة جداً أسمك من الأسفل. لماذا؟"},
+ o:[{en:"Rain wears away the top over time",he:"הגשם שוחק את החלק העליון עם הזמן",es:"La lluvia desgasta la parte superior",ru:"Дождь со временем стачивает верх",ar:"المطر يبري الجزء العلوي مع الوقت"},
+   {en:"Glass slowly flows down over the centuries",he:"זכוכית זורמת לאט כלפי מטה במשך מאות שנים",es:"El vidrio fluye lentamente hacia abajo con los siglos",ru:"Стекло веками медленно стекает вниз",ar:"الزجاج يسيل ببطء إلى الأسفل عبر القرون"},
+   {en:"Gravity squashes the bottom of the glass",he:"כוח הכבידה מועך את תחתית הזכוכית",es:"La gravedad aplasta la parte inferior",ru:"Гравитация сплющивает нижнюю часть",ar:"الجاذبية تضغط أسفل الزجاج"},
+   {en:"The panes were made uneven and often fitted thick side down",he:"הזגוגיות יוצרו לא אחידות ולרוב הותקנו עם הצד העבה למטה",es:"Se fabricaban irregulares y solían colocarse con el lado grueso abajo",ru:"Стёкла делали неровными и часто ставили толстой стороной вниз",ar:"صُنع الزجاج غير متساوٍ وكثيراً ما رُكِّب الجانب السميك للأسفل"}],
+ a:3,
+ x:{en:"Old glassmaking produced panes of uneven thickness, and glaziers tended to put the heavy edge at the bottom. Calculations show room-temperature glass would need far longer than the age of the universe to sag visibly.",he:"שיטות ייצור הזכוכית הישנות יצרו זגוגיות בעובי לא אחיד, והזגגים נטו לשים את הקצה הכבד למטה. חישובים מראים שזכוכית בטמפרטורת חדר הייתה צריכה זמן ארוך בהרבה מגיל היקום כדי לשקוע באופן נראה.",es:"El vidrio antiguo salía con grosor irregular y los vidrieros solían poner el borde pesado abajo. Los cálculos indican que, a temperatura ambiente, el vidrio tardaría muchísimo más que la edad del universo en deformarse a simple vista.",ru:"Старинная технология давала стёкла неравномерной толщины, и стекольщики обычно ставили тяжёлый край вниз. Расчёты показывают, что стеклу при комнатной температуре понадобилось бы гораздо больше времени, чем возраст Вселенной, чтобы заметно «стечь».",ar:"كانت طرق صناعة الزجاج القديمة تنتج ألواحاً غير متساوية السماكة، وكان العمال يضعون الحافة الأثقل في الأسفل. وتبيّن الحسابات أن الزجاج في درجة حرارة الغرفة يحتاج وقتاً أطول بكثير من عمر الكون ليترهّل بشكل مرئي."}},
+{id:'sci12',c:'sci',d:3,src:"NOAA National Weather Service: Lightning science",
+ q:{en:"A lightning bolt heats the air around it to roughly what temperature?",he:"ברק מחמם את האוויר סביבו בערך לאיזו טמפרטורה?",es:"¿Aproximadamente a qué temperatura calienta un rayo el aire que lo rodea?",ru:"Примерно до какой температуры молния нагревает воздух вокруг себя?",ar:"إلى أي درجة حرارة تقريباً يسخّن البرق الهواء من حوله؟"},
+ o:[{en:"About 3,000 °C",he:"כ־3,000 מעלות",es:"Unos 3000 °C",ru:"Около 3000 °C",ar:"نحو 3000 درجة"},
+   {en:"About 30,000 °C — hotter than the Sun's surface",he:"כ־30,000 מעלות — חם יותר מפני השמש",es:"Unos 30 000 °C, más que la superficie del Sol",ru:"Около 30 000 °C — горячее поверхности Солнца",ar:"نحو 30 ألف درجة — أسخن من سطح الشمس"},
+   {en:"About 1,000,000 °C",he:"כמיליון מעלות",es:"Alrededor de un millón de °C",ru:"Около миллиона °C",ar:"نحو مليون درجة"},
+   {en:"About 300 °C",he:"כ־300 מעלות",es:"Unos 300 °C",ru:"Около 300 °C",ar:"نحو 300 درجة"}],
+ a:1,
+ x:{en:"The channel reaches around 30,000 °C, about five times hotter than the Sun's surface. The air expands so violently that it creates a shock wave — the thunder you hear.",he:"ערוץ הברק מגיע לכ־30,000 מעלות, בערך פי חמישה מפני השמש. האוויר מתפשט בעוצמה כזו שנוצר גל הלם — הרעם שאתם שומעים.",es:"El canal del rayo alcanza unos 30 000 °C, unas cinco veces más que la superficie del Sol. El aire se expande con tanta violencia que crea una onda de choque: el trueno que oímos.",ru:"Канал молнии разогревается примерно до 30 000 °C — впятеро горячее поверхности Солнца. Воздух расширяется так резко, что возникает ударная волна — это и есть гром.",ar:"تبلغ قناة البرق نحو 30 ألف درجة مئوية، أي قرابة خمسة أضعاف حرارة سطح الشمس، فيتمدد الهواء بعنف شديد يولّد موجة صدمية هي الرعد الذي نسمعه."}},
+{id:'nat1',c:'nat',d:1,src:"NOAA Fisheries: Blue Whale",
+ q:{en:"What is the largest animal alive today?",he:"מהו בעל החיים הגדול ביותר שחי היום?",es:"¿Cuál es el animal más grande que vive hoy?",ru:"Какое животное самое крупное из ныне живущих?",ar:"ما أكبر حيوان يعيش اليوم؟"},
+ o:[{en:"Whale shark",he:"כריש לווייתני",es:"Tiburón ballena",ru:"Китовая акула",ar:"القرش الحوتي"},
+   {en:"Blue whale",he:"לווייתן כחול",es:"Ballena azul",ru:"Синий кит",ar:"الحوت الأزرق"},
+   {en:"Giraffe",he:"ג׳ירפה",es:"Jirafa",ru:"Жираф",ar:"الزرافة"},
+   {en:"African elephant",he:"פיל אפריקני",es:"Elefante africano",ru:"Африканский слон",ar:"الفيل الأفريقي"}],
+ a:1,
+ x:{en:"Blue whales can reach about 30 m and well over 100 tonnes. Their heart alone is roughly the size of a small car, and they live mainly on tiny krill.",he:"לווייתנים כחולים מגיעים לכ־30 מטר ולהרבה יותר מ־100 טון. הלב לבדו בגודל של מכונית קטנה בערך, והם ניזונים בעיקר מקריל זעיר.",es:"La ballena azul puede medir unos 30 m y pesar mucho más de 100 toneladas. Solo su corazón es casi del tamaño de un coche pequeño, y se alimenta sobre todo de diminuto kril.",ru:"Синий кит достигает около 30 м в длину и весит намного больше 100 тонн. Одно его сердце размером примерно с небольшой автомобиль, а питается он в основном крошечным крилем.",ar:"قد يبلغ طول الحوت الأزرق نحو 30 متراً ووزنه أكثر بكثير من 100 طن. قلبه وحده بحجم سيارة صغيرة تقريباً، ويتغذى أساساً على الكريل الدقيق."}},
+{id:'nat2',c:'nat',d:1,src:"Britannica: spider (arachnid)",
+ q:{en:"How many legs does a spider have?",he:"כמה רגליים יש לעכביש?",es:"¿Cuántas patas tiene una araña?",ru:"Сколько ног у паука?",ar:"كم رجلاً للعنكبوت؟"},
+ o:[{en:"6",he:"6",es:"6",ru:"6",ar:"6"},
+   {en:"12",he:"12",es:"12",ru:"12",ar:"12"},
+   {en:"10",he:"10",es:"10",ru:"10",ar:"10"},
+   {en:"8",he:"8",es:"8",ru:"8",ar:"8"}],
+ a:3,
+ x:{en:"Spiders are arachnids, not insects: they have eight legs and two body parts, while insects have six legs and three body parts.",he:"עכבישים הם עכביסנים ולא חרקים: יש להם שמונה רגליים ושני חלקי גוף, ולחרקים שש רגליים ושלושה חלקי גוף.",es:"Las arañas son arácnidos, no insectos: tienen ocho patas y dos partes del cuerpo, mientras que los insectos tienen seis patas y tres partes.",ru:"Пауки — паукообразные, а не насекомые: у них восемь ног и два отдела тела, а у насекомых шесть ног и три отдела.",ar:"العناكب من العنكبيات وليست حشرات: لها ثماني أرجل وجسم من جزأين، بينما للحشرات ست أرجل وجسم من ثلاثة أجزاء."}},
+{id:'nat3',c:'nat',d:1,src:"Britannica: photosynthesis",
+ q:{en:"Which gas do plants take in from the air to make their food?",he:"איזה גז צמחים קולטים מהאוויר כדי לייצר את המזון שלהם?",es:"¿Qué gas toman las plantas del aire para fabricar su alimento?",ru:"Какой газ растения берут из воздуха, чтобы производить пищу?",ar:"أي غاز تأخذه النباتات من الهواء لتصنع غذاءها؟"},
+ o:[{en:"Nitrogen",he:"חנקן",es:"Nitrógeno",ru:"Азот",ar:"النيتروجين"},
+   {en:"Helium",he:"הליום",es:"Helio",ru:"Гелий",ar:"الهيليوم"},
+   {en:"Carbon dioxide",he:"פחמן דו־חמצני",es:"Dióxido de carbono",ru:"Углекислый газ",ar:"ثاني أكسيد الكربون"},
+   {en:"Oxygen",he:"חמצן",es:"Oxígeno",ru:"Кислород",ar:"الأكسجين"}],
+ a:2,
+ x:{en:"In photosynthesis, plants use sunlight to turn carbon dioxide and water into sugar, releasing oxygen as a by-product. Most of a tree's mass is built from carbon taken out of the air.",he:"בפוטוסינתזה צמחים משתמשים באור השמש כדי להפוך פחמן דו־חמצני ומים לסוכר, וחמצן משתחרר כתוצר לוואי. רוב המסה של עץ בנויה מפחמן שנלקח מהאוויר.",es:"En la fotosíntesis, las plantas usan la luz del sol para convertir dióxido de carbono y agua en azúcar, y liberan oxígeno. La mayor parte de la masa de un árbol procede del carbono del aire.",ru:"При фотосинтезе растения с помощью солнечного света превращают углекислый газ и воду в сахар, выделяя кислород. Большая часть массы дерева построена из углерода, взятого из воздуха.",ar:"في عملية البناء الضوئي تستخدم النباتات ضوء الشمس لتحويل ثاني أكسيد الكربون والماء إلى سكر، ويُطلق الأكسجين ناتجاً ثانوياً. ومعظم كتلة الشجرة مبني من كربون مأخوذ من الهواء."}},
+{id:'nat4',c:'nat',d:1,src:"Bat Conservation International: Are bats blind?",
+ q:{en:"Many bats find insects in total darkness by using…",he:"עטלפים רבים מוצאים חרקים בחושך מוחלט בעזרת…",es:"Muchos murciélagos encuentran insectos a oscuras gracias a…",ru:"Многие летучие мыши находят насекомых в полной темноте с помощью…",ar:"كثير من الخفافيش تجد الحشرات في الظلام التام باستخدام…"},
+ o:[{en:"Glowing eyes",he:"עיניים זוהרות",es:"Ojos luminosos",ru:"Светящихся глаз",ar:"عيون متوهجة"},
+   {en:"Echoes of their own calls",he:"הדים של הקריאות שלהם",es:"Los ecos de sus propios chillidos",ru:"Эха собственных звуков",ar:"صدى أصواتها"},
+   {en:"Heat from the Moon",he:"חום מהירח",es:"El calor de la Luna",ru:"Тепла от Луны",ar:"حرارة القمر"},
+   {en:"Smell alone",he:"חוש הריח בלבד",es:"Solo el olfato",ru:"Одного лишь обоняния",ar:"الشم وحده"}],
+ a:1,
+ x:{en:"This is echolocation: bats send out high-pitched calls and read the returning echoes to judge distance, size and movement. And no, bats are not blind — all species can see.",he:"זו הד־מיקום (אקולוקציה): עטלפים משמיעים קריאות בתדר גבוה ומפענחים את ההדים החוזרים כדי להעריך מרחק, גודל ותנועה. ולא, עטלפים אינם עיוורים — כל המינים רואים.",es:"Es la ecolocalización: emiten chillidos agudos y leen los ecos para calcular distancia, tamaño y movimiento. Y no, los murciélagos no son ciegos: todas las especies ven.",ru:"Это эхолокация: мыши издают высокие звуки и по вернувшемуся эху определяют расстояние, размер и движение. И нет, летучие мыши не слепые — видят все виды.",ar:"هذا هو تحديد الموقع بالصدى: تطلق الخفافيش نداءات عالية التردد وتقرأ الصدى العائد لتقدير المسافة والحجم والحركة. والخفافيش ليست عمياء، فكل أنواعها تبصر."}},
+{id:'nat5',c:'nat',d:2,src:"Britannica: goldfish; Gee et al. (1994) on fish memory",
+ q:{en:"How long can a goldfish remember something it has learned?",he:"כמה זמן דג זהב יכול לזכור משהו שלמד?",es:"¿Cuánto tiempo puede recordar un pez dorado algo que ha aprendido?",ru:"Как долго золотая рыбка может помнить то, чему научилась?",ar:"كم من الوقت يمكن لسمكة الزينة الذهبية أن تتذكر شيئاً تعلّمته؟"},
+ o:[{en:"For months",he:"חודשים",es:"Durante meses",ru:"Месяцами",ar:"لأشهر"},
+   {en:"Only until it turns around",he:"רק עד שהוא מסתובב",es:"Solo hasta que se da la vuelta",ru:"Только пока не развернётся",ar:"حتى تستدير فقط"},
+   {en:"About 3 seconds",he:"כ־3 שניות",es:"Unos 3 segundos",ru:"Около 3 секунд",ar:"نحو 3 ثوانٍ"},
+   {en:"About 30 seconds",he:"כ־30 שניות",es:"Unos 30 segundos",ru:"Около 30 секунд",ar:"نحو 30 ثانية"}],
+ a:0,
+ x:{en:"The \"three-second memory\" is a myth. Goldfish can be trained to push levers, recognise feeding signals and even respond to sounds, and they remember these tricks for months.",he:"\"הזיכרון של שלוש שניות\" הוא מיתוס. אפשר לאמן דגי זהב ללחוץ על ידיות, לזהות אותות האכלה ואפילו להגיב לצלילים, והם זוכרים את זה חודשים.",es:"Lo de la \"memoria de tres segundos\" es un mito. Se puede enseñar a los peces dorados a empujar palancas, reconocer señales de comida e incluso responder a sonidos, y lo recuerdan durante meses.",ru:"«Память в три секунды» — миф. Золотых рыбок можно научить нажимать на рычаги, узнавать сигнал кормления и даже реагировать на звуки, и они помнят это месяцами.",ar:"\"ذاكرة الثواني الثلاث\" خرافة. يمكن تدريب السمك الذهبي على دفع الروافع وتمييز إشارات الإطعام بل والاستجابة للأصوات، ويتذكر ذلك لأشهر."}},
+{id:'nat6',c:'nat',d:2,src:"Britannica: hummingbird — flight",
+ q:{en:"Which bird can fly backwards?",he:"איזו ציפור יכולה לעוף לאחור?",es:"¿Qué ave puede volar hacia atrás?",ru:"Какая птица умеет летать задом наперёд?",ar:"أي طائر يستطيع الطيران إلى الخلف؟"},
+ o:[{en:"Pigeon",he:"יונה",es:"Paloma",ru:"Голубь",ar:"الحمام"},
+   {en:"Hummingbird",he:"יונק הדבש",es:"Colibrí",ru:"Колибри",ar:"الطائر الطنان"},
+   {en:"Eagle",he:"עיט",es:"Águila",ru:"Орёл",ar:"النسر"},
+   {en:"Ostrich",he:"יען",es:"Avestruz",ru:"Страус",ar:"النعامة"}],
+ a:1,
+ x:{en:"Hummingbirds can rotate their wings at the shoulder and beat them in a figure-of-eight, which lets them hover in place and even reverse away from a flower.",he:"יונקי דבש יכולים לסובב את הכנפיים בכתף ולהניע אותן בתנועת שמונה, וכך לרחף במקום ואפילו להתרחק לאחור מפרח.",es:"El colibrí puede girar las alas desde el hombro y batirlas en forma de ocho, lo que le permite quedarse suspendido en el aire e incluso retroceder desde una flor.",ru:"Колибри умеют поворачивать крылья в плечевом суставе и махать ими «восьмёркой», поэтому они зависают на месте и даже отлетают от цветка задом.",ar:"يستطيع الطائر الطنان تدوير جناحيه من الكتف وتحريكهما على شكل رقم ثمانية، فيحوم في مكانه بل ويبتعد عن الزهرة إلى الخلف."}},
+{id:'nat7',c:'nat',d:2,src:"Smithsonian Ocean: octopus anatomy (three hearts, copper-based blood)",
+ q:{en:"How many hearts does an octopus have?",he:"כמה לבבות יש לתמנון?",es:"¿Cuántos corazones tiene un pulpo?",ru:"Сколько сердец у осьминога?",ar:"كم قلباً للأخطبوط؟"},
+ o:[{en:"3",he:"3",es:"3",ru:"3",ar:"3"},
+   {en:"2",he:"2",es:"2",ru:"2",ar:"2"},
+   {en:"1",he:"1",es:"1",ru:"1",ar:"1"},
+   {en:"8",he:"8",es:"8",ru:"8",ar:"8"}],
+ a:0,
+ x:{en:"Two hearts pump blood through the gills and a third pumps it around the body. Their blood is blue because it carries oxygen with copper rather than iron.",he:"שני לבבות מזרימים דם דרך הזימים, ולב שלישי מזרים אותו לשאר הגוף. הדם שלהם כחול, כי הוא נושא חמצן בעזרת נחושת ולא ברזל.",es:"Dos corazones bombean sangre a las branquias y un tercero al resto del cuerpo. Su sangre es azul porque transporta el oxígeno con cobre en lugar de hierro.",ru:"Два сердца прокачивают кровь через жабры, третье — по всему телу. Кровь у осьминога голубая: кислород в ней переносит медь, а не железо.",ar:"قلبان يضخّان الدم عبر الخياشيم، وقلب ثالث يضخّه إلى بقية الجسم. ودمه أزرق لأنه ينقل الأكسجين بالنحاس بدلاً من الحديد."}},
+{id:'nat8',c:'nat',d:2,src:"Nobel Prize in Physiology or Medicine 1973: Karl von Frisch (bee dance)",
+ q:{en:"How do honeybees tell each other where to find flowers?",he:"איך דבורי דבש מספרות זו לזו איפה יש פרחים?",es:"¿Cómo se indican las abejas dónde hay flores?",ru:"Как медоносные пчёлы сообщают друг другу, где цветы?",ar:"كيف يخبر نحل العسل بعضه بعضاً بمكان الأزهار؟"},
+ o:[{en:"By humming a tune",he:"בזמזום מנגינה",es:"Zumbando una melodía",ru:"Напевая мелодию",ar:"بدندنة لحن"},
+   {en:"With a trail of wax",he:"בשובל של שעווה",es:"Con un rastro de cera",ru:"Оставляя след из воска",ar:"بأثر من الشمع"},
+   {en:"With a \"waggle dance\"",he:"ב\"ריקוד כשכוש\"",es:"Con una \"danza del contoneo\"",ru:"С помощью «виляющего танца»",ar:"بـ\"رقصة الاهتزاز\""},
+   {en:"By changing colour",he:"בשינוי צבע",es:"Cambiando de color",ru:"Меняя цвет",ar:"بتغيير لونها"}],
+ a:2,
+ x:{en:"A forager runs a figure-of-eight and waggles through the middle. The angle of the waggle shows the direction relative to the Sun, and its length shows the distance. Karl von Frisch shared a Nobel Prize for decoding it.",he:"דבורה מלקטת רצה בצורת שמונה ומכשכשת באמצע. זווית הכשכוש מראה את הכיוון ביחס לשמש, ואורכו מראה את המרחק. קרל פון פריש זכה בפרס נובל על פענוחו.",es:"La abeja recorre un ocho y se contonea en el tramo central. El ángulo indica la dirección respecto al Sol y la duración, la distancia. Karl von Frisch compartió un Nobel por descifrarlo.",ru:"Пчела-сборщица бегает «восьмёркой», виляя телом на прямом участке. Угол показывает направление относительно Солнца, а длительность — расстояние. Карл фон Фриш получил за расшифровку Нобелевскую премию.",ar:"ترسم النحلة السارحة شكل رقم ثمانية وتهتز في منتصفه؛ زاوية الاهتزاز تدل على الاتجاه بالنسبة إلى الشمس، ومدته تدل على المسافة. وقد نال كارل فون فريش جائزة نوبل بالمشاركة لفكّ رموزها."}},
+{id:'nat9',c:'nat',d:2,src:"Australian Museum: Platypus (monotremes)",
+ q:{en:"Which of these mammals lays eggs?",he:"איזה מהיונקים האלה מטיל ביצים?",es:"¿Cuál de estos mamíferos pone huevos?",ru:"Какое из этих млекопитающих откладывает яйца?",ar:"أيّ هذه الثدييات يضع البيض؟"},
+ o:[{en:"Dolphin",he:"דולפין",es:"Delfín",ru:"Дельфин",ar:"الدلفين"},
+   {en:"Bat",he:"עטלף",es:"Murciélago",ru:"Летучая мышь",ar:"الخفاش"},
+   {en:"Platypus",he:"ברווזן",es:"Ornitorrinco",ru:"Утконос",ar:"خلد الماء (البلاتيبوس)"},
+   {en:"Kangaroo",he:"קנגורו",es:"Canguro",ru:"Кенгуру",ar:"الكنغر"}],
+ a:2,
+ x:{en:"The platypus and the echidnas are monotremes, the only egg-laying mammals. They still feed their young on milk, which seeps from patches of skin since they have no nipples.",he:"הברווזן והקיפודנים הם מונוטרמים — היונקים היחידים שמטילים ביצים. הם עדיין מניקים את הצאצאים בחלב, שמחלחל מאזורים בעור כי אין להם פטמות.",es:"El ornitorrinco y los equidnas son monotremas, los únicos mamíferos que ponen huevos. Aun así alimentan a sus crías con leche, que brota de zonas de la piel porque no tienen pezones.",ru:"Утконос и ехидны — однопроходные, единственные яйцекладущие млекопитающие. Детёнышей они всё равно кормят молоком, которое выступает прямо на коже: сосков у них нет.",ar:"خلد الماء وآكلات النمل الشوكية من وحيدات المسلك، وهي الثدييات الوحيدة التي تبيض. ومع ذلك ترضع صغارها حليباً يرشح من بقع في الجلد لأنها بلا حلمات."}},
+{id:'nat10',c:'nat',d:2,src:"Natural History Museum (London): Birds are dinosaurs",
+ q:{en:"Birds are the living descendants of which group of animals?",he:"ציפורים הן הצאצאים החיים של איזו קבוצת בעלי חיים?",es:"¿De qué grupo de animales descienden las aves actuales?",ru:"Птицы — живые потомки какой группы животных?",ar:"الطيور هي الأحفاد الأحياء لأي مجموعة من الحيوانات؟"},
+ o:[{en:"Frogs",he:"צפרדעים",es:"Las ranas",ru:"Лягушек",ar:"الضفادع"},
+   {en:"Pterosaurs",he:"פטרוזאורים",es:"Los pterosaurios",ru:"Птерозавров",ar:"الزواحف الطائرة (التيروصورات)"},
+   {en:"Bats",he:"עטלפים",es:"Los murciélagos",ru:"Летучих мышей",ar:"الخفافيش"},
+   {en:"Dinosaurs",he:"דינוזאורים",es:"Los dinosaurios",ru:"Динозавров",ar:"الديناصورات"}],
+ a:3,
+ x:{en:"Birds evolved from small feathered theropod dinosaurs, relatives of Velociraptor. Pterosaurs could fly too, but they were a separate branch of reptiles with no living descendants.",he:"ציפורים התפתחו מדינוזאורים תרופודים קטנים ומנוצים, קרובים של הוולוצירפטור. גם פטרוזאורים עפו, אבל הם היו ענף נפרד של זוחלים בלי צאצאים חיים.",es:"Las aves evolucionaron a partir de pequeños dinosaurios terópodos con plumas, parientes del velocirraptor. Los pterosaurios también volaban, pero eran otra rama de reptiles sin descendientes vivos.",ru:"Птицы произошли от небольших оперённых динозавров-теропод, родственников велоцираптора. Птерозавры тоже летали, но это отдельная ветвь рептилий, не оставившая потомков.",ar:"تطورت الطيور من ديناصورات ثيروبودية صغيرة مكسوة بالريش، من أقارب الفيلوسيرابتور. أما التيروصورات فكانت تطير أيضاً لكنها فرع مستقل من الزواحف بلا أحفاد أحياء."}},
+{id:'nat11',c:'nat',d:2,src:"ESA: FOTON-M3 TARDIS experiment (2007); Jönsson et al., Current Biology 2008",
+ q:{en:"Tiny tardigrades (\"water bears\") are famous for what?",he:"טרדיגרדים זעירים (\"דובי מים\") מפורסמים בזכות מה?",es:"¿Por qué son famosos los diminutos tardígrados (\"osos de agua\")?",ru:"Чем знамениты крошечные тихоходки?",ar:"بماذا تشتهر بطيئات المشية الدقيقة (\"دببة الماء\")؟"},
+ o:[{en:"Surviving extreme cold, drying out — even open space",he:"שרידות בקור קיצוני, בהתייבשות — ואפילו בחלל הפתוח",es:"Sobrevivir al frío extremo, a la desecación e incluso al espacio",ru:"Выживание в лютом холоде, при высыхании и даже в открытом космосе",ar:"النجاة من البرد الشديد والجفاف بل ومن الفضاء المفتوح"},
+   {en:"Living for over 500 years",he:"חיים של יותר מ־500 שנה",es:"Vivir más de 500 años",ru:"Жизнь дольше 500 лет",ar:"العيش أكثر من 500 عام"},
+   {en:"Glowing bright green at night",he:"זוהר ירוק בהיר בלילה",es:"Brillar en verde por la noche",ru:"Яркое зелёное свечение ночью",ar:"التوهج بالأخضر ليلاً"},
+   {en:"Being the fastest animal for its size",he:"היותם בעלי החיים המהירים ביותר ביחס לגודלם",es:"Ser el animal más rápido para su tamaño",ru:"Самая высокая скорость для своего размера",ar:"كونها أسرع حيوان نسبةً إلى حجمها"}],
+ a:0,
+ x:{en:"Dried-out tardigrades curl into a dormant \"tun\" and almost stop their metabolism. In 2007 some survived ten days exposed to space on a satellite and later reproduced normally.",he:"טרדיגרדים מיובשים מתכרבלים למצב תרדמה (\"טון\") ומשביתים כמעט לגמרי את חילוף החומרים. ב־2007 חלקם שרדו עשרה ימים חשופים לחלל על לוויין, ואחר כך התרבו כרגיל.",es:"Al secarse, los tardígrados se enrollan en un estado latente llamado \"tonel\" y casi detienen su metabolismo. En 2007 algunos sobrevivieron diez días expuestos al espacio en un satélite y después se reprodujeron con normalidad.",ru:"Высыхая, тихоходка сворачивается в «бочонок» и почти останавливает обмен веществ. В 2007 году часть тихоходок пережила десять дней в открытом космосе на спутнике и потом нормально размножалась.",ar:"عندما تجف بطيئات المشية تتكوّر في حالة سبات تُسمى \"البرميل\" ويكاد استقلابها يتوقف. وفي عام 2007 نجا بعضها بعد عشرة أيام معرّضة للفضاء على قمر صناعي، ثم تكاثر بشكل طبيعي."}},
+{id:'nat12',c:'nat',d:3,src:"Polar Bears International: fur and skin",
+ q:{en:"What colour is a polar bear's skin?",he:"באיזה צבע העור של דוב קוטב?",es:"¿De qué color es la piel de un oso polar?",ru:"Какого цвета кожа у белого медведя?",ar:"ما لون جلد الدب القطبي؟"},
+ o:[{en:"Yellow",he:"צהוב",es:"Amarilla",ru:"Жёлтая",ar:"أصفر"},
+   {en:"Pink",he:"ורוד",es:"Rosada",ru:"Розовая",ar:"وردي"},
+   {en:"White",he:"לבן",es:"Blanca",ru:"Белая",ar:"أبيض"},
+   {en:"Black",he:"שחור",es:"Negra",ru:"Чёрная",ar:"أسود"}],
+ a:3,
+ x:{en:"Under the fur the skin is black, which helps absorb heat. The fur itself isn't white either: each hair is translucent and only looks white because it scatters light.",he:"מתחת לפרווה העור שחור, וזה עוזר לספוג חום. גם הפרווה עצמה לא באמת לבנה: כל שערה שקופה למחצה ונראית לבנה רק כי היא מפזרת אור.",es:"Bajo el pelaje la piel es negra, lo que ayuda a absorber calor. Y el pelo tampoco es blanco: cada pelo es translúcido y parece blanco porque dispersa la luz.",ru:"Под мехом кожа чёрная — так легче поглощать тепло. Да и мех на самом деле не белый: каждый волос прозрачен и лишь кажется белым, потому что рассеивает свет.",ar:"الجلد تحت الفرو أسود، مما يساعد على امتصاص الحرارة. وحتى الفرو ليس أبيض فعلاً: كل شعرة شبه شفافة وتبدو بيضاء لأنها تبعثر الضوء."}},
+{id:'nat13',c:'nat',d:3,src:"Britannica: bristlecone pine (Methuselah tree)",
+ q:{en:"Which tree has living individuals more than 4,500 years old?",he:"לאיזה עץ יש פרטים חיים בני יותר מ־4,500 שנה?",es:"¿Qué árbol tiene ejemplares vivos de más de 4500 años?",ru:"У какого дерева есть живые экземпляры старше 4500 лет?",ar:"أي شجرة لها أفراد أحياء تجاوز عمرها 4500 عام؟"},
+ o:[{en:"Bristlecone pine",he:"אורן זיפני (בריסלקון)",es:"Pino de Great Basin (bristlecone)",ru:"Остистая сосна",ar:"صنوبر بريستلكون"},
+   {en:"Apple tree",he:"עץ תפוח",es:"Manzano",ru:"Яблоня",ar:"شجرة التفاح"},
+   {en:"Coconut palm",he:"דקל קוקוס",es:"Cocotero",ru:"Кокосовая пальма",ar:"نخيل جوز الهند"},
+   {en:"Maple",he:"אדר",es:"Arce",ru:"Клён",ar:"القيقب"}],
+ a:0,
+ x:{en:"A Great Basin bristlecone pine in California known as \"Methuselah\" has been dated by its tree rings to over 4,800 years old — it was already ancient when the pyramids of Giza were young.",he:"אורן בריסלקון בקליפורניה המכונה \"מתושלח\" תוארך לפי טבעות הגזע לגיל של יותר מ־4,800 שנה — הוא כבר היה עתיק כשהפירמידות בגיזה היו צעירות.",es:"Un pino bristlecone de California llamado \"Matusalén\" tiene, según sus anillos, más de 4800 años: ya era muy viejo cuando las pirámides de Guiza eran jóvenes.",ru:"Остистая сосна «Мафусаил» в Калифорнии, по годичным кольцам, старше 4800 лет — она была уже немолодой, когда пирамиды Гизы только построили.",ar:"قُدّر عمر شجرة صنوبر بريستلكون في كاليفورنيا تُعرف باسم \"متوشالح\" من حلقات جذعها بأكثر من 4800 عام، أي أنها كانت قديمة حين كانت أهرامات الجيزة حديثة البناء."}},
+{id:'nat14',c:'nat',d:3,src:"Natural History Museum (London): sharks are older than trees",
+ q:{en:"Which of these appeared on Earth first?",he:"מה מבין אלה הופיע ראשון על כדור הארץ?",es:"¿Cuál de estos apareció primero en la Tierra?",ru:"Что из этого появилось на Земле раньше всего?",ar:"أيّ هذه ظهر على الأرض أولاً؟"},
+ o:[{en:"Dinosaurs",he:"דינוזאורים",es:"Los dinosaurios",ru:"Динозавры",ar:"الديناصورات"},
+   {en:"Flowering plants",he:"צמחים פורחים",es:"Las plantas con flor",ru:"Цветковые растения",ar:"النباتات المزهرة"},
+   {en:"Sharks",he:"כרישים",es:"Los tiburones",ru:"Акулы",ar:"أسماك القرش"},
+   {en:"Trees",he:"עצים",es:"Los árboles",ru:"Деревья",ar:"الأشجار"}],
+ a:2,
+ x:{en:"Sharks have been around for over 400 million years, while the first trees appeared around 385 million years ago. Dinosaurs arrived about 230 million years ago and flowers later still.",he:"כרישים קיימים כבר יותר מ־400 מיליון שנה, ואילו העצים הראשונים הופיעו לפני כ־385 מיליון שנה. הדינוזאורים הגיעו לפני כ־230 מיליון שנה, והפרחים מאוחר עוד יותר.",es:"Los tiburones existen desde hace más de 400 millones de años; los primeros árboles aparecieron hace unos 385 millones. Los dinosaurios llegaron hace unos 230 millones y las flores, aún después.",ru:"Акулы существуют больше 400 миллионов лет, а первые деревья появились около 385 миллионов лет назад. Динозавры возникли около 230 миллионов лет назад, цветы — ещё позже.",ar:"تعيش أسماك القرش منذ أكثر من 400 مليون سنة، بينما ظهرت أول الأشجار قبل نحو 385 مليون سنة. وجاءت الديناصورات قبل نحو 230 مليون سنة، والأزهار بعد ذلك."}}
+];
+const BB_BY_ID={}; BB_BANK.forEach(q=>{ BB_BY_ID[q.id]=q; });
+const BB_KEY='etsem_bb_v1', BB_RECENT=40;
+const BB_PLAN=[1,1,1,2,2,2,2,3,3,3];      /* a round: three easy, four medium, three hard */
+const BB_DAILY_PLAN=[1,2,2,3,3];
+const BB_POINTS={1:100,2:150,3:200};
+let bb=null;
+
+function bbData(){
+  const d=load(BB_KEY,null)||{};
+  return {best:+d.best||0, rounds:+d.rounds||0, recent:Array.isArray(d.recent)?d.recent:[],
+          daily:(d.daily&&typeof d.daily==='object')?d.daily:null};
+}
+function bbToday(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+/* Draws by difficulty, skipping anything seen in the last BB_RECENT questions.
+   If a difficulty ever runs dry it falls back to the least recently seen. */
+function bbDraw(plan,rnd,avoid){
+  const out=[];
+  [1,2,3].forEach(d=>{
+    const need=plan.filter(x=>x===d).length;
+    if(!need) return;
+    const fresh=ngShuffle(BB_BANK.filter(q=>q.d===d && !avoid.has(q.id)),rnd);
+    let got=fresh.slice(0,need);
+    if(got.length<need){
+      const old=[...avoid].map(id=>BB_BY_ID[id]).filter(q=>q && q.d===d && got.indexOf(q)<0);
+      got=got.concat(old.slice(0,need-got.length));
+    }
+    out.push(...got);
+  });
+  return out;
+}
+function bbPickRound(){ return bbDraw(BB_PLAN,Math.random,new Set(bbData().recent)); }
+/* Same five for everyone on a given date: seeded only by the date. */
+function bbPickDaily(){ return bbDraw(BB_DAILY_PLAN,ngRng('bites:'+bbToday()),new Set()); }
+
+function bbOpenHome(){ bbRenderHome(); showScreen('screen-bites'); }
+function bbRenderHome(){
+  const d=bbData(), today=bbToday(), done=d.daily&&d.daily.date===today;
+  bobSetStage('bbh-bob','curious',bobLine('ngBitesHome'),'warm');
+  const stats=[[d.best?ngNum(d.best):'—',t('bb.best')],[ngNum(d.rounds),t('bb.rounds')],
+               [done?`${d.daily.correct}/5`:'—',t('bb.today')]];
+  ngEl('bbh-stats').innerHTML=stats.map(s=>`<div class="ng-stat"><b>${s[0]}</b><span>${s[1]}</span></div>`).join('');
+  ngEl('bbh-daily').innerHTML=`<span>📅 ${t('bb.daily')}</span><small>${done?t('bb.dailydone',{c:d.daily.correct}):t('bb.dailysub')}</small>`;
+  ngEl('bbh-cats').innerHTML=BB_CATS.map(c=>`<span class="ng-cat"><span aria-hidden="true">${BB_ICON[c]}</span>${t('bb.cat.'+c)}</span>`).join('');
+}
+
+function bbStart(mode){
+  if(isLocked('bites')){ showPlusGate('bites'); return; }
+  const picked=mode==='daily'?bbPickDaily():bbPickRound();
+  bb={mode:mode==='daily'?'daily':'round',
+      qs:picked.map(q=>({q,perm:ngShuffle([0,1,2,3]),pick:null,ok:false,gained:0})),
+      cur:0,score:0,streak:0,bestStreak:0,correct:0,done:false};
+  armActivity('bites');
+  bbRender(true);
+  showScreen('screen-bites-play');
+  bobSetStage('bb-bob','testStart',bobLine(bb.mode==='daily'?'ngDailyStart':'ngBitesStart'),'warm',2600);
+  setTimeout(()=>{ const h=ngEl('bb-q'); if(h) h.focus({preventScroll:true}); },60);
+}
+
+function bbRender(fresh){
+  if(!bb) return;
+  const it=bb.qs[bb.cur], q=it.q, n=bb.qs.length;
+  ngEl('bb-prog').style.transform=`scaleX(${(bb.cur+(it.pick!==null?1:0))/n})`;
+  ngEl('bb-count').textContent=t('bb.qof',{n:bb.cur+1,t:n});
+  ngEl('bb-score').textContent=ngNum(bb.score);
+  ngEl('bb-cat').innerHTML=`<span aria-hidden="true">${BB_ICON[q.c]}</span>${t('bb.cat.'+q.c)}`;
+  const dk=['easy','medium','hard'][q.d-1], dp=ngEl('bb-diff');
+  dp.className='diff-pill diff-'+dk;
+  dp.textContent=(DIFF_NAMES[lang]||DIFF_NAMES.en)[dk];
+  bbStreakChip(false);
+  ngEl('bb-q').textContent=ngL(q.q);
+  const box=ngEl('bb-opts');
+  box.innerHTML='';
+  it.perm.forEach((oi,slot)=>{
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='option ng-opt'+(fresh?' ng-in':'');
+    b.style.setProperty('--i',slot);
+    const k=document.createElement('span'); k.className='ng-key'; k.setAttribute('aria-hidden','true'); k.textContent=String(slot+1);
+    const s=document.createElement('span'); s.className='ng-opt-t'; s.textContent=ngL(q.o[oi]);
+    b.append(k,s);
+    b.addEventListener('click',()=>bbAnswer(slot));
+    box.appendChild(b);
+  });
+  bbMarkOptions();
+  bbPaintExplain();
+}
+/* Paints the answered state onto the existing buttons. Colour is never the
+   only signal: the key gets a ✓ / ✗ mark and the card below says it in words. */
+function bbMarkOptions(){
+  const it=bb.qs[bb.cur];
+  if(it.pick===null) return;
+  const right=it.perm.indexOf(it.q.a);
+  Array.from(ngEl('bb-opts').children).forEach((b,slot)=>{
+    b.disabled=true;
+    b.classList.remove('ng-in');
+    if(slot===right||slot===it.pick){
+      b.classList.add(slot===right?'is-correct':'is-wrong');
+      if(!b.querySelector('.ng-mark')){
+        const m=document.createElement('span'); m.className='ng-mark'; m.setAttribute('aria-hidden','true');
+        m.textContent=slot===right?'✓':'✗'; b.appendChild(m);
+      }
+    } else b.classList.add('dimmed');
+  });
+}
+function bbPaintExplain(){
+  const it=bb.qs[bb.cur], ex=ngEl('bb-explain'), nx=ngEl('bb-next');
+  if(it.pick===null){ ex.hidden=true; ex.textContent=''; nx.hidden=true; return; }
+  const q=it.q;
+  ex.hidden=false;
+  ex.className='ng-explain '+(it.ok?'ok':'no');
+  ex.textContent='';
+  const v=document.createElement('div'); v.className='ng-verdict';
+  v.textContent=(it.ok?'✓ ':'✗ ')+t(it.ok?'bb.right':'bb.wrongt')+(it.ok&&it.gained?`  +${ngNum(it.gained)}`:'');
+  ex.appendChild(v);
+  if(!it.ok){
+    const a=document.createElement('p'); a.className='ng-answer';
+    const b=document.createElement('b'); b.textContent=ngL(q.o[q.a]);
+    a.append(document.createTextNode(t('bb.answeris')+' '),b);
+    ex.appendChild(a);
+  }
+  const w=document.createElement('p'); w.className='ng-why';
+  const wb=document.createElement('b'); wb.textContent=t('bb.why');
+  w.append(wb,document.createTextNode(ngL(q.x)));
+  ex.appendChild(w);
+  nx.hidden=false;
+  nx.textContent=bb.cur===bb.qs.length-1?t('bb.finish'):t('bb.next');
+}
+function bbStreakChip(bump){
+  const c=ngEl('bb-streak');
+  if(bb.streak>=2){
+    c.hidden=false; c.textContent='🔥 '+t('bb.combo',{n:bb.streak});
+    if(bump&&!REDUCED()){ c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); }
+  } else c.hidden=true;
+}
+
+function bbAnswer(slot){
+  const it=bb&&!bb.done&&bb.qs[bb.cur];
+  if(!it||it.pick!==null) return;
+  const q=it.q, ok=it.perm[slot]===q.a;
+  it.pick=slot; it.ok=ok;
+  if(ok){
+    bb.correct++; bb.streak++; bb.bestStreak=Math.max(bb.bestStreak,bb.streak);
+    it.gained=BB_POINTS[q.d]+Math.min(100,25*(bb.streak-1));
+    bb.score+=it.gained;
+  } else bb.streak=0;
+  bbMarkOptions();
+  bbPaintExplain();
+  ngEl('bb-prog').style.transform=`scaleX(${(bb.cur+1)/bb.qs.length})`;
+  ngEl('bb-score').textContent=ngNum(bb.score);
+  bbStreakChip(ok);
+  const btn=ngEl('bb-opts').children[slot];
+  if(ok){
+    ngBump(ngEl('bb-scorepill'));
+    fxBurst(btn,{count:bb.streak>=3?20:14});
+    fxPop(btn,'+'+ngNum(it.gained),bb.streak>=3?'gold':'');
+    playChime(true);
+  } else playChime(false);
+  if(ok && bb.streak>=5 && bb.streak%5===0) bobReact('streak5',{mount:'bb-bob'});
+  else if(ok && bb.streak===3) bobReact('streak3',{mount:'bb-bob'});
+  else bobReact(ok?'correct':'wrong',{mount:'bb-bob'});
+  ngEl('bb-live').textContent=[t(ok?'bb.right':'bb.wrongt'),
+    ok?'':t('bb.answeris')+' '+ngL(q.o[q.a])+'.', t('bb.why')+' '+ngL(q.x)].filter(Boolean).join(' ');
+  const nx=ngEl('bb-next');
+  nx.focus({preventScroll:true});
+  const ex=ngEl('bb-explain');
+  if(ex.scrollIntoView) ex.scrollIntoView({block:'nearest',behavior:REDUCED()?'auto':'smooth'});
+}
+
+function bbNext(){
+  if(!bb||bb.done) return;
+  if(bb.qs[bb.cur].pick===null) return;
+  if(bb.cur>=bb.qs.length-1){ bbFinish(); return; }
+  bb.cur++;
+  bbRender(true);
+  ngEl('bb-live').textContent='';
+  const q=bb.qs[bb.cur].q, prev=bb.qs[bb.cur-1].q;
+  if(q.d===3 && prev.d!==3) bobReact('hard',{mount:'bb-bob'});
+  else bobSetStage('bb-bob','idle','','');
+  window.scrollTo({top:0,behavior:REDUCED()?'auto':'smooth'});
+  ngEl('bb-q').focus({preventScroll:true});
+}
+
+function bbFinish(){
+  disarmActivity();
+  bb.done=true;
+  const d=bbData(), ids=bb.qs.map(x=>x.q.id);
+  d.recent=d.recent.filter(id=>ids.indexOf(id)<0).concat(ids).slice(-BB_RECENT);
+  d.rounds=d.rounds+1;
+  bb.newBest=false; bb.counted=true;
+  if(bb.mode==='round'){
+    if(bb.score>d.best){ bb.newBest=d.best>0; d.best=bb.score; }
+  } else {
+    const today=bbToday();
+    if(d.daily&&d.daily.date===today) bb.counted=false;
+    else d.daily={date:today,correct:bb.correct,score:bb.score};
+  }
+  store(BB_KEY,d);
+  bbRenderResult(true);
+  showScreen('screen-bites-result');
+  const ratio=bb.correct/bb.qs.length;
+  ngConfetti(ratio>=.8?110:(ratio>=.5?70:36));
+}
+
+function bbRenderResult(anim){
+  if(!bb||!bb.done) return;
+  const n=bb.qs.length, c=bb.correct, d=bbData(), ratio=c/n;
+  ngEl('bbr-kicker').textContent=bb.mode==='daily'?t('bb.dailyt',{d:bbToday()}):t('bb.round');
+  const sc=ngEl('bbr-score');
+  if(anim) animateNumber(sc,bb.score,1000,v=>ngNum(Math.round(v))); else sc.textContent=ngNum(bb.score);
+  const chips=[`<span class="ng-chip">✓ ${t('bb.correctof',{c,t:n})}</span>`];
+  if(bb.bestStreak>=2) chips.push(`<span class="ng-chip">🔥 ${t('bb.beststreak',{n:bb.bestStreak})}</span>`);
+  if(bb.mode==='round') chips.push(bb.newBest
+    ?`<span class="ng-chip gold">★ ${t('bb.newbest')}</span>`
+    :`<span class="ng-chip">★ ${t('bb.bestis',{n:ngNum(d.best)})}</span>`);
+  if(bb.mode==='daily' && !bb.counted) chips.push(`<span class="ng-chip">${t('bb.dailypractice')}</span>`);
+  ngEl('bbr-chips').innerHTML=chips.join('');
+  let st,pool;
+  if(bb.newBest){ st='newRecord'; pool='ngBitesBest'; }
+  else if(ratio===1){ st='highScore'; pool='ngBitesR4'; }
+  else if(ratio>=.8){ st='celebrate'; pool='ngBitesR3'; }
+  else if(ratio>=.5){ st='correct'; pool='ngBitesR2'; }
+  else { st='encouraging'; pool='ngBitesR1'; }
+  bobSetStage('bbr-bob',st,bobLine(pool),ratio>=.5?'good':'warm');
+  /* per-category breakdown, in the order the topics came up */
+  const agg={}, order=[];
+  bb.qs.forEach(x=>{ const k=x.q.c; if(!agg[k]){ agg[k]={ok:0,n:0}; order.push(k); } agg[k].n++; if(x.ok) agg[k].ok++; });
+  const cats=ngEl('bbr-cats');
+  cats.innerHTML=order.map(k=>`<div class="ng-catrow"><span><span aria-hidden="true">${BB_ICON[k]}</span> ${t('bb.cat.'+k)}</span>`+
+    `<b>${agg[k].ok}/${agg[k].n}</b><span class="bar"><i data-k="${agg[k].ok/agg[k].n}" style="transform:scaleX(${anim?0:agg[k].ok/agg[k].n})"></i></span></div>`).join('');
+  if(anim) requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    cats.querySelectorAll('i[data-k]').forEach(i=>{ i.style.transform=`scaleX(${i.dataset.k})`; });
+  }));
+  /* review list */
+  const rv=ngEl('bbr-review'); rv.textContent='';
+  bb.qs.forEach(x=>{
+    const li=document.createElement('li');
+    li.textContent=(x.ok?'✓ ':'✗ ')+ngL(x.q.q);
+    const s=document.createElement('span'); s.textContent='→ '+ngL(x.q.o[x.q.a]);
+    li.appendChild(s); rv.appendChild(li);
+  });
+}
+
+/* ====================================================================
+   SELF-CHECK — every question and prompt complete in all five languages
+   ==================================================================== */
+function ngSelfCheck(){
+  const errs=[], ids=new Set(), str=v=>typeof v==='string'&&v.trim().length>0;
+  BB_BANK.forEach((q,i)=>{
+    const tag=q.id||('bank#'+i);
+    if(!q.id||ids.has(q.id)) errs.push(tag+': missing or duplicate id');
+    ids.add(q.id);
+    if(BB_CATS.indexOf(q.c)<0) errs.push(tag+': unknown category');
+    if([1,2,3].indexOf(q.d)<0) errs.push(tag+': difficulty must be 1-3');
+    if(!str(q.src)) errs.push(tag+': no src');
+    if(!Array.isArray(q.o)||q.o.length!==4) errs.push(tag+': needs exactly 4 options');
+    if(!(Number.isInteger(q.a)&&q.a>=0&&q.a<4)) errs.push(tag+': answer index out of range');
+    NG_LANGS.forEach(l=>{
+      if(!q.q||!str(q.q[l])) errs.push(tag+': question missing '+l);
+      if(!q.x||!str(q.x[l])) errs.push(tag+': explanation missing '+l);
+      const opts=(q.o||[]).map(o=>o&&o[l]);
+      if(!opts.every(str)) errs.push(tag+': option missing '+l);
+      else if(new Set(opts.map(s=>s.trim().toLowerCase())).size!==opts.length) errs.push(tag+': duplicate options in '+l);
+    });
+  });
+  [1,2,3].forEach(d=>{
+    const have=BB_BANK.filter(q=>q.d===d).length, need=BB_PLAN.filter(x=>x===d).length;
+    if(have<need*2) errs.push('bank: too few difficulty-'+d+' questions ('+have+')');
+  });
+  Object.keys(T_NEWGAMES.en).forEach(k=>NG_LANGS.forEach(l=>{
+    if(!str(T_NEWGAMES[l]&&T_NEWGAMES[l][k])) errs.push('i18n: '+k+' missing '+l);
+  }));
+  Object.keys(NG_BOB_LINES.en).forEach(k=>NG_LANGS.forEach(l=>{
+    const p=NG_BOB_LINES[l]&&NG_BOB_LINES[l][k];
+    if(!Array.isArray(p)||!p.length||!p.every(str)) errs.push('bob: '+k+' missing '+l);
+  }));
+  return errs;
+}
+(function(){
+  try{ const e=ngSelfCheck(); if(e.length) console.warn('[newgames] self-check failed:\n'+e.join('\n')); }
+  catch(e){ /* never let a self-check break the page */ }
+})();
+
+/* ====================================================================
+   HUB REGISTRATION
+   ==================================================================== */
+CATALOG.push(
+  {key:'bites',type:'bites',
+    name:()=>t('bb.name'), desc:()=>t('bb.desc'),
+    icon:'<path d="M34.45 9.37A20 20 0 1 0 43.67 19.81A8 8 0 0 1 34.45 9.37Z" fill="#FFF1CF" stroke="var(--gold)" stroke-width="2.6" stroke-linejoin="round"/>'+
+         '<circle cx="46.5" cy="8.5" r="1.7" fill="var(--gold)"/><circle cx="49" cy="15" r="1.2" fill="var(--gold)"/>'+
+         '<path d="M19 23.5a6 6 0 1 1 8.4 5.5c-1.8.8-2.6 2-2.6 3.9v1" fill="none" stroke="var(--accent)" stroke-width="3.2" stroke-linecap="round"/>'+
+         '<circle cx="24.8" cy="39.4" r="2.2" fill="var(--accent)"/>',
+    launch:()=>bbOpenHome(),
+    metaText:()=>t('bb.meta'),
+    progressText:()=>{ const d=bbData(); return d.best?t('bb.progress',{n:ngNum(d.best)}):''; }});
+
+/* Pre-merge shim. The upgraded hub supplies launchGame() and reads launch /
+   metaText / progressText / free itself; until then this keeps the two new
+   cards playable on the current hub. It does nothing once launchGame exists. */
+if(typeof launchGame!=='function'){
+  window.launchGame=function(k){
+    const c=CATALOG.find(x=>x.key===k);
+    if(!c) return;
+    if(isLocked(k)){ showPlusGate(k); return; }
+    if(c.launch) c.launch(); else openLevelMap(k);
+  };
+  const _ngLevelMap=openLevelMap;
+  openLevelMap=function(k){
+    const c=CATALOG.find(x=>x.key===k);
+    if(c&&c.launch) return launchGame(k);
+    return _ngLevelMap(k);
+  };
+  const _ngCard=gameCardHTML;
+  gameCardHTML=function(c){
+    if(!c.launch) return _ngCard(c);
+    const prog=c.progressText?c.progressText():'';
+    const foot=isLocked(c.key)
+      ?`<span class="lock-badge">${LOCK_SVG}${t('games.locked')}</span>
+        <button class="btn-locked" onclick="showPlusGate('${c.key}')">${LOCK_SVG}${t('games.unlock')}</button>`
+      :`${prog?`<div class="game-meta"><b>${prog}</b></div>`:''}
+        <span class="badge">${c.free?t('games.freetag'):t('games.unlocked')}</span>
+        <button class="btn-play-mini" onclick="launchGame('${c.key}')">${t('ng.play')}</button>`;
+    return `<div class="game-card">
+        <svg class="game-icon" viewBox="0 0 52 52">${c.icon}</svg>
+        <h3>${c.name()}</h3><p>${c.desc()}</p>
+        <div class="game-meta">${c.metaText()}</div>
+        ${foot}
+      </div>`;
+  };
+}
+
+/* ====================================================================
+   WIRING — this block runs after boot, so it paints its own strings once,
+   refreshes a hub that is already on screen, and follows language changes.
+   ==================================================================== */
+const NG_SCREENS=['screen-bites','screen-bites-play','screen-bites-result'];
+function ngApplyI18n(){
+  NG_SCREENS.forEach(id=>{
+    const s=ngEl(id); if(!s) return;
+    s.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=t(el.dataset.i18n); });
+  });
+}
+function ngRefresh(){
+  ngApplyI18n();
+  if(ngActive('screen-bites')) bbRenderHome();
+  if(ngActive('screen-bites-play')&&bb) bbRender(false);
+  if(ngActive('screen-bites-result')&&bb) bbRenderResult(false);
+}
+ngApplyI18n();
+if(ngActive('screen-games')) renderGamesHub();
+if(ngActive('screen-lobby')&&currentUser) renderLobby();
+try{
+  new MutationObserver(()=>ngRefresh()).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+}catch(e){}
+
+/* Number keys 1–4 answer; Enter / Space already work on the focused button. */
+document.addEventListener('keydown',e=>{
+  if(e.altKey||e.ctrlKey||e.metaKey||e.repeat) return;
+  const tag=(e.target&&e.target.tagName)||'';
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  const scrim=ngEl('dlg-scrim');
+  if(scrim&&scrim.classList.contains('open')) return;
+  const k=parseInt(e.key,10);
+  if(!(k>=1&&k<=4)) return;
+  if(ngActive('screen-bites-play')&&bb&&!bb.done&&bb.qs[bb.cur].pick===null){ e.preventDefault(); bbAnswer(k-1); }
+  });
 </script>
 </body>
 </html>
