@@ -3625,6 +3625,16 @@ function doLogin(){
 function doLogout(){
   persistProgress();
   currentUser=null; store('etsem_session',null);
+  /* Nothing of the previous person may carry over to whoever uses the device
+     next: the report, the certificate, game progress, bests and Bob's thread
+     all go back to what a fresh guest load would show. */
+  window._reportData=null;
+  lastCertId=null;
+  gameProgress=load('etsem_progress_guest',{});
+  reloadBests();
+  clearInterval(urgencyInt);
+  resetBobThread();
+  renderReport();
   renderAuthNav(); goHome();
 }
 
@@ -5564,6 +5574,14 @@ function toggleBob(){
     else setBobState(document.getElementById('bob-head-mount'),'greeting',1600);
     setTimeout(()=>document.getElementById('bob-input').focus(),200);
   }
+}
+/* Logout: the next person starts with an empty thread. */
+function resetBobThread(){
+  const th=document.getElementById('bob-thread'); if(th) th.innerHTML='';
+  const ch=document.getElementById('bob-chips'); if(ch) ch.innerHTML='';
+  const p=document.getElementById('bob-panel'); if(p && p.classList.contains('open')) toggleBob();
+  bobStarted=false;
+  if(typeof bobCtx==='object' && bobCtx){ bobCtx.last=null; bobCtx.turns=0; }
 }
 function openBob(){ const p=document.getElementById('bob-panel'); if(!p.classList.contains('open')) toggleBob(); }
 function bobNudge(){ document.getElementById('bob-notif').style.display='block'; }
