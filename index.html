@@ -3502,9 +3502,37 @@ function ftRecallWord(){
   const r=FT_RECALL[slot<0?0:plan.pick[slot]]||FT_RECALL[0];
   return r.w;
 }
+/* Fisher–Yates on the option order; the key travels with its option */
+function ftShuffleItem(q){
+  const idx=q.opts.map((_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+  return Object.assign({},q,{opts:idx.map(i=>q.opts[i]),ans:idx.indexOf(q.ans),order:idx});
+}
+/* How lopsided a sitting's keys are: items are grouped by option count, and
+   the score is the largest gap between a position's key count and its fair
+   share (m/k) inside any group. The measure treats every position of a group
+   alike, so preferring low scores can never favour one letter: relabelling a
+   group's positions maps a sitting to one with the same score. Each item's key
+   stays exactly uniform over its positions (QUESTION-AUDIT §8 has the
+   simulation; a check across all letters at once biased D by 0.7 points). */
+function ftKeySpread(items){
+  const g={};
+  items.forEach(q=>{ const k=q.opts.length; (g[k]=g[k]||{m:0,c:new Array(k).fill(0)}); g[k].m++; g[k].c[q.ans]++; });
+  let worst=0;
+  Object.keys(g).forEach(k=>g[k].c.forEach(x=>{ worst=Math.max(worst,Math.abs(x-g[k].m/k)); }));
+  return worst;
+}
 function ftBuildTest(){
   const plan=ftPlan||ftNewPlan(); ftPlan=null;
-  return FT_BANK().map((forms,i)=>forms[plan.pick[i]]||forms[0]);
+  const items=FT_BANK().map((forms,i)=>forms[plan.pick[i]]||forms[0]);
+  /* first draw within 2 of fair share in every group wins; else the most even of 60 */
+  let best=null, bestSpread=Infinity;
+  for(let tries=0;tries<60;tries++){
+    const out=items.map(ftShuffleItem), sp=ftKeySpread(out);
+    if(sp<bestSpread){ best=out; bestSpread=sp; }
+    if(sp<=2) break;
+  }
+  return best;
 }
 
 /* ---------- the timed digit display (slots 14 and 29) ----------
@@ -4182,7 +4210,8 @@ function beginTest(){
   }
 }
 
-/* One parallel form per slot, 30 items, 22 minutes. See ftBuildTest(). */
+/* One form per slot, options shuffled per item (the key moves with its
+   option), 30 items, 22 minutes. See ftBuildTest() and QUESTION-AUDIT §8. */
 function startMainQuiz(){
   engine={mode:'main',qs:ftBuildTest(),cur:0,answers:[],sel:null,timer:null,left:1320,limit:1320,
           streak:0,bestStreak:0,correct:0};
@@ -4352,7 +4381,16 @@ function finishQuiz(){
   }
 }
 
-/* weighted scoring by difficulty */
+/* Weighted scoring by difficulty (unchanged formula, re-checked for the
+   October 2026 bank). Each item is worth DIFF_WEIGHT of its band (easy 1,
+   medium 1.6, hard 2.3, extreme 3.2; 60.6 in all) and
+       IQ = 68 + 80 × (weight earned / total weight)
+   so all wrong = 68 and all correct = 148, the top of the scale. With 3–6
+   options per item, pure guessing earns 0.206 of the weight on average:
+   IQ ≈ 84 (10 000 simulated sittings: mean 84.4, sd 6.3), and every
+   "always the same letter" strategy lands at the same place, because the
+   options are shuffled. This is a transparent linear transform, not a
+   normed IQ; docs/QUESTION-AUDIT.md §8 has the full table. */
 function buildResults(){
   const qs=engine.qs;
   let earned=0,total=0;
