@@ -79,7 +79,7 @@ export function isWhopUserId(v) {
  * not get an answer.
  *
  *  admin = the user id is listed in ADMIN_WHOP_USER_IDS
- *          OR (WHOP_TEAM_IS_ADMIN is not "false" AND Whop says access_level "admin",
+ *          OR (WHOP_TEAM_IS_ADMIN is exactly "true" AND Whop says access_level "admin",
  *              which Whop returns for team members of the business that owns the product)
  *  plus  = admin OR Whop says has_access with level "customer"/"admin"
  *
@@ -88,7 +88,9 @@ export function isWhopUserId(v) {
 export function decideEntitlement({ userId, access, env = {} }) {
   if (!isWhopUserId(userId)) return { plus: false, admin: false };
   const idAdmin = parseAdminIds(env.ADMIN_WHOP_USER_IDS).includes(userId);
-  const teamIsAdmin = String(env.WHOP_TEAM_IS_ADMIN ?? 'true').toLowerCase() !== 'false';
+  /* Opt-in, and anything but an exact "true" means off: Whop reports "admin" for
+     every team member, moderators included, so a typo must never widen it. */
+  const teamIsAdmin = String(env.WHOP_TEAM_IS_ADMIN ?? '').trim().toLowerCase() === 'true';
   const hasAccess = !!(access && access.has_access === true);
   const level = access && typeof access.access_level === 'string' ? access.access_level : 'no_access';
   const teamAdmin = teamIsAdmin && hasAccess && level === 'admin';

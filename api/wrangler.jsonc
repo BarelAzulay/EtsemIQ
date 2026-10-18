@@ -19,8 +19,10 @@
     "PUBLIC_URL": "https://api.etsemiq.com",
     // One extra allowed origin for local testing, e.g. "http://localhost:8080". Empty = none.
     "EXTRA_ORIGIN": "",
-    // "true": team members of your Whop business (access_level "admin") get Admin.
-    "WHOP_TEAM_IS_ADMIN": "true",
+    // Exactly "true": every team member of your Whop business (access_level
+    // "admin", moderators included) gets Admin. Off by default: the owner is
+    // made Admin by listing their Whop user id in the ADMIN_WHOP_USER_IDS secret.
+    "WHOP_TEAM_IS_ADMIN": "false",
     "SESSION_TTL_SECONDS": "43200",
     "REVERIFY_AFTER_SECONDS": "3600",
     "WHOP_SCOPES": "openid profile"

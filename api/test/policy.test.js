@@ -57,11 +57,15 @@ test('admin decision: listed id is admin even with no Whop answer', () => {
   assert.deepEqual(decideEntitlement({ userId: 'user_OWNER1', access: A(false, 'no_access'), env }), { plus: true, admin: true });
 });
 
-test('admin decision: Whop access_level "admin" is admin unless turned off', () => {
-  assert.deepEqual(decideEntitlement({ userId: 'user_TEAM', access: A(true, 'admin'), env }), { plus: true, admin: true });
-  assert.deepEqual(decideEntitlement({ userId: 'user_TEAM', access: A(true, 'admin'), env: { ...env, WHOP_TEAM_IS_ADMIN: 'false' } }), { plus: true, admin: false });
+test('admin decision: Whop access_level "admin" is admin only when WHOP_TEAM_IS_ADMIN is exactly "true"', () => {
+  const on = { ...env, WHOP_TEAM_IS_ADMIN: 'true' };
+  assert.deepEqual(decideEntitlement({ userId: 'user_TEAM', access: A(true, 'admin'), env: on }), { plus: true, admin: true });
+  /* off by default, and any other value (typos included) stays off */
+  for (const v of [undefined, '', 'false', '0', 'no', 'off', ' false', 'FALSE ', 'yes', '1']) {
+    assert.deepEqual(decideEntitlement({ userId: 'user_TEAM', access: A(true, 'admin'), env: { ...env, WHOP_TEAM_IS_ADMIN: v } }), { plus: true, admin: false }, String(v));
+  }
   /* admin level without has_access is not trusted */
-  assert.deepEqual(decideEntitlement({ userId: 'user_TEAM', access: A(false, 'admin'), env }), { plus: false, admin: false });
+  assert.deepEqual(decideEntitlement({ userId: 'user_TEAM', access: A(false, 'admin'), env: on }), { plus: false, admin: false });
 });
 
 test('admin decision: customers get plus, not admin; everyone else gets nothing', () => {

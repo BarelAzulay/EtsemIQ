@@ -122,8 +122,10 @@ Admin is granted only by the worker, in one of two ways:
 - **(b) Whop reports `access_level: "admin"` for you.** Whop does this for team
   members of the business that owns the product: the owner, admins and also
   moderators ([Whop docs](https://docs.whop.com/developer/guides/authentication)).
-  This is on by default. To turn it off, set `"WHOP_TEAM_IS_ADMIN": "false"` in
-  `api/wrangler.jsonc` and deploy again. Team members still get PLUS, but not the Admin badge.
+  This is **off by default**, because it includes every moderator. To turn it on,
+  set `"WHOP_TEAM_IS_ADMIN": "true"` (exactly `true`; any other value means off) in
+  `api/wrangler.jsonc` and deploy again. With it off, team members still get PLUS
+  if Whop gives them access, but not the Admin badge.
 
 To find your Whop user id for (a):
 
@@ -138,6 +140,31 @@ To find your Whop user id for (a):
 
 An email address never grants anything. Admin ids live only in this Cloudflare
 secret, never in the repository.
+
+### Optional but recommended: rate limiting
+
+`/auth/callback` and `/me` can make the worker call Whop, and Whop limits calls
+per credential. A script hammering those routes could use up that budget and
+block real sign-ins. Add Cloudflare's rate-limiting binding to `api/wrangler.jsonc`:
+
+```jsonc
+  "ratelimits": [
+    { "name": "RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 30, "period": 60 } }
+  ],
+```
+
+The worker uses it automatically when the binding exists (30 requests per
+minute per IP, per route). Without it, everything still works. If your wrangler
+version rejects this block, use a Cloudflare WAF rate-limiting rule on
+`api.etsemiq.com/auth/callback` and `/me` instead.
+
+### Keep `EXTRA_ORIGIN` empty in production
+
+`EXTRA_ORIGIN` exists for local testing only. Any origin you put there can
+receive session tokens through `return=`, so `http://localhost:8080` in
+production would hand tokens to whatever runs on a visitor's localhost. For
+local work, use `npx wrangler dev` with a `.dev.vars` file
+(`api/.dev.vars.example`).
 
 ## Step 5: Deploy the worker
 
@@ -273,12 +300,22 @@ Automated tests for the worker: `cd api && npm test`.
   PLUS content itself (the full report, the certificate, the game levels), and
   serve it only for a valid session token. That is a future step.
 - **Sessions are stateless.** "Sign out" removes the token from this browser. A
-  copied token stays valid until its expiry (at most 12 hours). The `/me`
+  copied token stays valid until its expiry (at most 12 hours). Renewal through
+  `/me` can't keep it alive forever: every session ends 30 days after the Whop
+  sign-in that started it, and then the person signs in again. The `/me`
   re-check still cuts off a cancelled membership within about an hour. To end
   every session at once, rotate `SESSION_SECRET`.
-- **Team members are admins.** With `WHOP_TEAM_IS_ADMIN` on, every team member
-  of your Whop business gets Admin, moderators included, because Whop reports
-  them all as `admin`. Turn it off and use `ADMIN_WHOP_USER_IDS` if you want only yourself.
+- **Only sign-ins this tab started are accepted.** The page drops a
+  `#whop_session=` token unless this tab began a Whop sign-in in the last 15
+  minutes. A crafted link can't sign someone into another person's account.
+- **Team members as admins is opt-in.** With `WHOP_TEAM_IS_ADMIN` set to `true`,
+  every team member of your Whop business gets Admin, moderators included,
+  because Whop reports them all as `admin`. It is off by default. Your own
+  admin access comes from `ADMIN_WHOP_USER_IDS`.
+- **Logs.** Workers observability is on in `api/wrangler.jsonc`. In the
+  Cloudflare dashboard, check that request headers (`Authorization`) aren't
+  stored in your logs. If they are, turn header logging off, or set
+  `"observability": { "enabled": false }`.
 - **A token in localStorage can be read by injected scripts.** Any script that
   ran in the page (an XSS bug) could read it. The page loads no third-party
   scripts, and the token only proves membership. It grants nothing on Whop itself.

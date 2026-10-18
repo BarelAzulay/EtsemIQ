@@ -3579,6 +3579,7 @@ function loc(v){
 const ETSEM_API = 'https://api.etsemiq.com';
 const WHOP_MANAGE_URL = 'https://whop.com/@me/settings/orders/';
 const WA_TOKEN = 'etsem_whop_token', WA_ENT = 'etsem_whop_ent', WA_CO = 'etsem_checkout_started';
+const WA_PENDING = 'etsem_whop_pending';
 
 function waGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function waSet(k,v){ try{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){} }
@@ -3621,7 +3622,16 @@ function waClear(){ waSet(WA_TOKEN,null); waSet(WA_ENT,null); waEnt=null; }
   const tok=/[#&]whop_session=([A-Za-z0-9_.\-]{20,4096})/.exec(h);
   const err=/[#&]whop_error=([a-z_]{1,32})/.exec(h);
   const ret=!!(q && q.get('whop')==='return');
-  if(tok){ waClear(); waSet(WA_TOKEN,tok[1]); waSet(WA_CO,null); waFresh='login'; }
+  /* Only accept a token for a sign-in this tab started (signInWithWhop leaves a
+     marker), so a crafted #whop_session= link cannot sign someone into another
+     Whop identity or pass a session around. If sessionStorage is unavailable we
+     cannot tell, and accept rather than break sign-in. */
+  let started=true;
+  if(tok||err){
+    try{ const p=+sessionStorage.getItem(WA_PENDING)||0;
+      started=p>0 && Date.now()-p<15*60*1000; sessionStorage.removeItem(WA_PENDING); }catch(e){ started=true; }
+  }
+  if(tok && started){ waClear(); waSet(WA_TOKEN,tok[1]); waSet(WA_CO,null); waFresh='login'; }
   else if(err){ waFresh='err:'+err[1]; }
   else if(ret){ waFresh='return'; }
   if(!(tok||err||ret)) return;
@@ -3678,6 +3688,7 @@ function waReturnUrl(){
 function signInWithWhop(){
   return waPing().then(ok=>{
     if(!ok){ waShowOffline(signInWithWhop); return false; }
+    try{ sessionStorage.setItem(WA_PENDING,String(Date.now())); }catch(e){}
     location.href=whopApiBase()+'/auth/login?return='+encodeURIComponent(waReturnUrl());
     return true;
   });

@@ -233,6 +233,28 @@ test('/me: expired, forged and missing tokens are 401', async () => {
   assert.equal(res.status, 401);
 });
 
+test('/me: renewal keeps the original sign-in time and stops 30 days after it', async () => {
+  const w = fakeWhop({ access: { user_CUST: { has_access: true, access_level: 'customer' } } });
+  const handle = createHandler({ ...w, now: () => NOW_MS });
+  const at = nowSec - 20 * 86400;
+  let res = await handle(meReq(await mkSess({ at, vat: nowSec - 4000 })), ENV, ctx);
+  assert.equal(res.status, 200);
+  const v = await verifyToken((await res.json()).token, SECRET, { typ: 'sess', nowSec });
+  assert.equal(v.payload.at, at);
+  assert.ok(v.payload.exp <= at + 30 * 86400);
+  res = await handle(meReq(await mkSess({ at: nowSec - 30 * 86400, vat: nowSec - 4000 })), ENV, ctx);
+  assert.equal(res.status, 401); assert.equal((await res.json()).error, 'expired');
+});
+
+test('optional rate limiter: a refused /me is 429 and makes no Whop call', async () => {
+  const w = fakeWhop();
+  const handle = createHandler({ ...w, now: () => NOW_MS });
+  const env = { ...ENV, RATE_LIMITER: { limit: async () => ({ success: false }) } };
+  const res = await handle(meReq(await mkSess({ vat: nowSec - 4000 })), env, ctx);
+  assert.equal(res.status, 429);
+  assert.equal(w.calls.length, 0);
+});
+
 test('/me from a foreign origin gets no CORS grant', async () => {
   const handle = createHandler({ ...fakeWhop(), now: () => NOW_MS });
   const res = await handle(meReq(await mkSess(), 'https://evil.example'), ENV, ctx);

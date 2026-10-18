@@ -90,17 +90,24 @@ async function cachedCheckAccess(fetchImpl, env, userId, nowMs) {
 }
 export function _clearAccessCache() { accessCache.clear(); }
 
-async function mintSession(env, { sub, username, ent, nowSec }) {
+/* A session can be renewed by /me, but never past MAX_SESSION_SECONDS after the
+   Whop sign-in that started it (`at`, copied forward, never reset). A leaked or
+   shared token therefore dies within that window even while the membership lasts. */
+const MAX_SESSION_SECONDS = 30 * 86400;
+
+async function mintSession(env, { sub, username, ent, nowSec, authTime }) {
   const s = settings(env);
+  const at = Number.isInteger(authTime) ? authTime : nowSec;
   const payload = {
     typ: 'sess',
     sub,
     u: typeof username === 'string' ? username.slice(0, 64) : '',
     plus: !!ent.plus,
     admin: !!ent.admin,
+    at,
     iat: nowSec,
     vat: nowSec, /* when Whop last confirmed the entitlement */
-    exp: nowSec + s.ttl,
+    exp: Math.min(nowSec + s.ttl, at + MAX_SESSION_SECONDS),
   };
   return { token: await signToken(payload, env.SESSION_SECRET), payload };
 }
@@ -191,6 +198,9 @@ async function me(request, env, deps, cors) {
   if (!v.ok) return json(401, { error: v.reason === 'expired' ? 'expired' : 'invalid' }, cors);
   const p = v.payload;
   if (!isWhopUserId(p.sub)) return json(401, { error: 'invalid' }, cors);
+  /* Tokens from before `at` existed count as signed in at their iat. */
+  const authTime = Number.isInteger(p.at) ? p.at : p.iat;
+  if (!Number.isInteger(authTime) || nowSec - authTime >= MAX_SESSION_SECONDS) return json(401, { error: 'expired' }, cors);
 
   const s = settings(env);
   if (nowSec - (p.vat || 0) < s.reverifyAfter) return json(200, publicClaims(p), cors);
@@ -203,13 +213,13 @@ async function me(request, env, deps, cors) {
        until that answer's own exp, then fails closed. */
     const ent = decideEntitlement({ userId: p.sub, access: null, env });
     if (ent.admin) {
-      const { token, payload } = await mintSession(env, { sub: p.sub, username: p.u, ent, nowSec });
+      const { token, payload } = await mintSession(env, { sub: p.sub, username: p.u, ent, nowSec, authTime });
       return json(200, { ...publicClaims(payload), token }, cors);
     }
     return json(503, { error: 'unavailable' }, cors);
   }
   const ent = decideEntitlement({ userId: p.sub, access, env });
-  const { token, payload } = await mintSession(env, { sub: p.sub, username: p.u, ent, nowSec });
+  const { token, payload } = await mintSession(env, { sub: p.sub, username: p.u, ent, nowSec, authTime });
   return json(200, { ...publicClaims(payload), token }, cors);
 }
 
@@ -242,6 +252,16 @@ export function createHandler(deps = {}) {
     if (!routes[`${method} ${path}`]) return json(404, { error: 'not_found' }, cors);
 
     if (missingConfig(env).length) return json(503, { error: 'not_configured' }, cors);
+
+    /* Optional Cloudflare rate-limiting binding (see docs/WHOP-AUTH-SETUP.md).
+       Both routes can make the worker call Whop, which limits us per credential. */
+    if (env.RATE_LIMITER && (path === '/auth/callback' || path === '/me')) {
+      const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+      try {
+        const { success } = await env.RATE_LIMITER.limit({ key: `${path}:${ip}` });
+        if (!success) return json(429, { error: 'rate_limited' }, cors);
+      } catch { /* a limiter outage must not take sign-in down */ }
+    }
 
     try {
       if (path === '/auth/login') return await login(request, env);
