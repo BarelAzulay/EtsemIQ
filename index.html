@@ -4011,6 +4011,9 @@ function doLogout(){
   clearInterval(urgencyInt);
   resetBobThread();
   renderReport();
+  /* Logging out on a shared device must end the Whop session too, or the
+     next person would inherit PLUS. */
+  signOutWhop();
   renderAuthNav(); goHome();
 }
 
