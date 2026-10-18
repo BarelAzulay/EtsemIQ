@@ -17,7 +17,7 @@ const ok = (cond, label, extra) => { if (cond) { pass++; console.log('PASS', lab
       window.clearInterval = function (id) { window.__ivLive.delete(id); return ci.call(this, id); };
     });
     const page = await ctx.newPage();
-    await page.route('https://api.etsemiq.com/**', r => { const n=Math.floor(Date.now()/1000); r.fulfill({status:200, contentType:'application/json', headers:{'access-control-allow-origin':'*'}, body: JSON.stringify({ user:{id:'user_plus222',username:'plususer'}, plus:true, admin:false, iat:n, verified_at:n, exp:n+3600 }) }); });
+    await page.route('https://etsemiq-api.etsemiq.workers.dev/**', r => { const n=Math.floor(Date.now()/1000); r.fulfill({status:200, contentType:'application/json', headers:{'access-control-allow-origin':'*'}, body: JSON.stringify({ user:{id:'user_plus222',username:'plususer'}, plus:true, admin:false, iat:n, verified_at:n, exp:n+3600 }) }); });
     page.on('console', m => { if (m.type() === 'error' && !/fonts\.(googleapis|gstatic)/.test(m.location().url || '')) errors.push(`[${vp.width}] ${m.text()} @${m.location().url}`); });
     page.on('pageerror', e => errors.push(`[${vp.width} pageerror] ${e.message}`));
     await page.goto(URL, { waitUntil: 'load' });

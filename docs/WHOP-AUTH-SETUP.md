@@ -4,6 +4,24 @@ This guide turns on real PLUS access for etsemiq.com. Follow the steps in order.
 It takes about 30 minutes. You need your Whop dashboard, your Cloudflare account
 and a terminal with Node.js 18 or newer.
 
+## Quick path (what we actually use)
+
+The Worker runs at **https://etsemiq-api.etsemiq.workers.dev**. etsemiq.com's
+DNS is at Namecheap, so `api.etsemiq.com` isn't used yet. The Whop redirect URI
+is `https://etsemiq-api.etsemiq.workers.dev/auth/callback`.
+
+1. Put these in the environment: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`,
+   `WHOP_CLIENT_ID`, `WHOP_CLIENT_SECRET`, `WHOP_API_KEY`, `WHOP_PRODUCT_ID`.
+   `ADMIN_WHOP_USER_IDS` is optional and can be added later.
+2. Run `bash api/deploy.sh`. It deploys the Worker, sets every secret,
+   generates `SESSION_SECRET` (it is never printed) and publishes a review copy
+   of the site at **https://etsemiq-preview.etsemiq.workers.dev**.
+3. Sign in with Whop on the review site. Account settings shows your Whop user
+   ID. Set it as `ADMIN_WHOP_USER_IDS` and run the script again.
+
+The rest of this guide explains each piece, and the custom-domain route for
+later.
+
 ## How it works
 
 ```

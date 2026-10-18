@@ -7,18 +7,20 @@
   "compatibility_date": "2026-09-18",
   "workers_dev": true,
 
-  // This needs etsemiq.com to be a zone in this Cloudflare account (see the
-  // guide, step 6). Comment the block out to deploy to *.workers.dev only.
-  "routes": [
-    { "pattern": "api.etsemiq.com", "custom_domain": true }
-  ],
+  // Served on *.workers.dev for now, because etsemiq.com's DNS is at Namecheap,
+  // not Cloudflare. To move to api.etsemiq.com once the zone is on Cloudflare
+  // (guide, step 6): add the route below back, point PUBLIC_URL and the page's
+  // ETSEM_API at it, and add the new redirect URI in Whop.
+  // "routes": [ { "pattern": "api.etsemiq.com", "custom_domain": true } ],
 
   // Non-secret settings. Secrets are NOT here. Set them with
   //   npx wrangler secret put WHOP_CLIENT_ID   (and the others in the guide)
   "vars": {
-    "PUBLIC_URL": "https://api.etsemiq.com",
-    // One extra allowed origin for local testing, e.g. "http://localhost:8080". Empty = none.
-    "EXTRA_ORIGIN": "",
+    "PUBLIC_URL": "https://etsemiq-api.etsemiq.workers.dev",
+    // One extra allowed origin. It holds the review copy of the site that
+    // api/deploy.sh publishes. Never put localhost or a shared host here: this
+    // origin can receive session tokens. Empty = none.
+    "EXTRA_ORIGIN": "https://etsemiq-preview.etsemiq.workers.dev",
     // Exactly "true": every team member of your Whop business (access_level
     // "admin", moderators included) gets Admin. Off by default: the owner is
     // made Admin by listing their Whop user id in the ADMIN_WHOP_USER_IDS secret.

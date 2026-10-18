@@ -2,7 +2,7 @@
 const { chromium, launchOpts, URL, OUT } = require('./lib.js');
 const S = OUT;
 const CHECKOUT = 'https://whop.com/checkout/plan_gov3K39kXZUmB?promoCode=FIRSTMONTH199';
-const API = 'https://api.etsemiq.com';
+const API = 'https://etsemiq-api.etsemiq.workers.dev';
 
 let fails = 0, passes = 0;
 const ok = (cond, msg) => { if (cond) { passes++; console.log('  ok  ', msg); } else { fails++; console.log('  FAIL', msg); } };
