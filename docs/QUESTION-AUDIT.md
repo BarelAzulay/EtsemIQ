@@ -397,6 +397,20 @@ best mirror-image distractor reaches 0.44–0.61. The end-to-end run completes
 in all five languages at 375px with zero console errors, zero overflow and
 correct RTL order, and both timed-digit items pass in every language.
 
+**Independent review.** A second reviewer, who had no part in writing the
+items, solved every form from its rendering before looking at the key. They
+also checked the he/ar layouts, the timed-digit flow and the scoring
+arithmetic. They found no wrong key, no second defensible answer and no broken
+translation. Two legibility fixes came out of that review:
+
+* Bars are drawn side by side, and from 5 up in two rows of shorter bars,
+  with a clear gap. On the square lattice, two stacked bars read as one long
+  bar, so "4 bars" looked like 2 and "6 bars" like 3. This changes only how
+  bars are drawn; counts and keys are unchanged. The Hardcore bank still
+  renders 31/31 items with distinct options.
+* The digit-span prompt now says to press the button first. The old text
+  implied the digits appeared on their own.
+
 The console snippet that used to be here only covered the old 30 items, and
 the QA script supersedes it. `auditSelfCheck()` still runs at boot, and it
 warns if a form has no audit row, a row has no form, or a slot's forms are
