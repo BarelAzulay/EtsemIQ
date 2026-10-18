@@ -1267,6 +1267,67 @@
   .ng-review li span{display:block;color:var(--muted);font-size:13px;margin-top:2px;}
   .ng-actions button{min-height:48px;}
 
+  /* --- Brain Twins --- */
+  .ng-pa{--pc:var(--accent);--pc-soft:var(--accent-soft);--pc-ink:var(--accent-ink);}
+  .ng-pb{--pc:var(--teal);--pc-soft:var(--teal-soft);--pc-ink:var(--teal-ink);}
+  .ng-steps{list-style:none;padding:0;margin:0 0 20px;display:grid;gap:8px;counter-reset:ngs;}
+  .ng-steps li{counter-increment:ngs;display:flex;gap:10px;align-items:center;font-size:14.5px;
+    background:var(--bg-soft);border-radius:12px;padding:10px 14px;}
+  .ng-steps li::before{content:counter(ngs);flex-shrink:0;width:26px;height:26px;border-radius:50%;
+    background:var(--accent-btn);color:#fff;font-weight:700;font-size:13px;display:inline-flex;
+    align-items:center;justify-content:center;}
+  .ng-names{display:grid;gap:4px;}
+  .ng-names .field-group{margin-bottom:8px;}
+  .ng-names .form-input{border-width:2px;border-color:var(--pc-soft);min-height:50px;font-size:16px;}
+  .ng-vs{text-align:center;font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--muted);font-size:18px;margin:-4px 0;}
+  .ng-names .fine-print{text-align:center;margin:10px 0 0;}
+  .ng-names .btn-primary{margin-top:8px;}
+  .ng-pass{text-align:center;padding:16px 0;}
+  .ng-pass-card{border:2px dashed var(--pc,var(--accent));background:var(--pc-soft,var(--accent-soft));
+    border-radius:22px;padding:26px 18px;margin:8px 0 20px;animation:ngRise .45s cubic-bezier(.2,1.2,.4,1);}
+  .ng-phone{width:54px;height:54px;color:var(--pc-ink,var(--accent-ink));animation:ngWiggle 1.6s ease-in-out infinite;}
+  .ng-pass-name{font-size:clamp(26px,8vw,42px);font-weight:700;color:var(--pc-ink,var(--accent-ink));margin:6px 0 8px;}
+  .ng-who{display:inline-flex;gap:6px;align-items:center;border-color:var(--pc);color:var(--pc-ink);}
+  .ng-who::before{content:'';width:10px;height:10px;border-radius:50%;background:var(--pc);}
+  .ng-secret{font-size:12.5px;}
+  .ng-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+  .ng-choices[data-n="3"]{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .ng-choice{min-height:104px;border-radius:18px;border:2px solid var(--line);background:var(--white);
+    color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+    padding:12px 8px;font-size:15px;font-weight:600;line-height:1.3;text-align:center;
+    transition:transform .15s,border-color .15s,background .15s;
+    animation:ngPop .42s cubic-bezier(.2,1.4,.4,1) backwards;animation-delay:calc(var(--i,0) * 60ms);}
+  .ng-choice:hover{border-color:var(--pc);transform:translateY(-2px);}
+  .ng-choice:active{transform:scale(.95);}
+  .ng-choice.picked{border-color:var(--pc);background:var(--pc-soft);color:var(--pc-ink);
+    animation:ngBounce .4s cubic-bezier(.2,1.6,.4,1);}
+  .ng-glyph{font-size:30px;line-height:1;}
+  .ng-reveal-list{margin-top:6px;}
+  .ng-rcard{background:var(--white);border:1.5px solid var(--line);border-radius:18px;padding:14px 16px;
+    margin-bottom:12px;box-shadow:var(--shadow-card);text-align:start;
+    animation:ngFlip .55s cubic-bezier(.2,1.2,.4,1) backwards;}
+  .ng-rcard.match{border-color:var(--gold);}
+  .ng-rq{font-weight:600;font-size:15px;margin-bottom:10px;display:flex;gap:8px;}
+  .ng-rnum{flex-shrink:0;color:var(--muted);font-family:'Space Grotesk',sans-serif;}
+  .ng-rans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .ng-rside{border-radius:12px;background:var(--pc-soft);padding:8px 10px;min-width:0;}
+  .ng-rname{display:block;font-size:12px;font-weight:700;color:var(--pc-ink);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ng-rchoice{display:flex;gap:6px;align-items:center;font-size:14.5px;color:var(--ink);}
+  .ng-rchoice .ng-glyph{font-size:18px;}
+  .ng-badge{display:inline-flex;gap:6px;align-items:center;margin-top:10px;font-size:13px;font-weight:700;
+    padding:4px 12px;border-radius:12px;background:var(--bg-soft);color:var(--muted);}
+  .ng-rcard.match .ng-badge{background:var(--gold);color:#3D2A00;animation:chipBump .5s .25s backwards;}
+  .ng-final{text-align:center;margin-bottom:22px;}
+  .ng-meter{height:14px;background:var(--line);border-radius:7px;overflow:hidden;max-width:360px;margin:10px auto 16px;}
+  .ng-meter i{display:block;height:100%;width:100%;transform:scaleX(0);transform-origin:left center;
+    background:linear-gradient(90deg,var(--accent),var(--teal));border-radius:7px;
+    transition:transform 1.1s cubic-bezier(.2,1,.3,1);}
+  [dir="rtl"] .ng-meter i{transform-origin:right center;}
+  .ng-verdict-t{font-size:clamp(22px,6vw,30px);font-weight:700;margin-bottom:6px;}
+  .ng-final .ng-cta{margin-top:20px;}
+  .ng-toast{min-height:22px;font-size:13.5px;color:var(--teal-ink);font-weight:600;margin:0;}
+  .ng-tally b{color:var(--star);}
+
   .ng-conf{position:absolute;top:-16px;border-radius:2px;will-change:transform,opacity;}
 
   @keyframes ngPop{from{opacity:0;transform:translateY(10px) scale(.94);}to{opacity:1;transform:none;}}
@@ -2041,6 +2102,93 @@
   </div>
 </section>
 
+<!-- BRAIN TWINS: setup -->
+<section class="screen" id="screen-twins">
+  <div class="ng-shell">
+    <button class="back-link" onclick="openGamesHub()" data-i18n="btn.backgames"></button>
+    <div class="ng-hero">
+      <div class="bob-stage ng-bigbob" id="bts-bob" aria-live="polite"></div>
+      <h2 class="ng-title" data-i18n="bt.name"></h2>
+      <p class="ng-sub" data-i18n="bt.sub"></p>
+    </div>
+    <ol class="ng-steps"><li data-i18n="bt.how1"></li><li data-i18n="bt.how2"></li><li data-i18n="bt.how3"></li></ol>
+    <form class="ng-card ng-names" id="bt-form" novalidate>
+      <div class="field-group ng-pa"><label class="field-label" for="bt-name-a" data-i18n="bt.p1label"></label>
+        <input class="form-input" id="bt-name-a" maxlength="16" autocomplete="off" spellcheck="false" dir="auto"></div>
+      <div class="ng-vs" aria-hidden="true">&amp;</div>
+      <div class="field-group ng-pb"><label class="field-label" for="bt-name-b" data-i18n="bt.p2label"></label>
+        <input class="form-input" id="bt-name-b" maxlength="16" autocomplete="off" spellcheck="false" dir="auto"></div>
+      <button class="btn-primary ng-big" type="submit" data-i18n="bt.start"></button>
+      <p class="fine-print" data-i18n="bt.privacy"></p>
+    </form>
+  </div>
+</section>
+
+<!-- BRAIN TWINS: pass + answer -->
+<section class="screen" id="screen-twins-play">
+  <div class="ng-shell" id="bt-shell">
+    <div class="ng-hud">
+      <button class="back-link" onclick="openGamesHub()" data-i18n="bt.quit"></button>
+      <span class="pill ng-who" id="bt-who"></span>
+    </div>
+    <div class="ng-pass" id="bt-pass">
+      <div class="ng-pass-card">
+        <svg class="ng-phone" viewBox="0 0 54 54" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="17" y="6" width="20" height="38" rx="4"/><path d="M24 39h6"/><path d="M5 22c2-5 5-8 9-9M49 32c-2 5-5 8-9 9"/><path d="M11 10l3 3-4 1M43 44l-3-3 4-1"/></svg>
+        <div class="ng-kicker" data-i18n="bt.passk"></div>
+        <h2 class="ng-pass-name" id="bt-pass-title" tabindex="-1"></h2>
+        <p class="ng-sub" id="bt-pass-sub"></p>
+      </div>
+      <div class="bob-stage ng-bigbob" id="btp-bob" aria-live="polite"></div>
+      <button class="btn-primary ng-big" id="bt-ready" onclick="btReady()"></button>
+    </div>
+    <div id="bt-ask" hidden>
+      <div class="ng-progress" aria-hidden="true"><div class="ng-progress-fill" id="bt-prog"></div></div>
+      <div class="ng-meta"><span class="ng-count" id="bt-count"></span><span class="ng-secret" data-i18n="bt.secret"></span></div>
+      <h2 class="ng-q" id="bt-q" tabindex="-1"></h2>
+      <div class="ng-choices" id="bt-choices" role="group" aria-labelledby="bt-q"></div>
+    </div>
+  </div>
+</section>
+
+<!-- BRAIN TWINS: reveal + verdict -->
+<section class="screen" id="screen-twins-result">
+  <div class="ng-shell">
+    <div class="ng-pass" id="btr-gate">
+      <div class="ng-pass-card">
+        <div class="ng-kicker" data-i18n="bt.revealk"></div>
+        <h2 class="ng-pass-name" id="btr-gate-title" tabindex="-1"></h2>
+        <p class="ng-sub" data-i18n="bt.revealsub"></p>
+      </div>
+      <div class="bob-stage ng-bigbob" id="btg-bob" aria-live="polite"></div>
+      <button class="btn-primary ng-big" id="btr-go" onclick="btRevealStart()" data-i18n="bt.revealbtn"></button>
+    </div>
+    <div class="ng-final" id="btr-final" hidden>
+      <div class="bob-stage ng-bigbob" id="btf-bob" aria-live="polite"></div>
+      <div class="ng-kicker" data-i18n="bt.sync"></div>
+      <div class="ng-bigscore" dir="ltr"><span id="btf-pct">0</span>%</div>
+      <div class="ng-meter" aria-hidden="true"><i id="btf-meter"></i></div>
+      <h2 class="ng-verdict-t" id="btf-title" tabindex="-1"></h2>
+      <p class="ng-sub" id="btf-cap"></p>
+      <div class="ng-cta ng-cta-2">
+        <button class="btn-primary ng-big" onclick="btAgain(false)" data-i18n="bt.again"></button>
+        <button class="btn-secondary ng-big" onclick="btAgain(true)" data-i18n="bt.swap"></button>
+        <button class="btn-secondary ng-big" onclick="btShare()" data-i18n="bt.share"></button>
+        <button class="btn-secondary ng-big" onclick="btOpen()" data-i18n="bt.newplayers"></button>
+      </div>
+      <p class="ng-toast" id="btf-msg" aria-live="polite"></p>
+    </div>
+    <div id="btr-reveal" hidden>
+      <div class="ng-meta"><span class="ng-count" id="btr-count"></span><span class="pill ng-tally" id="btr-tally"></span></div>
+      <div class="bob-stage quiet" id="btr-bob" aria-live="polite"></div>
+      <div class="ng-reveal-list" id="btr-cards"></div>
+      <div class="ng-next-row" id="btr-ctl">
+        <button class="btn-secondary" id="btr-skip" onclick="btRevealAll()" data-i18n="bt.skip"></button>
+        <button class="btn-primary" id="btr-next" onclick="btRevealNext()"></button>
+      </div>
+    </div>
+  </div>
+</section>
 <!-- /NEWGAMES:SCREENS -->
 
 <footer>
@@ -7397,6 +7545,31 @@ en:{
   'bb.exit':'Leaving now ends this round. Your score for it will not be saved.',
   'bb.cat.sci':'Science','bb.cat.nat':'Nature','bb.cat.body':'Body & brain','bb.cat.geo':'Geography','bb.cat.hist':'History',
   'bb.cat.space':'Space','bb.cat.math':'Maths','bb.cat.words':'Language & words','bb.cat.tech':'Inventions & tech',
+  'bt.name':'Brain Twins',
+  'bt.desc':'A pass-the-phone game for two. Answer quirky "this or that" questions in secret, then see how in sync your brains are.',
+  'bt.meta':'2 players · 1 phone · 10 prompts','bt.progress':'Best sync: {n}%',
+  'bt.sub':'Two players, one phone, zero right answers. How in sync are your brains?',
+  'bt.how1':'Type both names.','bt.how2':'Take turns answering 10 quirky questions in secret.','bt.how3':'Reveal the answers together and get your Brain sync score.',
+  'bt.p1label':'Player 1','bt.p2label':'Player 2','bt.p1':'Player 1','bt.p2':'Player 2',
+  'bt.start':'Let\'s play','bt.privacy':'Names stay on this phone. Nothing is sent anywhere.',
+  'bt.quit':'← Quit game','bt.turn':'{name}\'s turn','bt.passk':'Pass the phone to',
+  'bt.nopeek':'No peeking, {other}! {name}, tap when you\'re ready.','bt.ready':'I\'m {name} — let\'s go',
+  'bt.qof':'{n} / {t}','bt.secret':'Your answers stay secret until the reveal.',
+  'bt.revealk':'Reveal time','bt.together':'{a} & {b}, get together!','bt.revealsub':'Hold the phone where you can both see it.',
+  'bt.revealbtn':'Reveal the answers','bt.match':'Match!','bt.diff':'Different','bt.nextreveal':'Next reveal',
+  'bt.seesync':'See our Brain sync','bt.skip':'Show all','bt.tally':'{m} matches','bt.count':'Reveal {n} of {t}',
+  'bt.sync':'Brain sync','bt.cap':'{a} & {b} matched on {m} of {t}.',
+  'bt.again':'Play again','bt.swap':'Swap who goes first','bt.share':'Share result','bt.newplayers':'New players',
+  'bt.copied':'Result copied — paste it anywhere.','bt.shared':'Shared!','bt.nocopy':'Couldn\'t copy automatically.',
+  'bt.sharetext':'{a} & {b} scored {p}% Brain sync on Brain Twins 🧠 How in sync are you two? Play free at etsemiq.com',
+  'bt.exit':'Leaving now ends this game. Your answers will be lost.',
+  'bt.v4':'Same brain, two bodies','bt.v3':'Practically brain twins','bt.v2':'Same wavelength, different stations',
+  'bt.v1':'Opposites that spark','bt.v0':'Wonderfully different',
+  'bt.v4b':'I ran the numbers twice. You two might be sharing one brain.',
+  'bt.v3b':'Frighteningly in sync. Do you finish each other\'s sentences too?',
+  'bt.v2b':'Half the same, half surprising — the best kind of team.',
+  'bt.v1b':'Different brains, more ideas. That\'s how good teams work.',
+  'bt.v0b':'Almost zero overlap! Together you have every angle covered.'
 },
 he:{
   'ng.play':'שחקו','ng.stay':'להמשיך לשחק','ng.leave':'לצאת',
@@ -7417,6 +7590,31 @@ he:{
   'bb.exit':'יציאה עכשיו מסיימת את הסבב. הניקוד שלו לא יישמר.',
   'bb.cat.sci':'מדע','bb.cat.nat':'טבע','bb.cat.body':'גוף ומוח','bb.cat.geo':'גאוגרפיה','bb.cat.hist':'היסטוריה',
   'bb.cat.space':'חלל','bb.cat.math':'מתמטיקה','bb.cat.words':'שפה ומילים','bb.cat.tech':'המצאות וטכנולוגיה',
+  'bt.name':'תאומי מוח',
+  'bt.desc':'משחק העברת טלפון לשניים. עונים בסוד על שאלות "זה או זה" משונות, ואז מגלים כמה המוחות שלכם מסונכרנים.',
+  'bt.meta':'2 שחקנים · טלפון 1 · 10 שאלות','bt.progress':'סנכרון שיא: {n}%',
+  'bt.sub':'שני שחקנים, טלפון אחד, אפס תשובות נכונות. כמה המוחות שלכם מסונכרנים?',
+  'bt.how1':'כתבו את שני השמות.','bt.how2':'עונים בתורות, בסוד, על 10 שאלות משונות.','bt.how3':'חושפים יחד את התשובות ומקבלים ציון סנכרון מוחי.',
+  'bt.p1label':'שחקן/ית 1','bt.p2label':'שחקן/ית 2','bt.p1':'שחקן/ית 1','bt.p2':'שחקן/ית 2',
+  'bt.start':'יאללה, משחקים','bt.privacy':'השמות נשארים בטלפון הזה. שום דבר לא נשלח לשום מקום.',
+  'bt.quit':'← יציאה מהמשחק','bt.turn':'התור של {name}','bt.passk':'העבירו את הטלפון אל',
+  'bt.nopeek':'בלי להציץ, {other}! {name}, הקישו כשאתם מוכנים.','bt.ready':'אני {name} — קדימה',
+  'bt.qof':'{n} / {t}','bt.secret':'התשובות נשארות סודיות עד החשיפה.',
+  'bt.revealk':'זמן חשיפה','bt.together':'{a} ו־{b}, התקרבו!','bt.revealsub':'החזיקו את הטלפון כך ששניכם תראו.',
+  'bt.revealbtn':'לחשוף את התשובות','bt.match':'התאמה!','bt.diff':'שונה','bt.nextreveal':'לחשיפה הבאה',
+  'bt.seesync':'לסנכרון המוחי שלנו','bt.skip':'להציג הכול','bt.tally':'{m} התאמות','bt.count':'חשיפה {n} מתוך {t}',
+  'bt.sync':'סנכרון מוחי','bt.cap':'{a} ו־{b} ענו אותו דבר ב־{m} מתוך {t}.',
+  'bt.again':'לשחק שוב','bt.swap':'להחליף מי מתחיל','bt.share':'לשתף את התוצאה','bt.newplayers':'שחקנים חדשים',
+  'bt.copied':'התוצאה הועתקה — הדביקו איפה שבא לכם.','bt.shared':'שותף!','bt.nocopy':'לא הצלחנו להעתיק אוטומטית.',
+  'bt.sharetext':'{a} ו־{b} קיבלו {p}% סנכרון מוחי ב"תאומי מוח" 🧠 כמה אתם מסונכרנים? שחקו בחינם ב־etsemiq.com',
+  'bt.exit':'יציאה עכשיו מסיימת את המשחק. התשובות שלכם יאבדו.',
+  'bt.v4':'מוח אחד, שני גופים','bt.v3':'כמעט תאומי מוח','bt.v2':'אותו גל, תחנות שונות',
+  'bt.v1':'הפכים שמציתים ניצוצות','bt.v0':'שונים להפליא',
+  'bt.v4b':'בדקתי פעמיים. ייתכן שאתם חולקים מוח אחד.',
+  'bt.v3b':'מסונכרנים בצורה מפחידה. אתם גם משלימים זה לזה משפטים?',
+  'bt.v2b':'חצי אותו דבר, חצי הפתעות — בדיוק הצוות הכי טוב.',
+  'bt.v1b':'מוחות שונים, יותר רעיונות. ככה עובדים צוותים טובים.',
+  'bt.v0b':'כמעט אפס חפיפה! ביחד יש לכם כל זווית מכוסה.'
 },
 es:{
   'ng.play':'Jugar','ng.stay':'Seguir jugando','ng.leave':'Salir',
@@ -7437,6 +7635,31 @@ es:{
   'bb.exit':'Si sales ahora, la ronda termina y su puntuación no se guardará.',
   'bb.cat.sci':'Ciencia','bb.cat.nat':'Naturaleza','bb.cat.body':'Cuerpo y cerebro','bb.cat.geo':'Geografía','bb.cat.hist':'Historia',
   'bb.cat.space':'Espacio','bb.cat.math':'Matemáticas','bb.cat.words':'Lenguas y palabras','bb.cat.tech':'Inventos y tecnología',
+  'bt.name':'En la misma onda',
+  'bt.desc':'Un juego para dos con un solo móvil. Respondan en secreto preguntas curiosas de "esto o aquello" y descubran cuán sincronizados están sus cerebros.',
+  'bt.meta':'2 jugadores · 1 móvil · 10 preguntas','bt.progress':'Mejor sintonía: {n}%',
+  'bt.sub':'Dos jugadores, un móvil y ninguna respuesta correcta. ¿Cuánto sintonizan sus cerebros?',
+  'bt.how1':'Escriban los dos nombres.','bt.how2':'Por turnos, respondan en secreto 10 preguntas curiosas.','bt.how3':'Revelen las respuestas juntos y vean su sintonía cerebral.',
+  'bt.p1label':'Jugador 1','bt.p2label':'Jugador 2','bt.p1':'Jugador 1','bt.p2':'Jugador 2',
+  'bt.start':'¡A jugar!','bt.privacy':'Los nombres se quedan en este móvil. No se envía nada a ningún sitio.',
+  'bt.quit':'← Salir del juego','bt.turn':'Turno de {name}','bt.passk':'Pasa el móvil a',
+  'bt.nopeek':'¡Nada de mirar, {other}! {name}, toca cuando estés listo.','bt.ready':'Soy {name}, ¡vamos!',
+  'bt.qof':'{n} / {t}','bt.secret':'Tus respuestas son secretas hasta la revelación.',
+  'bt.revealk':'Hora de revelar','bt.together':'¡{a} y {b}, júntense!','bt.revealsub':'Pongan el móvil donde los dos puedan verlo.',
+  'bt.revealbtn':'Revelar las respuestas','bt.match':'¡Coinciden!','bt.diff':'Distintas','bt.nextreveal':'Siguiente',
+  'bt.seesync':'Ver nuestra sintonía','bt.skip':'Mostrar todo','bt.tally':'{m} coincidencias','bt.count':'Revelación {n} de {t}',
+  'bt.sync':'Sintonía cerebral','bt.cap':'{a} y {b} coincidieron en {m} de {t}.',
+  'bt.again':'Jugar otra vez','bt.swap':'Cambiar quién empieza','bt.share':'Compartir resultado','bt.newplayers':'Nuevos jugadores',
+  'bt.copied':'Resultado copiado: pégalo donde quieras.','bt.shared':'¡Compartido!','bt.nocopy':'No se pudo copiar automáticamente.',
+  'bt.sharetext':'{a} y {b} tienen un {p}% de sintonía cerebral en En la misma onda 🧠 ¿Y ustedes? Juega gratis en etsemiq.com',
+  'bt.exit':'Si sales ahora, el juego termina y se perderán las respuestas.',
+  'bt.v4':'Un cerebro, dos cuerpos','bt.v3':'Casi gemelos mentales','bt.v2':'Misma onda, distinta emisora',
+  'bt.v1':'Opuestos que echan chispas','bt.v0':'Maravillosamente distintos',
+  'bt.v4b':'Lo he calculado dos veces. Quizá compartan un solo cerebro.',
+  'bt.v3b':'Sintonía casi inquietante. ¿También terminan las frases del otro?',
+  'bt.v2b':'Mitad iguales, mitad sorpresa: el mejor tipo de equipo.',
+  'bt.v1b':'Cerebros distintos, más ideas. Así funcionan los buenos equipos.',
+  'bt.v0b':'¡Casi nada en común! Juntos tienen todos los ángulos cubiertos.'
 },
 ru:{
   'ng.play':'Играть','ng.stay':'Продолжить игру','ng.leave':'Выйти',
@@ -7457,6 +7680,31 @@ ru:{
   'bb.exit':'Если выйти сейчас, раунд закончится и его очки не сохранятся.',
   'bb.cat.sci':'Наука','bb.cat.nat':'Природа','bb.cat.body':'Тело и мозг','bb.cat.geo':'География','bb.cat.hist':'История',
   'bb.cat.space':'Космос','bb.cat.math':'Математика','bb.cat.words':'Языки и слова','bb.cat.tech':'Изобретения и техника',
+  'bt.name':'На одной волне',
+  'bt.desc':'Игра для двоих на одном телефоне. Тайно отвечайте на забавные вопросы «то или это» — и узнайте, насколько синхронны ваши мозги.',
+  'bt.meta':'2 игрока · 1 телефон · 10 вопросов','bt.progress':'Лучшая синхронность: {n}%',
+  'bt.sub':'Два игрока, один телефон и ни одного правильного ответа. Насколько синхронны ваши мозги?',
+  'bt.how1':'Введите оба имени.','bt.how2':'По очереди и тайно ответьте на 10 забавных вопросов.','bt.how3':'Вместе откройте ответы и узнайте свою мозговую синхронность.',
+  'bt.p1label':'Игрок 1','bt.p2label':'Игрок 2','bt.p1':'Игрок 1','bt.p2':'Игрок 2',
+  'bt.start':'Играем!','bt.privacy':'Имена остаются на этом телефоне. Никуда ничего не отправляется.',
+  'bt.quit':'← Выйти из игры','bt.turn':'Ход: {name}','bt.passk':'Передайте телефон',
+  'bt.nopeek':'Не подглядывать, {other}! {name}, нажмите, когда будете готовы.','bt.ready':'Я {name} — поехали',
+  'bt.qof':'{n} / {t}','bt.secret':'Ответы держатся в секрете до раскрытия.',
+  'bt.revealk':'Время раскрытия','bt.together':'{a} и {b}, садитесь рядом!','bt.revealsub':'Держите телефон так, чтобы видели оба.',
+  'bt.revealbtn':'Открыть ответы','bt.match':'Совпало!','bt.diff':'По-разному','bt.nextreveal':'Дальше',
+  'bt.seesync':'Наша синхронность','bt.skip':'Показать все','bt.tally':'Совпадений: {m}','bt.count':'Ответ {n} из {t}',
+  'bt.sync':'Мозговая синхронность','bt.cap':'{a} и {b} совпали в {m} из {t}.',
+  'bt.again':'Сыграть ещё','bt.swap':'Поменять очерёдность','bt.share':'Поделиться','bt.newplayers':'Новые игроки',
+  'bt.copied':'Результат скопирован — вставьте куда угодно.','bt.shared':'Отправлено!','bt.nocopy':'Не удалось скопировать автоматически.',
+  'bt.sharetext':'{a} и {b}: {p}% мозговой синхронности в игре «На одной волне» 🧠 А вы насколько на одной волне? Играйте бесплатно на etsemiq.com',
+  'bt.exit':'Если выйти сейчас, игра закончится и ответы пропадут.',
+  'bt.v4':'Один мозг на двоих','bt.v3':'Почти мозговые близнецы','bt.v2':'Одна волна, разные станции',
+  'bt.v1':'Противоположности, которые искрят','bt.v0':'Восхитительно разные',
+  'bt.v4b':'Я пересчитал дважды. Похоже, у вас один мозг на двоих.',
+  'bt.v3b':'Пугающе синхронно. Вы и фразы друг за друга заканчиваете?',
+  'bt.v2b':'Наполовину одинаковые, наполовину сюрприз — лучшая команда.',
+  'bt.v1b':'Разные мозги — больше идей. Так и работают хорошие команды.',
+  'bt.v0b':'Почти ни одного совпадения! Зато вместе вы видите все стороны.'
 },
 ar:{
   'ng.play':'العب','ng.stay':'متابعة اللعب','ng.leave':'خروج',
@@ -7477,6 +7725,31 @@ ar:{
   'bb.exit':'الخروج الآن ينهي هذه الجولة ولن تُحفظ نقاطها.',
   'bb.cat.sci':'علوم','bb.cat.nat':'طبيعة','bb.cat.body':'الجسم والدماغ','bb.cat.geo':'جغرافيا','bb.cat.hist':'تاريخ',
   'bb.cat.space':'فضاء','bb.cat.math':'رياضيات','bb.cat.words':'لغات وكلمات','bb.cat.tech':'اختراعات وتقنية',
+  'bt.name':'على نفس الموجة',
+  'bt.desc':'لعبة لشخصين على هاتف واحد. أجيبا سراً عن أسئلة طريفة من نوع "هذا أم ذاك"، ثم اكتشفا مدى تزامن دماغيكما.',
+  'bt.meta':'لاعبان · هاتف واحد · 10 أسئلة','bt.progress':'أفضل تزامن: {n}%',
+  'bt.sub':'لاعبان، هاتف واحد، ولا توجد إجابة صحيحة. إلى أي حد يتزامن دماغاكما؟',
+  'bt.how1':'اكتبا الاسمين.','bt.how2':'أجيبا بالتناوب وسراً عن 10 أسئلة طريفة.','bt.how3':'اكشفا الإجابات معاً واحصلا على نسبة التزامن.',
+  'bt.p1label':'اللاعب 1','bt.p2label':'اللاعب 2','bt.p1':'اللاعب 1','bt.p2':'اللاعب 2',
+  'bt.start':'هيا نلعب','bt.privacy':'تبقى الأسماء على هذا الهاتف، ولا يُرسل أي شيء إلى أي مكان.',
+  'bt.quit':'← الخروج من اللعبة','bt.turn':'دور {name}','bt.passk':'مرّر الهاتف إلى',
+  'bt.nopeek':'ممنوع التلصص يا {other}! {name}، اضغط عندما تكون جاهزاً.','bt.ready':'أنا {name} — لنبدأ',
+  'bt.qof':'{n} / {t}','bt.secret':'تبقى إجاباتك سرية حتى لحظة الكشف.',
+  'bt.revealk':'وقت الكشف','bt.together':'{a} و{b}، اجتمعا!','bt.revealsub':'أمسكا الهاتف بحيث يراه كلاكما.',
+  'bt.revealbtn':'اكشف الإجابات','bt.match':'تطابق!','bt.diff':'مختلف','bt.nextreveal':'الكشف التالي',
+  'bt.seesync':'اعرض تزامننا','bt.skip':'اعرض الكل','bt.tally':'تطابقات: {m}','bt.count':'الكشف {n} من {t}',
+  'bt.sync':'التزامن الدماغي','bt.cap':'تطابق {a} و{b} في {m} من {t}.',
+  'bt.again':'العب مجدداً','bt.swap':'بدّل من يبدأ','bt.share':'شارك النتيجة','bt.newplayers':'لاعبان جديدان',
+  'bt.copied':'نُسخت النتيجة — الصقها أينما شئت.','bt.shared':'تمت المشاركة!','bt.nocopy':'تعذّر النسخ تلقائياً.',
+  'bt.sharetext':'{a} و{b} حققا {p}% من التزامن الدماغي في لعبة "على نفس الموجة" 🧠 وأنتما، ما مدى تزامنكما؟ العبا مجاناً على etsemiq.com',
+  'bt.exit':'الخروج الآن ينهي اللعبة وستضيع إجاباتكما.',
+  'bt.v4':'دماغ واحد في جسدين','bt.v3':'توأما دماغ تقريباً','bt.v2':'الموجة نفسها، محطات مختلفة',
+  'bt.v1':'أضداد تشعل الشرر','bt.v0':'مختلفان بشكل رائع',
+  'bt.v4b':'حسبتها مرتين. ربما تتشاركان دماغاً واحداً.',
+  'bt.v3b':'تزامن مخيف! هل يكمل أحدكما جمل الآخر أيضاً؟',
+  'bt.v2b':'نصف متشابه ونصف مفاجآت — أفضل أنواع الفرق.',
+  'bt.v1b':'دماغان مختلفان يعنيان أفكاراً أكثر. هكذا تعمل الفرق الجيدة.',
+  'bt.v0b':'تطابق شبه معدوم! معاً تغطيان كل الزوايا.'
 }
 };
 Object.keys(T_NEWGAMES).forEach(l=>{ if(T[l]) Object.assign(T[l], T_NEWGAMES[l]); });
@@ -7494,6 +7767,12 @@ en:{
   ngBitesR2:['Solid round, and you picked up a few new facts on the way.','Good going. The misses taught you the most.'],
   ngBitesR1:['Tough set — but now you know things most people don\'t.','Every miss came with a free fact. Not a bad deal.'],
   ngBitesBest:['New personal best! Your brain is on a roll.'],
+  ngTwinsHome:['Two players, one phone, zero peeking.','Let\'s find out how in sync your brains really are.'],
+  ngTwinsPass:['No peeking — I\'m watching.','Eyes off the screen, please. I\'ll keep the secrets.','Hand it over carefully. Suspense is half the fun.'],
+  ngTwinsGo:['Answer from the gut. There are no wrong answers here.','Go with your first instinct.'],
+  ngTwinsGate:['All answers locked in. Gather round!','This is the fun bit. Ready?'],
+  ngTwinsMatch:['Same answer! Spooky.','Matched! Great minds…','In sync!'],
+  ngTwinsDiff:['Different — now that\'s worth discussing.','Two takes. Explain yourselves!','Plot twist.']
 },
 he:{
   ngBitesHome:['עשר שאלות, תשעה נושאים ותירוץ מצוין ללמוד משהו.','כל תשובה מגיעה עם "למה". זה החלק הטעים.','בחרו סבב. אני אביא את העובדות המגניבות.'],
@@ -7504,6 +7783,12 @@ he:{
   ngBitesR2:['סבב יציב, ובדרך אספתם כמה עובדות חדשות.','יפה מאוד. דווקא הטעויות לימדו הכי הרבה.'],
   ngBitesR1:['סט קשוח — אבל עכשיו אתם יודעים דברים שרוב האנשים לא.','כל טעות הגיעה עם עובדה במתנה. לא רע בכלל.'],
   ngBitesBest:['שיא אישי חדש! המוח שלכם בתנופה.'],
+  ngTwinsHome:['שני שחקנים, טלפון אחד, אפס הצצות.','בואו נגלה כמה המוחות שלכם באמת מסונכרנים.'],
+  ngTwinsPass:['בלי להציץ — אני רואה הכול.','עיניים מהמסך, בבקשה. הסודות אצלי.','מעבירים בזהירות. המתח הוא חצי מהכיף.'],
+  ngTwinsGo:['ענו מהבטן. אין פה תשובות לא נכונות.','לכו עם האינסטינקט הראשון.'],
+  ngTwinsGate:['כל התשובות נעולות. התקרבו!','זה החלק הכיפי. מוכנים?'],
+  ngTwinsMatch:['אותה תשובה! מצמרר.','התאמה! מוחות גדולים…','מסונכרנים!'],
+  ngTwinsDiff:['שונה — על זה כדאי לדבר.','שתי גישות. הסבירו את עצמכם!','טוויסט בעלילה.']
 },
 es:{
   ngBitesHome:['Diez preguntas, nueve temas y una excusa perfecta para aprender algo.','Cada respuesta trae su "porqué". Esa es la parte sabrosa.','Elige ronda. Yo pongo los datos curiosos.'],
@@ -7514,6 +7799,12 @@ es:{
   ngBitesR2:['Buena ronda, y por el camino aprendiste datos nuevos.','Bien hecho. Los fallos son los que más enseñan.'],
   ngBitesR1:['Ronda difícil, pero ahora sabes cosas que casi nadie sabe.','Cada fallo vino con un dato de regalo. No está nada mal.'],
   ngBitesBest:['¡Nuevo récord personal! Tu cerebro está en racha.'],
+  ngTwinsHome:['Dos jugadores, un móvil y nada de mirar.','Vamos a ver cuánto sintonizan de verdad sus cerebros.'],
+  ngTwinsPass:['Nada de mirar: te estoy vigilando.','Ojos fuera de la pantalla, por favor. Yo guardo los secretos.','Pásalo con cuidado. La intriga es la mitad de la gracia.'],
+  ngTwinsGo:['Responde con el instinto. Aquí no hay respuestas incorrectas.','Quédate con lo primero que pienses.'],
+  ngTwinsGate:['Todas las respuestas guardadas. ¡Júntense!','Llega la parte divertida. ¿Listos?'],
+  ngTwinsMatch:['¡La misma respuesta! Qué miedo.','¡Coinciden! Las grandes mentes…','¡Sintonía!'],
+  ngTwinsDiff:['Distintas: eso merece una charla.','Dos visiones. ¡Expliquen eso!','Giro de guion.']
 },
 ru:{
   ngBitesHome:['Десять вопросов, девять тем и отличный повод узнать что-то новое.','К каждому ответу — «почему». Это самое вкусное.','Выбирайте раунд. Интересные факты — с меня.'],
@@ -7524,6 +7815,12 @@ ru:{
   ngBitesR2:['Крепкий раунд, и по пути вы узнали пару новых фактов.','Хорошо идёте. Больше всего учат как раз промахи.'],
   ngBitesR1:['Трудный набор — зато теперь вы знаете то, чего не знают многие.','Каждый промах шёл с бесплатным фактом. Неплохая сделка.'],
   ngBitesBest:['Новый личный рекорд! Мозг в ударе.'],
+  ngTwinsHome:['Два игрока, один телефон, никаких подглядываний.','Давайте узнаем, насколько синхронны ваши мозги.'],
+  ngTwinsPass:['Не подглядывать — я всё вижу.','Глаза от экрана, пожалуйста. Секреты останутся у меня.','Передавайте аккуратно. Интрига — половина удовольствия.'],
+  ngTwinsGo:['Отвечайте не раздумывая. Неправильных ответов тут нет.','Доверьтесь первому порыву.'],
+  ngTwinsGate:['Все ответы на месте. Садитесь рядом!','Начинается самое интересное. Готовы?'],
+  ngTwinsMatch:['Одинаково! Даже жутковато.','Совпало! Великие умы…','Синхронно!'],
+  ngTwinsDiff:['По-разному — есть что обсудить.','Два взгляда. Объяснитесь!','Неожиданный поворот.']
 },
 ar:{
   ngBitesHome:['عشرة أسئلة وتسعة مواضيع وعذر ممتاز لتتعلم شيئاً.','كل إجابة تأتي مع "لماذا". هذا هو الجزء اللذيذ.','اختر جولة، وعليّ أنا المعلومات الممتعة.'],
@@ -7534,6 +7831,12 @@ ar:{
   ngBitesR2:['جولة متينة، وجمعت في الطريق معلومات جديدة.','أحسنت. الأخطاء هي أكثر ما يعلّم.'],
   ngBitesR1:['مجموعة صعبة، لكنك الآن تعرف أشياء لا يعرفها معظم الناس.','كل خطأ جاء مع معلومة مجانية. صفقة لا بأس بها.'],
   ngBitesBest:['رقم شخصي جديد! دماغك في أوج نشاطه.'],
+  ngTwinsHome:['لاعبان، هاتف واحد، ولا تلصص.','لنكتشف مدى تزامن دماغيكما حقاً.'],
+  ngTwinsPass:['ممنوع التلصص — أنا أراقب.','أبعد عينيك عن الشاشة من فضلك. الأسرار عندي.','مرّره بحذر. التشويق نصف المتعة.'],
+  ngTwinsGo:['أجب بعفوية، لا توجد إجابات خاطئة هنا.','اتبع إحساسك الأول.'],
+  ngTwinsGate:['كل الإجابات محفوظة. اجتمعا!','هذا هو الجزء الممتع. جاهزان؟'],
+  ngTwinsMatch:['الإجابة نفسها! أمر مريب.','تطابق! العقول الكبيرة…','متزامنان!'],
+  ngTwinsDiff:['مختلفتان — هذا يستحق النقاش.','رأيان. اشرحا لنا!','تحوّل غير متوقع.']
 }
 };
 Object.keys(NG_BOB_LINES).forEach(l=>{ if(BOB_LINES[l]) Object.assign(BOB_LINES[l], NG_BOB_LINES[l]); });
@@ -7612,6 +7915,8 @@ function ngConfetti(n){
    about a round / a game rather than a level. ---- */
 const NG_EXIT={bites:'bb.exit'};
 ACTIVITY_FLOW.bites=['screen-bites-play','screen-bites-result'];
+NG_EXIT.twins='bt.exit';
+ACTIVITY_FLOW.twins=['screen-twins-play','screen-twins-result'];
 const _ngConfirmLeave=confirmLeaveActivity;
 confirmLeaveActivity=function(proceed){
   if(!NG_EXIT[activity]) return _ngConfirmLeave(proceed);
@@ -8811,6 +9116,351 @@ function bbRenderResult(anim){
 }
 
 /* ====================================================================
+   BRAIN TWINS — a pass-the-phone icebreaker for two
+   ====================================================================
+   Player one answers ten prompts in secret, hands the phone over, player two
+   answers the same ten, and then both reveal together. The names the players
+   type are only ever written with textContent (via ngFill / <bdi>), never
+   persisted, and never leave the device except inside the share text the
+   players choose to send themselves.                                      */
+/* Prompt pool. No right answers, nothing romantic, political or personal —
+   written to be safe for a classroom or a team meeting. `g` is an optional
+   glyph shown above the label. */
+const BT_PROMPTS=[
+{id:'tuesday',q:{en:'Which shape is Tuesday?',he:'איזו צורה זה יום שלישי?',es:'¿Qué forma tiene el martes?',ru:'Какой формы вторник?',ar:'ما شكل يوم الثلاثاء؟'},
+ o:[{g:'▲',en:'Triangle',he:'משולש',es:'Triángulo',ru:'Треугольник',ar:'مثلث'},{g:'●',en:'Circle',he:'עיגול',es:'Círculo',ru:'Круг',ar:'دائرة'},{g:'■',en:'Square',he:'ריבוע',es:'Cuadrado',ru:'Квадрат',ar:'مربع'}]},
+{id:'snack',q:{en:'Your brain\'s favourite snack:',he:'החטיף האהוב על המוח שלך:',es:'El tentempié favorito de tu cerebro:',ru:'Любимая закуска вашего мозга:',ar:'الوجبة الخفيفة المفضلة لدماغك:'},
+ o:[{g:'🧩',en:'Puzzles',he:'חידות',es:'Acertijos',ru:'Головоломки',ar:'الألغاز'},{g:'📖',en:'Stories',he:'סיפורים',es:'Historias',ru:'Истории',ar:'القصص'}]},
+{id:'exampower',q:{en:'Pick a superpower for exams:',he:'בחרו כוח־על למבחנים:',es:'Elige un superpoder para los exámenes:',ru:'Выберите суперсилу для экзаменов:',ar:'اختر قوة خارقة للامتحانات:'},
+ o:[{g:'📸',en:'Photographic memory',he:'זיכרון צילומי',es:'Memoria fotográfica',ru:'Фотографическая память',ar:'ذاكرة فوتوغرافية'},{g:'⏸️',en:'Pause time',he:'לעצור את הזמן',es:'Detener el tiempo',ru:'Останавливать время',ar:'إيقاف الزمن'},{g:'⚡',en:'Super-speed reading',he:'קריאה במהירות־על',es:'Lectura supersónica',ru:'Сверхбыстрое чтение',ar:'قراءة خارقة السرعة'},{g:'🧘',en:'Unshakeable calm',he:'שלווה בלתי מעורערת',es:'Calma inquebrantable',ru:'Непробиваемое спокойствие',ar:'هدوء لا يتزعزع'}]},
+{id:'morning',q:{en:'The perfect weekend morning:',he:'הבוקר המושלם בסוף שבוע:',es:'La mañana perfecta de fin de semana:',ru:'Идеальное утро выходного:',ar:'صباح عطلة نهاية الأسبوع المثالي:'},
+ o:[{g:'🌅',en:'Up early, big plans',he:'קמים מוקדם, תוכניות גדולות',es:'Madrugar y grandes planes',ru:'Встать рано, громадьё планов',ar:'استيقاظ مبكر وخطط كبيرة'},{g:'🥞',en:'Slow breakfast, no plans',he:'ארוחת בוקר איטית, בלי תוכניות',es:'Desayuno lento y cero planes',ru:'Неспешный завтрак, никаких планов',ar:'فطور على مهل وبلا خطط'}]},
+{id:'seven',q:{en:'What colour is the number 7?',he:'באיזה צבע המספר 7?',es:'¿De qué color es el número 7?',ru:'Какого цвета число 7?',ar:'ما لون الرقم 7؟'},
+ o:[{g:'🔵',en:'Blue',he:'כחול',es:'Azul',ru:'Синее',ar:'أزرق'},{g:'🔴',en:'Red',he:'אדום',es:'Rojo',ru:'Красное',ar:'أحمر'},{g:'🟢',en:'Green',he:'ירוק',es:'Verde',ru:'Зелёное',ar:'أخضر'},{g:'🟡',en:'Yellow',he:'צהוב',es:'Amarillo',ru:'Жёлтое',ar:'أصفر'}]},
+{id:'door',q:{en:'You find a door at home you\'ve never seen before. You…',he:'מצאתם בבית דלת שלא ראיתם מעולם. אתם…',es:'Encuentras en casa una puerta que nunca habías visto. Tú…',ru:'Вы нашли дома дверь, которой раньше не видели. Вы…',ar:'وجدت في بيتك باباً لم تره من قبل. ماذا تفعل؟'},
+ o:[{g:'🚪',en:'Open it right away',he:'פותחים מיד',es:'La abres al instante',ru:'Сразу открываю',ar:'أفتحه فوراً'},{g:'✊',en:'Knock first',he:'קודם דופקים',es:'Primero llamas',ru:'Сначала стучу',ar:'أطرق أولاً'},{g:'📞',en:'Call someone',he:'מתקשרים למישהו',es:'Llamas a alguien',ru:'Звоню кому-нибудь',ar:'أتصل بأحدهم'},{g:'🙈',en:'Pretend you didn\'t see it',he:'עושים כאילו לא ראיתם',es:'Haces como si no la vieras',ru:'Делаю вид, что не заметил',ar:'أتظاهر بأنني لم أره'}]},
+{id:'dragon',q:{en:'Pick the size of your pet dragon:',he:'בחרו גודל לדרקון המחמד שלכם:',es:'Elige el tamaño de tu dragón mascota:',ru:'Выберите размер домашнего дракона:',ar:'اختر حجم تنينك الأليف:'},
+ o:[{g:'🤏',en:'Pocket-sized',he:'בגודל כיס',es:'De bolsillo',ru:'Карманный',ar:'بحجم الجيب'},{g:'🐴',en:'Horse-sized',he:'בגודל סוס',es:'Como un caballo',ru:'Размером с лошадь',ar:'بحجم حصان'},{g:'⛰️',en:'Mountain-sized',he:'בגודל הר',es:'Como una montaña',ru:'Размером с гору',ar:'بحجم جبل'}]},
+{id:'learn',q:{en:'Best way to learn something new:',he:'הדרך הכי טובה ללמוד משהו חדש:',es:'La mejor forma de aprender algo nuevo:',ru:'Лучший способ научиться новому:',ar:'أفضل طريقة لتعلّم شيء جديد:'},
+ o:[{g:'👀',en:'Watch someone do it',he:'לראות מישהו עושה את זה',es:'Ver a alguien hacerlo',ru:'Посмотреть, как делают другие',ar:'مشاهدة أحدهم يفعله'},{g:'📚',en:'Read about it',he:'לקרוא על זה',es:'Leer sobre ello',ru:'Почитать об этом',ar:'القراءة عنه'},{g:'🛠️',en:'Just try it',he:'פשוט לנסות',es:'Probar directamente',ru:'Просто попробовать',ar:'التجربة مباشرة'},{g:'💬',en:'Ask a friend',he:'לשאול חבר',es:'Preguntar a alguien',ru:'Спросить друга',ar:'سؤال صديق'}]},
+{id:'mapcode',q:{en:'Which sounds more fun?',he:'מה נשמע יותר כיף?',es:'¿Qué suena más divertido?',ru:'Что звучит веселее?',ar:'أيهما يبدو أكثر متعة؟'},
+ o:[{g:'🗺️',en:'A treasure map',he:'מפת אוצר',es:'Un mapa del tesoro',ru:'Карта сокровищ',ar:'خريطة كنز'},{g:'🔐',en:'A secret code',he:'קוד סודי',es:'Un código secreto',ru:'Секретный шифр',ar:'شيفرة سرية'}]},
+{id:'soundtrack',q:{en:'If your thoughts had a soundtrack, it would be:',he:'אם למחשבות שלכם היה פסקול, הוא היה:',es:'Si tus pensamientos tuvieran banda sonora, sería:',ru:'Если бы у ваших мыслей был саундтрек, это было бы:',ar:'لو كان لأفكارك موسيقى تصويرية لكانت:'},
+ o:[{g:'🎻',en:'An epic orchestra',he:'תזמורת אפית',es:'Una orquesta épica',ru:'Эпичный оркестр',ar:'أوركسترا ملحمية'},{g:'🎧',en:'Chilled beats',he:'ביטים רגועים',es:'Ritmos tranquilos',ru:'Спокойные биты',ar:'إيقاعات هادئة'},{g:'🛗',en:'Lift music',he:'מוזיקת מעלית',es:'Música de ascensor',ru:'Музыка из лифта',ar:'موسيقى المصاعد'},{g:'🤫',en:'Total silence',he:'שקט מוחלט',es:'Silencio total',ru:'Полная тишина',ar:'صمت تام'}]},
+{id:'ideas',q:{en:'When do your best ideas show up?',he:'מתי מגיעים הרעיונות הכי טובים שלכם?',es:'¿Cuándo llegan tus mejores ideas?',ru:'Когда приходят ваши лучшие идеи?',ar:'متى تأتيك أفضل أفكارك؟'},
+ o:[{g:'🚿',en:'In the shower',he:'במקלחת',es:'En la ducha',ru:'В душе',ar:'تحت الدش'},{g:'🌙',en:'Late at night',he:'בשעות הלילה המאוחרות',es:'A altas horas de la noche',ru:'Поздно ночью',ar:'في آخر الليل'},{g:'🚶',en:'On a walk',he:'בהליכה',es:'Paseando',ru:'На прогулке',ar:'أثناء المشي'},{g:'😴',en:'Just as I fall asleep',he:'בדיוק כשנרדמים',es:'Justo al dormirme',ru:'Прямо перед сном',ar:'لحظة النوم تماماً'}]},
+{id:'socks',q:{en:'Socks:',he:'גרביים:',es:'Calcetines:',ru:'Носки:',ar:'الجوارب:'},
+ o:[{g:'🧦',en:'Always a matching pair',he:'תמיד זוג תואם',es:'Siempre a juego',ru:'Всегда парные',ar:'زوج متطابق دائماً'},{g:'🌈',en:'Happy chaos',he:'בלגן שמח',es:'Caos feliz',ru:'Весёлый хаос',ar:'فوضى سعيدة'}]},
+{id:'desk',q:{en:'Your ideal desk:',he:'השולחן האידיאלי שלכם:',es:'Tu escritorio ideal:',ru:'Ваш идеальный стол:',ar:'مكتبك المثالي:'},
+ o:[{g:'✨',en:'Spotless',he:'מבריק מניקיון',es:'Impecable',ru:'Идеально чистый',ar:'نظيف تماماً'},{g:'🗂️',en:'Organised mess',he:'בלגן מאורגן',es:'Desorden organizado',ru:'Организованный беспорядок',ar:'فوضى منظمة'},{g:'🛋️',en:'What desk? I use the sofa',he:'איזה שולחן? אני על הספה',es:'¿Qué escritorio? Uso el sofá',ru:'Какой стол? Я на диване',ar:'أي مكتب؟ أستخدم الأريكة'}]},
+{id:'explore',q:{en:'Which would you rather explore?',he:'מה הייתם מעדיפים לחקור?',es:'¿Qué preferirías explorar?',ru:'Что бы вы выбрали исследовать?',ar:'ماذا تفضّل أن تستكشف؟'},
+ o:[{g:'🌊',en:'The deep ocean',he:'מעמקי האוקיינוס',es:'Las profundidades del océano',ru:'Глубины океана',ar:'أعماق المحيط'},{g:'🚀',en:'Outer space',he:'החלל החיצון',es:'El espacio exterior',ru:'Открытый космос',ar:'الفضاء الخارجي'}]},
+{id:'weather',q:{en:'Pick the weather you think best in:',he:'באיזה מזג אוויר אתם חושבים הכי טוב?',es:'¿Con qué tiempo piensas mejor?',ru:'В какую погоду вам лучше думается?',ar:'في أي طقس تفكّر بشكل أفضل؟'},
+ o:[{g:'☀️',en:'Sunny',he:'שמשי',es:'Soleado',ru:'Солнце',ar:'مشمس'},{g:'🌧️',en:'Rainy',he:'גשום',es:'Lluvioso',ru:'Дождь',ar:'ماطر'},{g:'❄️',en:'Snowy',he:'מושלג',es:'Nevado',ru:'Снег',ar:'مثلج'},{g:'🌩️',en:'Stormy',he:'סוער',es:'Tormentoso',ru:'Гроза',ar:'عاصف'}]},
+{id:'coworker',q:{en:'Which animal would make the best teammate?',he:'איזו חיה תהיה חברת הצוות הכי טובה?',es:'¿Qué animal sería el mejor compañero de equipo?',ru:'Какое животное было бы лучшим коллегой?',ar:'أي حيوان سيكون أفضل زميل فريق؟'},
+ o:[{g:'🦉',en:'Owl',he:'ינשוף',es:'Búho',ru:'Сова',ar:'بومة'},{g:'🐬',en:'Dolphin',he:'דולפין',es:'Delfín',ru:'Дельфин',ar:'دلفين'},{g:'🐜',en:'Ant',he:'נמלה',es:'Hormiga',ru:'Муравей',ar:'نملة'},{g:'🐱',en:'Cat',he:'חתול',es:'Gato',ru:'Кот',ar:'قطة'}]},
+{id:'freehour',q:{en:'You get one surprise free hour. You…',he:'קיבלתם שעה פנויה בהפתעה. אתם…',es:'Te regalan una hora libre por sorpresa. Tú…',ru:'У вас внезапно свободный час. Вы…',ar:'حصلت على ساعة فراغ مفاجئة. ماذا تفعل؟'},
+ o:[{g:'🎓',en:'Learn something',he:'לומדים משהו',es:'Aprendes algo',ru:'Узнаю что-то новое',ar:'أتعلم شيئاً'},{g:'💤',en:'Nap',he:'נמנום',es:'Echas una siesta',ru:'Дремлю',ar:'آخذ قيلولة'},{g:'🎮',en:'Play a game',he:'משחקים משהו',es:'Juegas a algo',ru:'Играю',ar:'ألعب لعبة'},{g:'🧹',en:'Tidy up',he:'מסדרים',es:'Ordenas',ru:'Навожу порядок',ar:'أرتّب المكان'}]},
+{id:'font',q:{en:'Pick a font for your personality:',he:'בחרו גופן שמתאים לאישיות שלכם:',es:'Elige una tipografía para tu personalidad:',ru:'Выберите шрифт под свой характер:',ar:'اختر خطاً يناسب شخصيتك:'},
+ o:[{g:'Aa',en:'Neat and simple',he:'נקי ופשוט',es:'Limpia y sencilla',ru:'Аккуратный и простой',ar:'أنيق وبسيط'},{g:'𝐀𝐚',en:'Big and bold',he:'גדול ומודגש',es:'Grande y en negrita',ru:'Крупный и жирный',ar:'كبير وعريض'},{g:'𝒜𝒶',en:'Fancy and curly',he:'מסולסל ומפואר',es:'Elegante y con florituras',ru:'Витиеватый',ar:'مزخرف ومتموّج'},{g:'⌨️',en:'Old typewriter',he:'מכונת כתיבה ישנה',es:'Máquina de escribir antigua',ru:'Старая печатная машинка',ar:'آلة كاتبة قديمة'}]},
+{id:'taste',q:{en:'Snack attack! You reach for something…',he:'התקף נשנושים! אתם הולכים על משהו…',es:'¡Ataque de hambre! Vas a por algo…',ru:'Захотелось перекусить! Вы тянетесь к чему-то…',ar:'نوبة جوع! تمدّ يدك إلى شيء…'},
+ o:[{g:'🍫',en:'Sweet',he:'מתוק',es:'Dulce',ru:'Сладкому',ar:'حلو'},{g:'🥨',en:'Salty',he:'מלוח',es:'Salado',ru:'Солёному',ar:'مالح'},{g:'🍋',en:'Sour',he:'חמוץ',es:'Ácido',ru:'Кислому',ar:'حامض'},{g:'🌶️',en:'Spicy',he:'חריף',es:'Picante',ru:'Острому',ar:'حار'}]},
+{id:'impress',q:{en:'Which is more impressive?',he:'מה יותר מרשים?',es:'¿Qué es más impresionante?',ru:'Что впечатляет больше?',ar:'أيهما أكثر إثارة للإعجاب؟'},
+ o:[{g:'🧠',en:'Remembering every name',he:'לזכור כל שם',es:'Recordar todos los nombres',ru:'Помнить все имена',ar:'تذكّر كل الأسماء'},{g:'🧭',en:'Never getting lost',he:'אף פעם לא ללכת לאיבוד',es:'No perderse nunca',ru:'Никогда не теряться',ar:'عدم الضياع أبداً'}]},
+{id:'tool',q:{en:'If you were a kitchen tool, you\'d be a…',he:'אם הייתם כלי מטבח, הייתם…',es:'Si fueras un utensilio de cocina, serías…',ru:'Если бы вы были кухонной утварью, то…',ar:'لو كنت أداة مطبخ لكنت…'},
+ o:[{g:'🥄',en:'Spoon',he:'כף',es:'Una cuchara',ru:'Ложкой',ar:'ملعقة'},{g:'🌀',en:'Whisk',he:'מטרפה',es:'Unas varillas',ru:'Венчиком',ar:'مخفقة'},{g:'🍳',en:'Frying pan',he:'מחבת',es:'Una sartén',ru:'Сковородкой',ar:'مقلاة'},{g:'🌪️',en:'Blender',he:'בלנדר',es:'Una batidora',ru:'Блендером',ar:'خلّاط'}]},
+{id:'timetravel',q:{en:'One time-travel ticket. Where to?',he:'כרטיס אחד למסע בזמן. לאן?',es:'Un billete para viajar en el tiempo. ¿Adónde?',ru:'Один билет на машину времени. Куда?',ar:'تذكرة واحدة للسفر عبر الزمن. إلى أين؟'},
+ o:[{g:'🏺',en:'The past',he:'לעבר',es:'Al pasado',ru:'В прошлое',ar:'إلى الماضي'},{g:'🛸',en:'The future',he:'לעתיד',es:'Al futuro',ru:'В будущее',ar:'إلى المستقبل'}]},
+{id:'friendlynum',q:{en:'Which number feels the friendliest?',he:'איזה מספר מרגיש הכי ידידותי?',es:'¿Qué número parece más simpático?',ru:'Какое число самое дружелюбное?',ar:'أي رقم يبدو الأكثر وداً؟'},
+ o:[{g:'3',en:'Three',he:'שלוש',es:'El tres',ru:'Три',ar:'ثلاثة'},{g:'7',en:'Seven',he:'שבע',es:'El siete',ru:'Семь',ar:'سبعة'},{g:'8',en:'Eight',he:'שמונה',es:'El ocho',ru:'Восемь',ar:'ثمانية'},{g:'12',en:'Twelve',he:'שתים־עשרה',es:'El doce',ru:'Двенадцать',ar:'اثنا عشر'}]},
+{id:'alarm',q:{en:'Your inner alarm clock is a…',he:'השעון המעורר הפנימי שלכם הוא…',es:'Tu despertador interior es…',ru:'Ваш внутренний будильник — это…',ar:'منبّهك الداخلي هو…'},
+ o:[{g:'🐦',en:'Gentle bird',he:'ציפור עדינה',es:'Un pajarito suave',ru:'Нежная птичка',ar:'عصفور لطيف'},{g:'🐓',en:'Loud rooster',he:'תרנגול רועש',es:'Un gallo ruidoso',ru:'Громкий петух',ar:'ديك صاخب'},{g:'😪',en:'Snooze button',he:'כפתור נודניק',es:'El botón de posponer',ru:'Кнопка «ещё 5 минут»',ar:'زر الغفوة'},{g:'🥁',en:'Marching band',he:'תזמורת צועדת',es:'Una banda de música',ru:'Духовой оркестр',ar:'فرقة موسيقية'}]},
+{id:'readspot',q:{en:'Best place to read:',he:'המקום הכי טוב לקרוא בו:',es:'El mejor sitio para leer:',ru:'Лучшее место для чтения:',ar:'أفضل مكان للقراءة:'},
+ o:[{g:'🛏️',en:'In bed',he:'במיטה',es:'En la cama',ru:'В кровати',ar:'في السرير'},{g:'🛋️',en:'On the sofa',he:'על הספה',es:'En el sofá',ru:'На диване',ar:'على الأريكة'},{g:'🌳',en:'Under a tree',he:'מתחת לעץ',es:'Bajo un árbol',ru:'Под деревом',ar:'تحت شجرة'},{g:'🚆',en:'On a train',he:'ברכבת',es:'En el tren',ru:'В поезде',ar:'في القطار'}]},
+{id:'planet',q:{en:'Pick a planet to name your house after:',he:'בחרו כוכב לכת שעל שמו ייקרא הבית שלכם:',es:'Elige un planeta para ponerle nombre a tu casa:',ru:'В честь какой планеты вы назовёте свой дом?',ar:'اختر كوكباً لتسمّي بيتك باسمه:'},
+ o:[{g:'🔴',en:'Mars',he:'מאדים',es:'Marte',ru:'Марс',ar:'المريخ'},{g:'🪐',en:'Saturn',he:'שבתאי',es:'Saturno',ru:'Сатурн',ar:'زحل'},{g:'🔵',en:'Neptune',he:'נפטון',es:'Neptuno',ru:'Нептун',ar:'نبتون'},{g:'🟠',en:'Jupiter',he:'צדק',es:'Júpiter',ru:'Юпитер',ar:'المشتري'}]},
+{id:'puzzle',q:{en:'Your kind of puzzle:',he:'סוג החידה שלכם:',es:'Tu tipo de rompecabezas:',ru:'Ваш тип головоломки:',ar:'نوع اللغز المفضّل لديك:'},
+ o:[{g:'🧩',en:'Jigsaw',he:'פאזל',es:'Puzle de piezas',ru:'Пазл',ar:'أحجية الصور المقطوعة'},{g:'🔢',en:'Number grid',he:'תשבץ מספרים',es:'Cuadrícula de números',ru:'Числовая сетка',ar:'شبكة أرقام'},{g:'❓',en:'Riddles',he:'חידות מילוליות',es:'Adivinanzas',ru:'Загадки',ar:'الأحاجي'},{g:'🕵️',en:'Mystery to solve',he:'תעלומה לפענח',es:'Un misterio que resolver',ru:'Детективная загадка',ar:'لغز غامض يحتاج حلاً'}]},
+{id:'tabs',q:{en:'How many tabs does your brain have open right now?',he:'כמה כרטיסיות פתוחות לכם עכשיו במוח?',es:'¿Cuántas pestañas tiene abiertas tu cerebro ahora mismo?',ru:'Сколько вкладок сейчас открыто у вас в голове?',ar:'كم تبويباً مفتوحاً في دماغك الآن؟'},
+ o:[{g:'1',en:'Just one',he:'רק אחת',es:'Solo una',ru:'Всего одна',ar:'واحد فقط'},{g:'5',en:'A handful',he:'כמה בודדות',es:'Unas pocas',ru:'Несколько',ar:'بضعة'},{g:'30',en:'Dozens',he:'עשרות',es:'Decenas',ru:'Десятки',ar:'العشرات'},{g:'∞',en:'I\'ve lost count',he:'הפסקתי לספור',es:'Perdí la cuenta',ru:'Сбился со счёта',ar:'فقدت العدّ'}]},
+{id:'helper',q:{en:'Which would you rather have?',he:'מה הייתם מעדיפים שיהיה לכם?',es:'¿Qué preferirías tener?',ru:'Что бы вы предпочли иметь?',ar:'ماذا تفضّل أن تملك؟'},
+ o:[{g:'🤖',en:'A pocket robot',he:'רובוט כיס',es:'Un robot de bolsillo',ru:'Карманного робота',ar:'روبوت جيب'},{g:'☁️',en:'A pet cloud',he:'ענן מחמד',es:'Una nube mascota',ru:'Ручное облако',ar:'غيمة أليفة'}]},
+{id:'mission',q:{en:'Choose your mission:',he:'בחרו משימה:',es:'Elige tu misión:',ru:'Выберите миссию:',ar:'اختر مهمتك:'},
+ o:[{g:'🏝️',en:'Map an unknown island',he:'למפות אי לא נודע',es:'Cartografiar una isla desconocida',ru:'Нанести на карту неизвестный остров',ar:'رسم خريطة جزيرة مجهولة'},{g:'📜',en:'Decode an ancient message',he:'לפענח מסר עתיק',es:'Descifrar un mensaje antiguo',ru:'Расшифровать древнее послание',ar:'فكّ رسالة قديمة'},{g:'🏗️',en:'Build a city on Mars',he:'לבנות עיר על מאדים',es:'Construir una ciudad en Marte',ru:'Построить город на Марсе',ar:'بناء مدينة على المريخ'},{g:'🧦',en:'Find every lost sock',he:'למצוא כל גרב שאבדה',es:'Encontrar todos los calcetines perdidos',ru:'Найти все потерянные носки',ar:'العثور على كل الجوارب الضائعة'}]},
+{id:'drink',q:{en:'Morning drink vibe:',he:'האווירה של משקה הבוקר:',es:'Tu bebida de la mañana:',ru:'Утренний напиток:',ar:'مشروبك الصباحي:'},
+ o:[{g:'☕',en:'Hot',he:'חם',es:'Caliente',ru:'Горячий',ar:'ساخن'},{g:'🧊',en:'Ice-cold',he:'קר כקרח',es:'Bien frío',ru:'Ледяной',ar:'مثلّج'}]},
+{id:'vehicle',q:{en:'If today\'s mood were a vehicle:',he:'אם מצב הרוח של היום היה כלי תחבורה:',es:'Si tu humor de hoy fuera un vehículo:',ru:'Если бы ваше настроение сегодня было транспортом:',ar:'لو كان مزاجك اليوم وسيلة نقل:'},
+ o:[{g:'🚲',en:'Bicycle',he:'אופניים',es:'Bicicleta',ru:'Велосипед',ar:'دراجة'},{g:'🚀',en:'Rocket',he:'טיל',es:'Cohete',ru:'Ракета',ar:'صاروخ'},{g:'🎈',en:'Hot-air balloon',he:'כדור פורח',es:'Globo aerostático',ru:'Воздушный шар',ar:'منطاد'},{g:'🛶',en:'Canoe',he:'קאנו',es:'Canoa',ru:'Каноэ',ar:'زورق'}]},
+{id:'surprise',q:{en:'The best kind of surprise:',he:'סוג ההפתעה הכי טוב:',es:'La mejor clase de sorpresa:',ru:'Лучший вид сюрприза:',ar:'أجمل أنواع المفاجآت:'},
+ o:[{g:'🎉',en:'A surprise party',he:'מסיבת הפתעה',es:'Una fiesta sorpresa',ru:'Вечеринка-сюрприз',ar:'حفلة مفاجئة'},{g:'✉️',en:'A handwritten note',he:'פתק בכתב יד',es:'Una nota escrita a mano',ru:'Записка от руки',ar:'رسالة بخط اليد'},{g:'🏖️',en:'A random day off',he:'יום חופש פתאומי',es:'Un día libre inesperado',ru:'Внезапный выходной',ar:'يوم إجازة مفاجئ'},{g:'🌀',en:'A plot twist in a story',he:'טוויסט בעלילה',es:'Un giro en una historia',ru:'Поворот сюжета в истории',ar:'تحوّل مفاجئ في قصة'}]},
+{id:'monday',q:{en:'Mondays are basically a…',he:'יום שני הוא בעצם…',es:'Los lunes son básicamente…',ru:'Понедельник — это по сути…',ar:'يوم الاثنين في الأساس…'},
+ o:[{g:'🐢',en:'Turtle',he:'צב',es:'Una tortuga',ru:'Черепаха',ar:'سلحفاة'},{g:'🚀',en:'Launchpad',he:'כן שיגור',es:'Una rampa de despegue',ru:'Стартовая площадка',ar:'منصة إطلاق'},{g:'🌧️',en:'Grey cloud',he:'ענן אפור',es:'Una nube gris',ru:'Серая туча',ar:'غيمة رمادية'},{g:'📋',en:'Fresh to-do list',he:'רשימת משימות חדשה',es:'Una lista de tareas nueva',ru:'Свежий список дел',ar:'قائمة مهام جديدة'}]},
+{id:'talent',q:{en:'Pick a hidden talent:',he:'בחרו כישרון נסתר:',es:'Elige un talento oculto:',ru:'Выберите скрытый талант:',ar:'اختر موهبة خفية:'},
+ o:[{g:'🤹',en:'Juggling',he:'ג׳אגלינג',es:'Malabares',ru:'Жонглирование',ar:'الشعوذة بالكرات'},{g:'🎤',en:'Beatboxing',he:'ביטבוקס',es:'Beatbox',ru:'Битбокс',ar:'البيت بوكس'},{g:'🎶',en:'Whistling any tune',he:'לשרוק כל מנגינה',es:'Silbar cualquier canción',ru:'Насвистывать любую мелодию',ar:'صفير أي لحن'},{g:'🦢',en:'Paper folding',he:'קיפול נייר',es:'Papiroflexia',ru:'Оригами',ar:'طيّ الورق'}]},
+{id:'bigtask',q:{en:'Facing a big task, you…',he:'מול משימה גדולה, אתם…',es:'Ante una tarea grande, tú…',ru:'Перед большой задачей вы…',ar:'أمام مهمة كبيرة، أنت…'},
+ o:[{g:'📝',en:'Plan everything first',he:'מתכננים הכול מראש',es:'Lo planificas todo antes',ru:'Сначала всё планирую',ar:'أخطط لكل شيء أولاً'},{g:'🏊',en:'Dive in and figure it out',he:'קופצים למים ומסתדרים',es:'Te lanzas y ya verás',ru:'Ныряю и разбираюсь по ходу',ar:'أغوص فيها وأتدبّر الأمر'}]},
+{id:'cosy',q:{en:'Which sounds cosier?',he:'מה נשמע יותר נעים?',es:'¿Qué suena más acogedor?',ru:'Что звучит уютнее?',ar:'أيهما يبدو أكثر دفئاً؟'},
+ o:[{g:'🔥',en:'A campfire',he:'מדורה',es:'Una fogata',ru:'Костёр',ar:'نار مخيّم'},{g:'⛺',en:'A blanket fort',he:'מבצר שמיכות',es:'Un fuerte de mantas',ru:'Шалаш из пледов',ar:'حصن من البطانيات'}]},
+{id:'sidekick',q:{en:'Pick an adventure sidekick:',he:'בחרו שותף להרפתקה:',es:'Elige un compañero de aventuras:',ru:'Выберите напарника для приключений:',ar:'اختر رفيقاً للمغامرة:'},
+ o:[{g:'🦉',en:'A wise owl',he:'ינשוף חכם',es:'Un búho sabio',ru:'Мудрая сова',ar:'بومة حكيمة'},{g:'🤖',en:'A clumsy robot',he:'רובוט מגושם',es:'Un robot torpe',ru:'Неуклюжий робот',ar:'روبوت أخرق'},{g:'🐉',en:'A tiny dragon',he:'דרקון זעיר',es:'Un dragón diminuto',ru:'Крошечный дракон',ar:'تنين صغير جداً'},{g:'🗺️',en:'A talking map',he:'מפה מדברת',es:'Un mapa parlante',ru:'Говорящая карта',ar:'خريطة ناطقة'}]},
+{id:'smell',q:{en:'Best smell in the world:',he:'הריח הכי טוב בעולם:',es:'El mejor olor del mundo:',ru:'Лучший запах на свете:',ar:'أجمل رائحة في العالم:'},
+ o:[{g:'🍞',en:'Fresh bread',he:'לחם טרי',es:'Pan recién hecho',ru:'Свежий хлеб',ar:'خبز طازج'},{g:'🌧️',en:'Rain on dry ground',he:'גשם ראשון על אדמה יבשה',es:'Lluvia sobre tierra seca',ru:'Дождь по сухой земле',ar:'المطر على أرض جافة'},{g:'📗',en:'A new book',he:'ספר חדש',es:'Un libro nuevo',ru:'Новая книга',ar:'كتاب جديد'},{g:'🌊',en:'Sea breeze',he:'בריזה מהים',es:'Brisa marina',ru:'Морской бриз',ar:'نسيم البحر'}]},
+{id:'remember',q:{en:'Your trick for remembering things:',he:'השיטה שלכם לזכור דברים:',es:'Tu truco para recordar cosas:',ru:'Ваш способ ничего не забывать:',ar:'حيلتك لتذكّر الأشياء:'},
+ o:[{g:'✍️',en:'Write it down',he:'לכתוב',es:'Apuntarlo',ru:'Записать',ar:'أدوّنها'},{g:'🗣️',en:'Say it out loud',he:'להגיד בקול',es:'Decirlo en voz alta',ru:'Проговорить вслух',ar:'أقولها بصوت عالٍ'},{g:'🎨',en:'Draw it',he:'לצייר',es:'Dibujarlo',ru:'Нарисовать',ar:'أرسمها'},{g:'🤞',en:'Hope for the best',he:'לקוות לטוב',es:'Cruzar los dedos',ru:'Надеяться на лучшее',ar:'أتمنى الأفضل'}]},
+{id:'boardgame',q:{en:'At game night, you\'re the…',he:'בערב משחקי קופסה, אתם…',es:'En la noche de juegos de mesa, tú eres…',ru:'На вечере настольных игр вы…',ar:'في سهرة ألعاب الطاولة، أنت…'},
+ o:[{g:'📏',en:'Rule expert',he:'מומחי החוקים',es:'El experto en reglas',ru:'Знаток правил',ar:'خبير القواعد'},{g:'🎲',en:'Risk-taker',he:'אלה שלוקחים סיכונים',es:'El que se arriesga',ru:'Любитель риска',ar:'المغامر'},{g:'🧠',en:'Quiet strategist',he:'אסטרטגים שקטים',es:'El estratega silencioso',ru:'Тихий стратег',ar:'الاستراتيجي الهادئ'},{g:'🍿',en:'Snack provider',he:'אחראי הנשנושים',es:'El que trae el picoteo',ru:'Ответственный за закуски',ar:'مسؤول الوجبات الخفيفة'}]},
+{id:'sneeze',q:{en:'What shape is a sneeze?',he:'איזו צורה יש להתעטשות?',es:'¿Qué forma tiene un estornudo?',ru:'Какой формы чихание?',ar:'ما شكل العطسة؟'},
+ o:[{g:'⚡',en:'Zigzag',he:'זיגזג',es:'Zigzag',ru:'Зигзаг',ar:'متعرّج'},{g:'🌀',en:'Spiral',he:'ספירלה',es:'Espiral',ru:'Спираль',ar:'حلزوني'},{g:'✴️',en:'Star',he:'כוכב',es:'Estrella',ru:'Звезда',ar:'نجمة'},{g:'•',en:'Tiny dot',he:'נקודה קטנטנה',es:'Un puntito',ru:'Крошечная точка',ar:'نقطة صغيرة'}]},
+{id:'trip',q:{en:'Dream day out:',he:'יום הטיול החלומי:',es:'La excursión soñada:',ru:'Идеальная вылазка:',ar:'نزهة الأحلام:'},
+ o:[{g:'🏔️',en:'Mountains',he:'הרים',es:'Montaña',ru:'Горы',ar:'الجبال'},{g:'🏖️',en:'Beach',he:'חוף',es:'Playa',ru:'Пляж',ar:'الشاطئ'},{g:'🏙️',en:'Big city',he:'עיר גדולה',es:'Gran ciudad',ru:'Большой город',ar:'مدينة كبيرة'},{g:'🏡',en:'Staying in',he:'נשארים בבית',es:'Quedarse en casa',ru:'Остаться дома',ar:'البقاء في البيت'}]},
+{id:'nightday',q:{en:'Your brain works best…',he:'המוח שלכם עובד הכי טוב…',es:'Tu cerebro funciona mejor…',ru:'Ваш мозг лучше всего работает…',ar:'يعمل دماغك بأفضل شكل…'},
+ o:[{g:'🐓',en:'At sunrise',he:'עם הזריחה',es:'Al amanecer',ru:'На рассвете',ar:'عند الشروق'},{g:'☀️',en:'Midday',he:'בצהריים',es:'A mediodía',ru:'Днём',ar:'في منتصف النهار'},{g:'🦉',en:'After midnight',he:'אחרי חצות',es:'Pasada la medianoche',ru:'После полуночи',ar:'بعد منتصف الليل'}]}
+];
+
+const BT_KEY='etsem_bt_v1', BT_ROUNDS=10;
+let bt=null;
+
+function btData(){
+  const d=load(BT_KEY,null)||{};
+  return {best:+d.best||0, plays:+d.plays||0, recent:Array.isArray(d.recent)?d.recent:[]};
+}
+function btOpen(){ btRenderSetup(); showScreen('screen-twins'); }
+function btRenderSetup(){
+  bobSetStage('bts-bob','greeting',bobLine('ngTwinsHome'),'warm');
+  ngEl('bt-name-a').placeholder=t('bt.p1');
+  ngEl('bt-name-b').placeholder=t('bt.p2');
+  if(bt&&bt.names&&!ngEl('bt-name-a').value&&!ngEl('bt-name-b').value){
+    ngEl('bt-name-a').value=bt.names[0]; ngEl('bt-name-b').value=bt.names[1];
+  }
+}
+function btCleanName(v,fallback){
+  const s=String(v||'').replace(/[\u0000-\u001F\u007F​-‏‪-‮⁦-⁩]/g,'')
+    .replace(/\s+/g,' ').trim().slice(0,16);
+  return s||fallback;
+}
+function btStartFromSetup(){
+  const a=btCleanName(ngEl('bt-name-a').value,t('bt.p1'));
+  let b=btCleanName(ngEl('bt-name-b').value,t('bt.p2'));
+  if(a.toLowerCase()===b.toLowerCase()) b=b.slice(0,13)+' (2)';
+  btBegin([a,b]);
+}
+function btBegin(names){
+  const d=btData(), recent=new Set(d.recent);
+  const pool=ngShuffle(BT_PROMPTS.filter(p=>!recent.has(p.id)))
+    .concat(ngShuffle(BT_PROMPTS.filter(p=>recent.has(p.id))));
+  const prompts=pool.slice(0,BT_ROUNDS);
+  const ids=prompts.map(p=>p.id);
+  d.recent=d.recent.filter(id=>ids.indexOf(id)<0).concat(ids).slice(-20);
+  store(BT_KEY,d);
+  bt={names:names.slice(0,2),prompts,ans:[[],[]],who:0,cur:0,phase:'pass',rev:0,locked:false};
+  armActivity('twins');
+  btRenderPlay(true);
+  showScreen('screen-twins-play');
+  setTimeout(()=>{ const r=ngEl('bt-ready'); if(r) r.focus({preventScroll:true}); },60);
+}
+
+function btRenderPlay(fresh){
+  if(!bt) return;
+  const who=bt.who, name=bt.names[who], other=bt.names[1-who];
+  const shell=ngEl('bt-shell');
+  shell.classList.toggle('ng-pa',who===0);
+  shell.classList.toggle('ng-pb',who===1);
+  ngFill(ngEl('bt-who'),'bt.turn',{name});
+  const pass=bt.phase==='pass';
+  ngEl('bt-pass').hidden=!pass;
+  ngEl('bt-ask').hidden=pass;
+  if(pass){
+    const h=ngEl('bt-pass-title'); h.textContent=''; const bd=document.createElement('bdi'); bd.textContent=name; h.appendChild(bd);
+    ngFill(ngEl('bt-pass-sub'),'bt.nopeek',{name,other});
+    ngFill(ngEl('bt-ready'),'bt.ready',{name});
+    if(fresh) bobSetStage('btp-bob',who===0?'greeting':'curious',bobLine('ngTwinsPass'),'warm');
+    return;
+  }
+  const p=bt.prompts[bt.cur], n=bt.prompts.length;
+  ngEl('bt-prog').style.transform=`scaleX(${bt.cur/n})`;
+  ngEl('bt-count').textContent=t('bt.qof',{n:bt.cur+1,t:n});
+  ngEl('bt-q').textContent=ngL(p.q);
+  const box=ngEl('bt-choices');
+  box.dataset.n=String(p.o.length);
+  box.textContent='';
+  p.o.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='ng-choice';
+    b.style.setProperty('--i',i);
+    if(o.g){ const g=document.createElement('span'); g.className='ng-glyph'; g.setAttribute('aria-hidden','true'); g.textContent=o.g; b.appendChild(g); }
+    const s=document.createElement('span'); s.textContent=ngL(o); b.appendChild(s);
+    if(bt.ans[who][bt.cur]===i) b.classList.add('picked');
+    b.addEventListener('click',()=>btPick(i,b));
+    box.appendChild(b);
+  });
+}
+function btReady(){
+  if(!bt) return;
+  bt.phase='ask';
+  btRenderPlay(true);
+  window.scrollTo(0,0);
+  ngEl('bt-q').focus({preventScroll:true});
+}
+function btPick(i,btn){
+  if(!bt||bt.locked||bt.phase!=='ask') return;
+  bt.locked=true;
+  bt.ans[bt.who][bt.cur]=i;
+  btn.classList.add('picked');
+  fxBurst(btn,{count:8,spread:46});
+  ngEl('bt-prog').style.transform=`scaleX(${(bt.cur+1)/bt.prompts.length})`;
+  setTimeout(()=>{
+    if(!bt) return;
+    bt.locked=false;
+    bt.cur++;
+    if(bt.cur<bt.prompts.length){ btRenderPlay(true); ngEl('bt-q').focus({preventScroll:true}); }
+    else if(bt.who===0){
+      bt.who=1; bt.cur=0; bt.phase='pass';
+      btRenderPlay(true); window.scrollTo(0,0);
+      ngEl('bt-pass-title').focus({preventScroll:true});
+    }
+    else btToReveal();
+  },REDUCED()?120:380);
+}
+
+/* ---- reveal ---- */
+function btMatches(upTo){
+  let m=0; for(let i=0;i<upTo;i++) if(bt.ans[0][i]===bt.ans[1][i]) m++; return m;
+}
+function btToReveal(){
+  bt.phase='gate';
+  btRenderResult();
+  showScreen('screen-twins-result');
+  bobSetStage('btg-bob','curious',bobLine('ngTwinsGate'),'warm');
+  setTimeout(()=>{ const g=ngEl('btr-go'); if(g) g.focus({preventScroll:true}); },60);
+}
+function btCard(i){
+  const p=bt.prompts[i], a=p.o[bt.ans[0][i]], b=p.o[bt.ans[1][i]], match=bt.ans[0][i]===bt.ans[1][i];
+  const card=document.createElement('div'); card.className='ng-rcard'+(match?' match':'');
+  const q=document.createElement('div'); q.className='ng-rq';
+  const num=document.createElement('span'); num.className='ng-rnum'; num.textContent=(i+1)+'.';
+  const qt=document.createElement('span'); qt.textContent=ngL(p.q);
+  q.append(num,qt); card.appendChild(q);
+  const row=document.createElement('div'); row.className='ng-rans';
+  [[a,0],[b,1]].forEach(([o,w])=>{
+    const side=document.createElement('div'); side.className='ng-rside '+(w===0?'ng-pa':'ng-pb');
+    const nm=document.createElement('bdi'); nm.className='ng-rname'; nm.textContent=bt.names[w];
+    const ch=document.createElement('span'); ch.className='ng-rchoice';
+    if(o&&o.g){ const g=document.createElement('span'); g.className='ng-glyph'; g.setAttribute('aria-hidden','true'); g.textContent=o.g; ch.appendChild(g); }
+    const tx=document.createElement('span'); tx.textContent=o?ngL(o):'—'; ch.appendChild(tx);
+    side.append(nm,ch); row.appendChild(side);
+  });
+  card.appendChild(row);
+  const badge=document.createElement('div'); badge.className='ng-badge';
+  badge.textContent=match?'✓ '+t('bt.match'):'≠ '+t('bt.diff');
+  card.appendChild(badge);
+  return card;
+}
+function btRenderResult(){
+  if(!bt) return;
+  const n=bt.prompts.length, phase=bt.phase;
+  ngEl('btr-gate').hidden=phase!=='gate';
+  ngEl('btr-reveal').hidden=phase==='gate';
+  ngEl('btr-final').hidden=phase!=='final';
+  ngEl('btr-ctl').hidden=phase==='final';
+  ngEl('btr-bob').hidden=phase==='final';
+  ngFill(ngEl('btr-gate-title'),'bt.together',{a:bt.names[0],b:bt.names[1]});
+  const shown=phase==='final'?n:bt.rev;
+  ngEl('btr-count').textContent=phase==='final'?'':t('bt.count',{n:shown,t:n});
+  ngEl('btr-tally').textContent='✓ '+t('bt.tally',{m:btMatches(shown)});
+  const cards=ngEl('btr-cards'); cards.textContent='';
+  for(let i=0;i<shown;i++){ const c=btCard(i); c.style.animation='none'; cards.appendChild(c); }
+  ngEl('btr-next').textContent=bt.rev>=n?t('bt.seesync'):t('bt.nextreveal');
+  if(phase==='final') btRenderFinal(false);
+}
+function btRevealStart(){
+  if(!bt) return;
+  bt.phase='reveal'; bt.rev=0;
+  btRenderResult();
+  btRevealNext();
+}
+function btRevealNext(){
+  if(!bt||bt.phase!=='reveal') return;
+  const n=bt.prompts.length;
+  if(bt.rev>=n){ btFinal(); return; }
+  const i=bt.rev++;
+  const card=btCard(i);
+  ngEl('btr-cards').appendChild(card);
+  const match=bt.ans[0][i]===bt.ans[1][i];
+  ngEl('btr-count').textContent=t('bt.count',{n:bt.rev,t:n});
+  ngEl('btr-tally').textContent='✓ '+t('bt.tally',{m:btMatches(bt.rev)});
+  if(match) ngBump(ngEl('btr-tally'));
+  ngEl('btr-next').textContent=bt.rev>=n?t('bt.seesync'):t('bt.nextreveal');
+  bobSetStage('btr-bob',match?'correct':'curious',bobLine(match?'ngTwinsMatch':'ngTwinsDiff'),match?'good':'warm',1800);
+  if(match){ setTimeout(()=>fxBurst(card.querySelector('.ng-badge'),{count:14}),260); playChime(true); }
+  if(card.scrollIntoView) card.scrollIntoView({block:'nearest',behavior:REDUCED()?'auto':'smooth'});
+  ngEl('btr-next').focus({preventScroll:true});
+}
+function btRevealAll(){
+  if(!bt||bt.phase!=='reveal') return;
+  bt.rev=bt.prompts.length;
+  btFinal();
+}
+function btTier(p){ return p>=90?4:(p>=70?3:(p>=50?2:(p>=30?1:0))); }
+function btFinal(){
+  const n=bt.prompts.length, m=btMatches(n), pct=Math.round(m/n*100);
+  disarmActivity();
+  bt.phase='final'; bt.pct=pct; bt.m=m;
+  const d=btData(); d.plays++; if(pct>d.best) d.best=pct; store(BT_KEY,d);
+  btRenderResult();
+  btRenderFinal(true);
+  window.scrollTo({top:0,behavior:REDUCED()?'auto':'smooth'});
+  ngEl('btf-title').focus({preventScroll:true});
+  ngConfetti(pct>=50?110:60);
+  playChime(true);
+}
+function btRenderFinal(anim){
+  const n=bt.prompts.length, k=btTier(bt.pct);
+  const pe=ngEl('btf-pct');
+  if(anim) animateNumber(pe,bt.pct,1100); else pe.textContent=String(bt.pct);
+  const meter=ngEl('btf-meter');
+  if(anim){ meter.style.transform='scaleX(0)'; requestAnimationFrame(()=>requestAnimationFrame(()=>{ meter.style.transform=`scaleX(${bt.pct/100})`; })); }
+  else meter.style.transform=`scaleX(${bt.pct/100})`;
+  ngEl('btf-title').textContent=t('bt.v'+k);
+  ngFill(ngEl('btf-cap'),'bt.cap',{a:bt.names[0],b:bt.names[1],m:bt.m,t:n});
+  const st=['encouraging','curious','correct','celebrate','highScore'][k];
+  bobSetStage('btf-bob',st,t('bt.v'+k+'b'),k>=2?'good':'warm');
+  ngEl('btf-msg').textContent='';
+}
+function btAgain(swap){
+  if(!bt) return btOpen();
+  btBegin(swap?[bt.names[1],bt.names[0]]:bt.names);
+}
+/* Share: the native sheet where there is one, otherwise the clipboard. The
+   text carries the two names the players typed, the score and the site —
+   nothing else. */
+function btShareText(){
+  return ngTpl(t('bt.sharetext'),{a:bt.names[0],b:bt.names[1],p:bt.pct});
+}
+function btCopyFallback(text){
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=text; ta.setAttribute('readonly',''); ta.style.cssText='position:fixed;top:0;left:0;opacity:0;';
+    document.body.appendChild(ta); ta.select();
+    const ok=document.execCommand('copy'); ta.remove(); return ok;
+  }catch(e){ return false; }
+}
+function btShare(){
+  if(!bt||bt.phase!=='final') return;
+  const text=btShareText(), msg=ngEl('btf-msg');
+  const copied=ok=>{ msg.textContent=ok?t('bt.copied'):t('bt.nocopy')+' '+text; };
+  if(navigator.share){
+    navigator.share({title:t('bt.name'),text}).then(()=>{ msg.textContent=t('bt.shared'); }).catch(e=>{
+      if(e&&e.name==='AbortError') return;
+      copied(btCopyFallback(text));
+    });
+    return;
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>copied(true),()=>copied(btCopyFallback(text)));
+  } else copied(btCopyFallback(text));
+}
+
+/* ====================================================================
    SELF-CHECK — every question and prompt complete in all five languages
    ==================================================================== */
 function ngSelfCheck(){
@@ -8836,6 +9486,20 @@ function ngSelfCheck(){
     const have=BB_BANK.filter(q=>q.d===d).length, need=BB_PLAN.filter(x=>x===d).length;
     if(have<need*2) errs.push('bank: too few difficulty-'+d+' questions ('+have+')');
   });
+  const pids=new Set();
+  BT_PROMPTS.forEach((p,i)=>{
+    const tag='twins:'+(p.id||i);
+    if(!p.id||pids.has(p.id)) errs.push(tag+': missing or duplicate id');
+    pids.add(p.id);
+    if(!Array.isArray(p.o)||p.o.length<2||p.o.length>4) errs.push(tag+': needs 2-4 choices');
+    NG_LANGS.forEach(l=>{
+      if(!p.q||!str(p.q[l])) errs.push(tag+': prompt missing '+l);
+      const opts=(p.o||[]).map(o=>o&&o[l]);
+      if(!opts.every(str)) errs.push(tag+': choice missing '+l);
+      else if(new Set(opts.map(s=>s.trim().toLowerCase())).size!==opts.length) errs.push(tag+': duplicate choices in '+l);
+    });
+  });
+  if(BT_PROMPTS.length<BT_ROUNDS) errs.push('twins: pool smaller than a game');
   Object.keys(T_NEWGAMES.en).forEach(k=>NG_LANGS.forEach(l=>{
     if(!str(T_NEWGAMES[l]&&T_NEWGAMES[l][k])) errs.push('i18n: '+k+' missing '+l);
   }));
@@ -8862,7 +9526,20 @@ CATALOG.push(
          '<circle cx="24.8" cy="39.4" r="2.2" fill="var(--accent)"/>',
     launch:()=>bbOpenHome(),
     metaText:()=>t('bb.meta'),
-    progressText:()=>{ const d=bbData(); return d.best?t('bb.progress',{n:ngNum(d.best)}):''; }});
+    progressText:()=>{ const d=bbData(); return d.best?t('bb.progress',{n:ngNum(d.best)}):''; }},
+  {key:'twins',type:'twins',free:true,
+    name:()=>t('bt.name'), desc:()=>t('bt.desc'),
+    icon:'<circle cx="19" cy="28" r="14" fill="#EDE5FF" stroke="var(--accent)" stroke-width="2.6"/>'+
+         '<circle cx="33" cy="28" r="14" fill="none" stroke="var(--teal)" stroke-width="2.6"/>'+
+         '<path d="M26 15.88A14 14 0 0 1 26 40.12A14 14 0 0 1 26 15.88Z" fill="var(--teal)" opacity=".35"/>'+
+         '<circle cx="13.5" cy="26" r="1.9" fill="var(--accent)"/><circle cx="19.5" cy="26" r="1.9" fill="var(--accent)"/>'+
+         '<path d="M13 31.5q3.5 3 7 0" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>'+
+         '<circle cx="32.5" cy="26" r="1.9" fill="var(--teal)"/><circle cx="38.5" cy="26" r="1.9" fill="var(--teal)"/>'+
+         '<path d="M32 31.5q3.5 3 7 0" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"/>'+
+         '<path d="M26 2.5l1.6 3.6 3.6 1.6-3.6 1.6L26 12.9l-1.6-3.6-3.6-1.6 3.6-1.6Z" fill="var(--gold)"/>',
+    launch:()=>btOpen(),
+    metaText:()=>t('bt.meta'),
+    progressText:()=>{ const d=btData(); return d.best?t('bt.progress',{n:d.best}):''; }});
 
 /* Pre-merge shim. The upgraded hub supplies launchGame() and reads launch /
    metaText / progressText / free itself; until then this keeps the two new
@@ -8903,7 +9580,7 @@ if(typeof launchGame!=='function'){
    WIRING — this block runs after boot, so it paints its own strings once,
    refreshes a hub that is already on screen, and follows language changes.
    ==================================================================== */
-const NG_SCREENS=['screen-bites','screen-bites-play','screen-bites-result'];
+const NG_SCREENS=['screen-bites','screen-bites-play','screen-bites-result','screen-twins','screen-twins-play','screen-twins-result'];
 function ngApplyI18n(){
   NG_SCREENS.forEach(id=>{
     const s=ngEl(id); if(!s) return;
@@ -8915,6 +9592,9 @@ function ngRefresh(){
   if(ngActive('screen-bites')) bbRenderHome();
   if(ngActive('screen-bites-play')&&bb) bbRender(false);
   if(ngActive('screen-bites-result')&&bb) bbRenderResult(false);
+  if(ngActive('screen-twins')) btRenderSetup();
+  if(ngActive('screen-twins-play')&&bt) btRenderPlay(false);
+  if(ngActive('screen-twins-result')&&bt) btRenderResult();
 }
 ngApplyI18n();
 if(ngActive('screen-games')) renderGamesHub();
@@ -8922,6 +9602,7 @@ if(ngActive('screen-lobby')&&currentUser) renderLobby();
 try{
   new MutationObserver(()=>ngRefresh()).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
 }catch(e){}
+ngEl('bt-form').addEventListener('submit',e=>{ e.preventDefault(); btStartFromSetup(); });
 
 /* Number keys 1–4 answer; Enter / Space already work on the focused button. */
 document.addEventListener('keydown',e=>{
@@ -8933,6 +9614,9 @@ document.addEventListener('keydown',e=>{
   const k=parseInt(e.key,10);
   if(!(k>=1&&k<=4)) return;
   if(ngActive('screen-bites-play')&&bb&&!bb.done&&bb.qs[bb.cur].pick===null){ e.preventDefault(); bbAnswer(k-1); }
+  else if(ngActive('screen-twins-play')&&bt&&bt.phase==='ask'){
+    const b=ngEl('bt-choices').children[k-1]; if(b){ e.preventDefault(); b.click(); }
+  }
   });
 </script>
 </body>
