@@ -1156,6 +1156,59 @@
     .bob-fab{animation:none !important;}
   }
 </style>
+<style id="whop-auth-css">
+  /* Sign in with Whop, the single plan, PLUS/Admin badges (script#whop-auth). */
+  .wa-badges{display:inline-flex;align-items:center;}
+  .wa-badges:empty{display:none;}
+  /* On phones the badge sits on the corner of the menu button, so it takes no
+     width from the nav row (which is already full in es/ru at 320px). */
+  .nav-mobile{position:relative;}
+  .wa-badges-m{position:absolute;bottom:-7px;inset-inline-end:0;pointer-events:none;z-index:1;}
+  .wa-badges-m .wa-badge{font-size:9px;padding:3px 5px;margin:0;}
+  .wa-badge-btn{background:none;border:none;padding:0 2px;min-height:44px;min-width:44px;
+    display:inline-flex;align-items:center;justify-content:center;cursor:pointer;}
+  .wa-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;line-height:1;
+    padding:5px 9px;border-radius:10px;white-space:nowrap;vertical-align:middle;margin-inline-start:6px;}
+  .wa-badge-btn .wa-badge{margin:0;}
+  .wa-plus{background:linear-gradient(135deg,var(--accent-btn),var(--accent-btn2));color:#fff;}
+  .wa-admin{background:var(--ink);color:var(--bg);border:1px solid var(--ink);}
+  .wa-badge-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:12px;}
+
+  .price-grid.wa-single{grid-template-columns:minmax(0,440px);justify-content:center;}
+  .plans-grid.wa-single{grid-template-columns:minmax(0,1fr);}
+  .plans-grid.wa-single .plan-card{cursor:default;}
+  a.wa-cta{display:block;text-align:center;text-decoration:none;}
+  a.wa-cta.btn-primary{margin-top:auto;}
+  .wa-member-line{text-align:center;font-size:13.5px;color:var(--muted);margin-top:10px;
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px 6px;}
+  .wa-on-dark{color:#CBC0B5;}
+  .wa-link{background:none;border:none;padding:0 4px;min-height:44px;font:inherit;font-weight:600;
+    color:var(--accent-ink);text-decoration:underline;cursor:pointer;}
+  .wa-on-dark .wa-link{color:#E4D6FF;}
+
+  .wa-whop-btn{width:100%;min-height:48px;display:flex;align-items:center;justify-content:center;gap:9px;
+    background:var(--ink);color:var(--bg);border:none;border-radius:24px;padding:13px 22px;
+    font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
+  .wa-whop-btn:hover{filter:brightness(1.15);}
+  .wa-whop-btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+  .wa-logo{width:20px;height:20px;flex-shrink:0;}
+  .wa-hint{font-size:12.5px;color:var(--muted);line-height:1.45;margin:10px 0 0;}
+  .wa-or{display:flex;align-items:center;gap:10px;margin:18px 0 6px;color:var(--muted);font-size:12px;}
+  .wa-or + .wa-hint{margin:0 0 14px;}
+  .wa-or::before,.wa-or::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  .wa-p{font-size:13.5px;color:var(--muted);line-height:1.5;margin:0 0 12px;}
+  .wa-small{font-size:12.5px;margin-top:10px;}
+  .wa-warn{color:var(--danger);}
+  .wa-who{font-size:14px;color:var(--ink);margin-bottom:6px;overflow-wrap:anywhere;}
+  .wa-uid{font-size:12px;color:var(--muted);margin-bottom:12px;overflow-wrap:anywhere;}
+  .wa-uid code{font-size:12px;background:var(--bg-soft);padding:2px 6px;border-radius:6px;user-select:all;}
+  .wa-manage{display:flex;align-items:center;justify-content:center;min-height:46px;width:100%;
+    border:1.5px solid var(--danger-line);color:var(--danger);border-radius:24px;padding:12px 22px;
+    font-size:14.5px;font-weight:600;text-decoration:none;text-align:center;}
+  .wa-manage:hover{background:var(--danger-soft);}
+  .wa-wide{width:100%;margin-top:10px;}
+</style>
 </head>
 <body>
 <div class="ticker-bar"><span class="ticker-dot"></span><span id="ticker-text"></span></div>
@@ -1205,6 +1258,7 @@
         </div>
       </div>
       <div class="auth-nav" id="auth-nav"></div>
+      <span class="wa-badges" id="whop-nav"></span>
     </div>
 
     <!-- Phone cluster: the one primary action stays a button, everything else
@@ -1221,6 +1275,7 @@
           <path d="M11 1.8v2.4M11 17.8v2.4M20.2 11h-2.4M4.2 11H1.8M17.5 4.5l-1.7 1.7M6.2 15.8l-1.7 1.7M17.5 17.5l-1.7-1.7M6.2 6.2 4.5 4.5"/>
         </svg>
       </button>
+      <span class="wa-badges wa-badges-m" id="whop-nav-m"></span>
     </div>
   </div>
 </div>
@@ -1343,33 +1398,21 @@
       <h2 data-i18n="pricep.title"></h2>
       <p data-i18n="pricep.sub"></p>
     </div>
-    <div class="price-grid">
-      <div class="price-card">
-        <span class="price-tag" data-i18n="pay.badge90"></span>
-        <div class="price-name" data-i18n="pay.monthly"></div>
-        <div class="price-big">$1.99<small> / month</small></div>
-        <div class="price-sub" data-i18n="pricep.monthsub"></div>
-        <ul class="price-feats" id="price-plus"></ul>
-        <button class="btn-primary" onclick="pickPlanAndGo('monthly')" data-i18n="pricep.choose"></button>
-      </div>
+    <!-- One plan only: monthly on Whop. PLUS is granted by the etsemiq-api worker
+         after "Sign in with Whop", never by anything typed on this page. -->
+    <div class="price-grid wa-single">
       <div class="price-card featured">
-        <span class="price-tag alt" data-i18n="pay.popular"></span>
-        <div class="price-name" data-i18n="pay.sixmonth"></div>
-        <div class="price-big">$89<small> / <span data-i18n="pricep.per6"></span></small></div>
-        <div class="price-sub" data-i18n="pricep.6mosub"></div>
-        <ul class="price-feats" id="price-six"></ul>
-        <button class="btn-primary" onclick="pickPlanAndGo('sixmonth')" data-i18n="pricep.choose"></button>
-      </div>
-      <div class="price-card">
-        <span class="price-tag alt" data-i18n="pay.best"></span>
-        <div class="price-name" data-i18n="pay.annual"></div>
-        <div class="price-big">$149<small> / <span data-i18n="pricep.peryr"></span></small></div>
-        <div class="price-sub" data-i18n="pricep.annualsub"></div>
-        <ul class="price-feats" id="price-annual"></ul>
-        <button class="btn-secondary" onclick="pickPlanAndGo('annual')" data-i18n="pricep.choose"></button>
+        <span class="price-tag" data-i18n="pay.badge90"></span>
+        <div class="price-name" data-i18n="wa.planname"></div>
+        <div class="price-big">$1.99<small> <span data-i18n="wa.firstmonth"></span></small></div>
+        <div class="price-sub" data-i18n="wa.terms"></div>
+        <ul class="price-feats" id="price-plus"></ul>
+        <a class="btn-primary wa-cta" href="https://whop.com/checkout/plan_gov3K39kXZUmB?promoCode=FIRSTMONTH199" onclick="return openCheckout(event)" data-i18n="wa.cta"></a>
+        <p class="wa-member-line"><span data-i18n="wa.already"></span>
+          <button type="button" class="wa-link" onclick="signInWithWhop()" data-i18n="wa.signin"></button></p>
       </div>
     </div>
-    <p class="fine-print" style="text-align:center;" data-i18n="pricep.freenote"></p>
+    <p class="fine-print" style="text-align:center;" data-i18n="wa.freenote"></p>
   </div>
 </section>
 
@@ -1478,74 +1521,21 @@
         <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10l4 4 8-8"/></svg><span data-i18n="pay.f3"></span></li>
         <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10l4 4 8-8"/></svg><span data-i18n="pay.f4"></span></li>
       </ul>
-      <div class="plans-grid">
-        <div class="plan-card" data-plan="monthly" onclick="selectPlan('monthly')">
+      <div class="plans-grid wa-single">
+        <div class="plan-card selected" data-plan="monthly" onclick="selectPlan('monthly')">
           <span class="plan-badge" data-i18n="pay.badge90"></span>
-          <div class="plan-name" data-i18n="pay.monthly"></div>
-          <div class="plan-price-row">$19.99 <span data-i18n="pay.firstmonth"></span></div>
-          <div class="plan-terms" data-i18n="pay.then20"></div>
+          <div class="plan-name" data-i18n="wa.planname"></div>
+          <div class="plan-price-row">$1.99 <span data-i18n="wa.firstmonth"></span></div>
+          <div class="plan-terms" data-i18n="wa.then"></div>
           <div class="plan-sub" data-i18n="pay.cancel"></div>
         </div>
-        <div class="plan-card" data-plan="sixmonth" onclick="selectPlan('sixmonth')">
-          <span class="plan-badge alt" data-i18n="pay.popular"></span>
-          <div class="plan-name" data-i18n="pay.sixmonth"></div>
-          <div class="plan-price-row">$89 <span data-i18n="pay.per6"></span></div>
-          <div class="plan-terms" data-i18n="pay.b89"></div>
-          <div class="plan-sub" data-i18n="pay.save26"></div>
-        </div>
-        <div class="plan-card" data-plan="annual" onclick="selectPlan('annual')">
-          <span class="plan-badge alt" data-i18n="pay.best"></span>
-          <div class="plan-name" data-i18n="pay.annual"></div>
-          <div class="plan-price-row">$149 <span data-i18n="pay.peryr"></span></div>
-          <div class="plan-terms" data-i18n="pay.b149"></div>
-          <div class="plan-sub" data-i18n="pay.save38"></div>
-        </div>
       </div>
-      <button class="btn-unlock" id="btn-unlock" onclick="openCheckout()"></button>
-      <div class="demo-note" data-i18n="pay.demo"></div>
+      <a class="btn-unlock wa-cta" id="btn-unlock" href="https://whop.com/checkout/plan_gov3K39kXZUmB?promoCode=FIRSTMONTH199" onclick="return openCheckout(event)"></a>
+      <p class="wa-member-line wa-on-dark"><span data-i18n="wa.already"></span>
+        <button type="button" class="wa-link" onclick="signInWithWhop()" data-i18n="wa.signin"></button></p>
+      <div class="demo-note" data-i18n="wa.securenote"></div>
     </div>
     <button class="retake-link" onclick="retakeTest()" data-i18n="btn.retake"></button>
-  </div>
-</section>
-
-<!-- CHECKOUT -->
-<section id="screen-checkout" class="screen">
-  <div class="form-shell">
-    <button class="back-link" id="checkout-back" onclick="checkoutBack()" data-i18n="btn.backresults"></button>
-    <div class="form-card">
-      <div class="demo-banner" data-i18n="co.demo"></div>
-      <div class="checkout-summary">
-        <div class="plan-label" id="checkout-plan-label"></div>
-        <div class="plan-amount" id="checkout-plan-amount"></div>
-      </div>
-      <!-- Every figure the buyer was shown must match what the card is actually
-           charged. This box spells out today's amount and every future charge. -->
-      <div class="terms-box" id="checkout-terms"></div>
-      <div class="field-group"><label class="field-label" data-i18n="co.name"></label>
-        <input class="form-input" id="co-name"><div class="field-error" id="err-name"></div></div>
-      <div class="field-group"><label class="field-label" data-i18n="co.card"></label>
-        <div class="card-number-wrap">
-          <input class="form-input" id="co-number" placeholder="1234 1234 1234 1234" inputmode="numeric" maxlength="23" oninput="formatCardNumber(this)">
-          <span class="card-brand-tag" id="co-brand"></span>
-        </div><div class="field-error" id="err-number"></div></div>
-      <div class="field-row-2">
-        <div class="field-group"><label class="field-label" data-i18n="co.exp"></label>
-          <input class="form-input" id="co-expiry" placeholder="MM/YY" inputmode="numeric" maxlength="5" oninput="formatExpiry(this)">
-          <div class="field-error" id="err-expiry"></div></div>
-        <div class="field-group"><label class="field-label">CVC</label>
-          <input class="form-input" id="co-cvc" placeholder="123" inputmode="numeric" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')">
-          <div class="field-error" id="err-cvc"></div></div>
-      </div>
-      <div class="field-group"><label class="field-label" data-i18n="co.zip"></label>
-        <input class="form-input" id="co-zip"><div class="field-error" id="err-zip"></div></div>
-      <button class="btn-pay" id="btn-pay" onclick="validateAndPay()">
-        <span class="spinner" id="pay-spinner"></span><span id="pay-btn-label"></span>
-      </button>
-      <div class="secure-note">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="9" width="12" height="8" rx="1.5"/><path d="M6.5 9V6.5a3.5 3.5 0 0 1 7 0V9"/></svg>
-        <span data-i18n="co.secure"></span>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -1554,14 +1544,14 @@
   <div class="form-shell">
     <div class="form-card">
       <h2 data-i18n="auth.suptitle"></h2>
-      <div class="sub" data-i18n="auth.supsub"></div>
-      <div class="field-group"><label class="field-label" data-i18n="auth.name"></label>
-        <input class="form-input" id="su-name"><div class="field-error" id="err-su-name"></div></div>
-      <div class="field-group"><label class="field-label" data-i18n="auth.email"></label>
-        <input class="form-input" id="su-email" type="email"><div class="field-error" id="err-su-email"></div></div>
-      <div class="field-group"><label class="field-label" data-i18n="auth.pass"></label>
-        <input class="form-input" id="su-pass" type="password"><div class="field-error" id="err-su-pass"></div></div>
-      <button class="btn-pay" onclick="doSignup()"><span data-i18n="auth.createbtn"></span></button>
+      <div class="sub" data-i18n="wa.supsub"></div>
+      <div class="field-group"><label class="field-label" for="su-name" data-i18n="auth.name"></label>
+        <input class="form-input" id="su-name" autocomplete="name"><div class="field-error" id="err-su-name"></div></div>
+      <div class="field-group"><label class="field-label" for="su-email" data-i18n="auth.email"></label>
+        <input class="form-input" id="su-email" type="email" autocomplete="email"><div class="field-error" id="err-su-email"></div></div>
+      <div class="field-group"><label class="field-label" for="su-pass" data-i18n="auth.pass"></label>
+        <input class="form-input" id="su-pass" type="password" autocomplete="new-password"><div class="field-error" id="err-su-pass"></div></div>
+      <button class="btn-pay" onclick="doSignup()"><span data-i18n="wa.createfree"></span></button>
       <div class="form-switch"><span data-i18n="auth.haveacct"></span>
         <button onclick="showScreen('screen-login')" data-i18n="auth.login"></button></div>
     </div>
@@ -1574,14 +1564,18 @@
     <button class="back-link" onclick="goHome()" data-i18n="btn.backhome"></button>
     <div class="form-card">
       <h2 data-i18n="auth.logintitle"></h2>
-      <div class="sub" data-i18n="auth.loginsub"></div>
-      <div class="field-group"><label class="field-label" data-i18n="auth.email"></label>
-        <input class="form-input" id="li-email" type="email"><div class="field-error" id="err-li-email"></div></div>
-      <div class="field-group"><label class="field-label" data-i18n="auth.pass"></label>
-        <input class="form-input" id="li-pass" type="password"><div class="field-error" id="err-li-pass"></div></div>
+      <div class="sub" data-i18n="wa.loginsub"></div>
+      <button type="button" class="wa-whop-btn" onclick="signInWithWhop()"><svg class="wa-logo" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5l2.6 7 2.4-5.4 2 5.4 2-5.4 2.4 5.4L17 6.5"/></svg><span data-i18n="wa.signin"></span></button>
+      <p class="wa-hint" data-i18n="wa.loginhint"></p>
+      <div class="wa-or" role="separator"><span data-i18n="wa.or"></span></div>
+      <p class="wa-hint" data-i18n="wa.localnote"></p>
+      <div class="field-group"><label class="field-label" for="li-email" data-i18n="auth.email"></label>
+        <input class="form-input" id="li-email" type="email" autocomplete="email"><div class="field-error" id="err-li-email"></div></div>
+      <div class="field-group"><label class="field-label" for="li-pass" data-i18n="auth.pass"></label>
+        <input class="form-input" id="li-pass" type="password" autocomplete="current-password"><div class="field-error" id="err-li-pass"></div></div>
       <button class="btn-pay" onclick="doLogin()"><span data-i18n="auth.login"></span></button>
       <div class="form-switch"><span data-i18n="auth.noacct"></span>
-        <button onclick="showScreen('screen-prequiz')" data-i18n="auth.takefree"></button></div>
+        <button onclick="showScreen('screen-signup')" data-i18n="wa.createone"></button></div>
     </div>
   </div>
 </section>
@@ -1737,7 +1731,6 @@
       <div class="settings-row"><span class="lbl" data-i18n="auth.email"></span><span class="val" id="set-email"></span></div>
       <div class="settings-row"><span class="lbl" data-i18n="set.plan"></span><span class="val" id="set-plan"></span></div>
       <div class="settings-row"><span class="lbl" data-i18n="set.since"></span><span class="val" id="set-since"></span></div>
-      <div class="settings-row"><span class="lbl" data-i18n="set.nextcharge"></span><span class="val" id="set-next"></span></div>
     </div>
 
     <!-- MEMBERSHIP / CANCEL -->
@@ -1772,27 +1765,6 @@
       <div class="lang-settings-grid" id="set-lang-grid"></div>
     </div>
 
-    <div class="settings-card">
-      <h3 data-i18n="set.billing"></h3>
-      <div class="demo-banner" data-i18n="co.demo"></div>
-      <div class="field-group"><label class="field-label" data-i18n="co.name"></label>
-        <input class="form-input" id="bill-name"></div>
-      <div class="field-group"><label class="field-label" data-i18n="co.card"></label>
-        <div class="card-number-wrap">
-          <input class="form-input" id="bill-number" placeholder="1234 1234 1234 1234" inputmode="numeric" maxlength="23" oninput="formatCardNumber(this,'bill-brand')">
-          <span class="card-brand-tag" id="bill-brand"></span>
-        </div></div>
-      <div class="field-row-2">
-        <div class="field-group"><label class="field-label" data-i18n="co.exp"></label>
-          <input class="form-input" id="bill-expiry" placeholder="MM/YY" inputmode="numeric" maxlength="5" oninput="formatExpiry(this)"></div>
-        <div class="field-group"><label class="field-label">CVC</label>
-          <input class="form-input" id="bill-cvc" placeholder="123" inputmode="numeric" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')"></div>
-      </div>
-      <div class="field-group"><label class="field-label" data-i18n="co.zip"></label>
-        <input class="form-input" id="bill-zip"></div>
-      <button class="btn-pay" onclick="saveBilling()"><span data-i18n="set.savebilling"></span></button>
-      <div class="save-toast" id="bill-toast"></div>
-    </div>
   </div>
 </section>
 
@@ -1989,12 +1961,12 @@ en:{
 'pricep.per6':'6 months','pricep.peryr':'year',
 'cyc.mo':'month','cyc.6mo':'6 months','cyc.yr':'year',
 'co.today':'Charged today','co.thenevery':'Then every {cycle}','co.nextcharge':'Next charge',
-'co.cancelnote':'This is a subscription and it renews automatically. You can cancel at any time from Account settings — cancelling takes effect immediately and stops every future charge.',
+'co.cancelnote':'This is a subscription that renews automatically: $1.99 for the first month, then $19.99 every month. To cancel, open Account settings → Cancel / manage subscription, which takes you to your orders on Whop. Cancelling there stops the next renewal, and you keep PLUS until the end of the period you already paid for.',
 'btn.backpricing':'← Back to plans',
 'set.nextcharge':'Next charge','set.membership':'Membership','set.cancelbtn':'Cancel membership',
 'set.cancelconfirm':'Cancelling ends your membership right now. You lose the full report, the certificate and the training games, and you will not be charged again.',
 'set.keepplan':'Keep my plan','set.cancelyes':'Yes, cancel now',
-'set.canceldone':'Your membership has been cancelled. No further charges will be made.',
+'set.canceldone':'Cancelling happens on Whop. Once you cancel there, Whop stops the next renewal and you keep PLUS until the end of the period you already paid for.',
 'set.cancelled':'Cancelled on {date}. No further charges will be made.',
 'set.nomember':'You do not have an active membership.','set.resub':'See plans','set.nofuture':'None',
 'pref.todark':'Switch to night mode','pref.tolight':'Switch to day mode',
@@ -2110,12 +2082,12 @@ he:{
 'pricep.per6':'6 חודשים','pricep.peryr':'שנה',
 'cyc.mo':'חודש','cyc.6mo':'6 חודשים','cyc.yr':'שנה',
 'co.today':'חיוב היום','co.thenevery':'ואז כל {cycle}','co.nextcharge':'החיוב הבא',
-'co.cancelnote':'זהו מנוי שמתחדש אוטומטית. אפשר לבטל בכל עת בהגדרות החשבון — הביטול נכנס לתוקף מיד ומפסיק כל חיוב עתידי.',
+'co.cancelnote':'זהו מנוי שמתחדש אוטומטית: $1.99 לחודש הראשון, ואז $19.99 בכל חודש. כדי לבטל, פתחו את הגדרות החשבון ← ביטול / ניהול מנוי, שמעביר אתכם להזמנות שלכם ב-Whop. ביטול שם עוצר את החידוש הבא, ו-PLUS נשאר פעיל עד סוף התקופה ששילמתם עליה.',
 'btn.backpricing':'← חזרה לתוכניות',
 'set.nextcharge':'החיוב הבא','set.membership':'מנוי','set.cancelbtn':'ביטול מנוי',
 'set.cancelconfirm':'ביטול מסיים את המנוי מיד. תאבדו את הדוח המלא, התעודה ומשחקי האימון, ולא תחויבו שוב.',
 'set.keepplan':'להשאיר את התוכנית','set.cancelyes':'כן, בטלו עכשיו',
-'set.canceldone':'המנוי בוטל. לא יבוצעו חיובים נוספים.',
+'set.canceldone':'הביטול מתבצע ב-Whop. אחרי שמבטלים שם, Whop עוצר את החידוש הבא ו-PLUS נשאר פעיל עד סוף התקופה ששילמתם עליה.',
 'set.cancelled':'בוטל ב-{date}. לא יבוצעו חיובים נוספים.',
 'set.nomember':'אין לכם מנוי פעיל.','set.resub':'לצפייה בתוכניות','set.nofuture':'אין',
 'pref.todark':'מעבר למצב לילה','pref.tolight':'מעבר למצב יום',
@@ -2231,12 +2203,12 @@ es:{
 'pricep.per6':'6 meses','pricep.peryr':'año',
 'cyc.mo':'mes','cyc.6mo':'6 meses','cyc.yr':'año',
 'co.today':'Cobro de hoy','co.thenevery':'Después, cada {cycle}','co.nextcharge':'Próximo cobro',
-'co.cancelnote':'Es una suscripción y se renueva automáticamente. Puedes cancelarla cuando quieras desde Ajustes de la cuenta — la cancelación es inmediata y detiene todos los cobros futuros.',
+'co.cancelnote':'Es una suscripción que se renueva automáticamente: $1.99 el primer mes y luego $19.99 cada mes. Para cancelar, abre Ajustes de la cuenta → Cancelar / gestionar suscripción, que te lleva a tus pedidos en Whop. Al cancelar allí se detiene la próxima renovación y conservas PLUS hasta el final del periodo que ya pagaste.',
 'btn.backpricing':'← Volver a los planes',
 'set.nextcharge':'Próximo cobro','set.membership':'Suscripción','set.cancelbtn':'Cancelar suscripción',
 'set.cancelconfirm':'Cancelar termina tu suscripción ahora mismo. Pierdes el informe completo, el certificado y los juegos de entrenamiento, y no se te volverá a cobrar.',
 'set.keepplan':'Mantener mi plan','set.cancelyes':'Sí, cancelar ahora',
-'set.canceldone':'Tu suscripción ha sido cancelada. No se realizarán más cobros.',
+'set.canceldone':'La cancelación se hace en Whop. Cuando canceles allí, Whop detiene la próxima renovación y conservas PLUS hasta el final del periodo que ya pagaste.',
 'set.cancelled':'Cancelada el {date}. No se realizarán más cobros.',
 'set.nomember':'No tienes una suscripción activa.','set.resub':'Ver planes','set.nofuture':'Ninguno',
 'pref.todark':'Cambiar a modo noche','pref.tolight':'Cambiar a modo día',
@@ -2352,12 +2324,12 @@ ru:{
 'pricep.per6':'6 месяцев','pricep.peryr':'год',
 'cyc.mo':'месяц','cyc.6mo':'6 месяцев','cyc.yr':'год',
 'co.today':'Списание сегодня','co.thenevery':'Затем каждые {cycle}','co.nextcharge':'Следующее списание',
-'co.cancelnote':'Это подписка, она продлевается автоматически. Отменить можно в любой момент в настройках аккаунта — отмена действует сразу и прекращает все будущие списания.',
+'co.cancelnote':'Это подписка с автопродлением: $1.99 за первый месяц, затем $19.99 каждый месяц. Чтобы отменить, откройте «Настройки аккаунта» → «Отменить / управлять подпиской»: откроются ваши заказы на Whop. Отмена там останавливает следующее продление, а PLUS остаётся до конца уже оплаченного периода.',
 'btn.backpricing':'← Назад к тарифам',
 'set.nextcharge':'Следующее списание','set.membership':'Подписка','set.cancelbtn':'Отменить подписку',
 'set.cancelconfirm':'Отмена завершает подписку немедленно. Вы теряете полный отчёт, сертификат и тренировочные игры, и списаний больше не будет.',
 'set.keepplan':'Оставить тариф','set.cancelyes':'Да, отменить',
-'set.canceldone':'Подписка отменена. Дальнейших списаний не будет.',
+'set.canceldone':'Отмена делается на Whop. После отмены там Whop не продлит подписку, а PLUS останется до конца уже оплаченного периода.',
 'set.cancelled':'Отменена {date}. Дальнейших списаний не будет.',
 'set.nomember':'У вас нет активной подписки.','set.resub':'Посмотреть тарифы','set.nofuture':'Нет',
 'pref.todark':'Перейти в ночной режим','pref.tolight':'Перейти в дневной режим',
@@ -2473,12 +2445,12 @@ ar:{
 'pricep.per6':'6 أشهر','pricep.peryr':'سنة',
 'cyc.mo':'شهر','cyc.6mo':'6 أشهر','cyc.yr':'سنة',
 'co.today':'المبلغ المخصوم اليوم','co.thenevery':'ثم كل {cycle}','co.nextcharge':'الخصم التالي',
-'co.cancelnote':'هذا اشتراك يتجدد تلقائياً. يمكنك الإلغاء في أي وقت من إعدادات الحساب — يسري الإلغاء فوراً ويوقف كل خصم مستقبلي.',
+'co.cancelnote':'هذا اشتراك يتجدد تلقائياً: 1.99$ للشهر الأول، ثم 19.99$ كل شهر. للإلغاء افتح إعدادات الحساب ← إلغاء / إدارة الاشتراك، فينقلك إلى طلباتك على Whop. الإلغاء هناك يوقف التجديد التالي، ويبقى PLUS فعّالاً حتى نهاية الفترة التي دفعت ثمنها.',
 'btn.backpricing':'← العودة إلى الخطط',
 'set.nextcharge':'الخصم التالي','set.membership':'العضوية','set.cancelbtn':'إلغاء العضوية',
 'set.cancelconfirm':'الإلغاء ينهي عضويتك الآن. ستفقد التقرير الكامل والشهادة وألعاب التدريب، ولن يتم خصم أي مبلغ آخر.',
 'set.keepplan':'الاحتفاظ بخطتي','set.cancelyes':'نعم، ألغِ الآن',
-'set.canceldone':'تم إلغاء عضويتك. لن تتم أي خصومات أخرى.',
+'set.canceldone':'يتم الإلغاء على Whop. بعد الإلغاء هناك يوقف Whop التجديد التالي، ويبقى PLUS فعّالاً حتى نهاية الفترة التي دفعت ثمنها.',
 'set.cancelled':'أُلغيت في {date}. لن تتم أي خصومات أخرى.',
 'set.nomember':'ليس لديك عضوية نشطة.','set.resub':'عرض الخطط','set.nofuture':'لا يوجد',
 'pref.todark':'التبديل إلى الوضع الليلي','pref.tolight':'التبديل إلى الوضع النهاري',
@@ -2519,7 +2491,7 @@ en:{
   'set.membership':'PLUS membership','set.cancelbtn':'Cancel PLUS','set.keepplan':'Keep PLUS',
   'set.nomember':'You do not have an active PLUS membership.','set.resub':'See PLUS plans',
   'set.cancelconfirm':'Cancelling ends PLUS right now. You lose the full report, the certificate and the training games, and you will not be charged again.',
-  'set.canceldone':'Your PLUS membership has been cancelled. No further charges will be made.',
+  'set.canceldone':'Cancelling happens on Whop. Once you cancel there, Whop stops the next renewal and you keep PLUS until the end of the period you already paid for.',
   'plan.plus':'Etsem.IQ PLUS','plan.free':'Free','plan.none':'No PLUS membership',
   'plus.locktitle':'Unlock this game with PLUS',
   'plus.lockbody':'{game} is part of Etsem.IQ PLUS. Members get every training mode, every level, the exact score and the certificate.',
@@ -2571,7 +2543,7 @@ he:{
   'set.membership':'מנוי PLUS','set.cancelbtn':'ביטול PLUS','set.keepplan':'להשאיר את PLUS',
   'set.nomember':'אין לכם מנוי PLUS פעיל.','set.resub':'לתוכניות PLUS',
   'set.cancelconfirm':'הביטול מסיים את PLUS מיד. תאבדו את הדוח המלא, התעודה ומשחקי האימון, ולא תחויבו שוב.',
-  'set.canceldone':'מנוי ה-PLUS בוטל. לא יבוצעו חיובים נוספים.',
+  'set.canceldone':'הביטול מתבצע ב-Whop. אחרי שמבטלים שם, Whop עוצר את החידוש הבא ו-PLUS נשאר פעיל עד סוף התקופה ששילמתם עליה.',
   'plan.plus':'Etsem.IQ PLUS','plan.free':'חינם','plan.none':'אין מנוי PLUS',
   'plus.locktitle':'פתחו את המשחק הזה עם PLUS',
   'plus.lockbody':'{game} הוא חלק מ-Etsem.IQ PLUS. חברי PLUS מקבלים את כל מצבי האימון, כל השלבים, הציון המדויק והתעודה.',
@@ -2619,7 +2591,7 @@ es:{
   'set.membership':'Membresía PLUS','set.cancelbtn':'Cancelar PLUS','set.keepplan':'Mantener PLUS',
   'set.nomember':'No tienes una membresía PLUS activa.','set.resub':'Ver planes PLUS',
   'set.cancelconfirm':'Cancelar termina PLUS ahora mismo. Pierdes el informe completo, el certificado y los juegos, y no se te volverá a cobrar.',
-  'set.canceldone':'Tu membresía PLUS ha sido cancelada. No se harán más cargos.',
+  'set.canceldone':'La cancelación se hace en Whop. Cuando canceles allí, Whop detiene la próxima renovación y conservas PLUS hasta el final del periodo que ya pagaste.',
   'plan.plus':'Etsem.IQ PLUS','plan.free':'Gratis','plan.none':'Sin membresía PLUS',
   'plus.locktitle':'Desbloquea este juego con PLUS',
   'plus.lockbody':'{game} es parte de Etsem.IQ PLUS. Los miembros obtienen todos los modos, todos los niveles, la puntuación exacta y el certificado.',
@@ -2667,7 +2639,7 @@ ru:{
   'set.membership':'Подписка PLUS','set.cancelbtn':'Отменить PLUS','set.keepplan':'Оставить PLUS',
   'set.nomember':'У вас нет активной подписки PLUS.','set.resub':'Тарифы PLUS',
   'set.cancelconfirm':'Отмена завершает PLUS немедленно. Вы теряете полный отчёт, сертификат и игры, и списаний больше не будет.',
-  'set.canceldone':'Подписка PLUS отменена. Списаний больше не будет.',
+  'set.canceldone':'Отмена делается на Whop. После отмены там Whop не продлит подписку, а PLUS останется до конца уже оплаченного периода.',
   'plan.plus':'Etsem.IQ PLUS','plan.free':'Бесплатно','plan.none':'Нет подписки PLUS',
   'plus.locktitle':'Откройте эту игру с PLUS',
   'plus.lockbody':'{game} входит в Etsem.IQ PLUS. Участники получают все режимы, все уровни, точный балл и сертификат.',
@@ -2715,7 +2687,7 @@ ar:{
   'set.membership':'عضوية PLUS','set.cancelbtn':'إلغاء PLUS','set.keepplan':'الإبقاء على PLUS',
   'set.nomember':'ليس لديك عضوية PLUS نشطة.','set.resub':'عرض خطط PLUS',
   'set.cancelconfirm':'الإلغاء ينهي PLUS فوراً. ستفقد التقرير الكامل والشهادة وألعاب التدريب، ولن يتم خصم أي مبلغ آخر.',
-  'set.canceldone':'تم إلغاء عضوية PLUS. لن تُجرى أي خصومات أخرى.',
+  'set.canceldone':'يتم الإلغاء على Whop. بعد الإلغاء هناك يوقف Whop التجديد التالي، ويبقى PLUS فعّالاً حتى نهاية الفترة التي دفعت ثمنها.',
   'plan.plus':'Etsem.IQ PLUS','plan.free':'مجاني','plan.none':'لا توجد عضوية PLUS',
   'plus.locktitle':'افتح هذه اللعبة مع PLUS',
   'plus.lockbody':'‏{game} جزء من Etsem.IQ PLUS. يحصل الأعضاء على كل أنماط التدريب وكل المستويات والدرجة الدقيقة والشهادة.',
@@ -3567,6 +3539,378 @@ function loc(v){
   return v[lang]||v.en||'';
 }
 </script>
+<script id="whop-auth">
+/* ==================== WHOP AUTH: PLUS + ADMIN ENTITLEMENT ====================
+   PLUS and Admin are decided ONLY by the etsemiq-api worker (api/ in this repo),
+   which asks Whop server-side after "Sign in with Whop". This module carries the
+   worker's signed answer and nothing else:
+   - after sign-in the worker redirects to #whop_session=<token>; the token is
+     stored and stripped from the URL before anything else runs;
+   - GET /me re-checks it (the worker re-verifies with Whop about once an hour)
+     and returns {plus, admin, exp, user};
+   - that answer is cached until its exp, and then access fails closed.
+   Local email/password accounts are free accounts and never grant PLUS. Old
+   `plus` flags in localStorage are ignored. Setup: docs/WHOP-AUTH-SETUP.md */
+const ETSEM_API = 'https://api.etsemiq.com';
+const WHOP_MANAGE_URL = 'https://whop.com/@me/settings/orders/';
+const WA_TOKEN = 'etsem_whop_token', WA_ENT = 'etsem_whop_ent', WA_CO = 'etsem_checkout_started';
+
+function waGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function waSet(k,v){ try{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){} }
+function waEsc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+/* The API base can be overridden (localStorage etsem_api) for testing, but only
+   on localhost or file://, so a value planted on the live site does nothing. */
+function waIsLocal(){
+  try{ const h=location.hostname; return location.protocol==='file:'||h==='localhost'||h==='127.0.0.1'||h==='[::1]'; }
+  catch(e){ return false; }
+}
+function whopApiBase(){
+  if(waIsLocal()){
+    const o=waGet('etsem_api');
+    if(o && /^https?:\/\/[A-Za-z0-9.\-]+(:\d+)?$/.test(o)) return o;
+  }
+  return ETSEM_API;
+}
+
+let waEnt=null;          /* {plus, admin, exp, user:{id, username}}, as last confirmed by /me */
+let waState='idle';      /* idle | checking | ok | offline */
+let waFresh=null;        /* 'login' | 'return' | 'err:<code>' for this page load */
+function waParseEnt(e){
+  if(!e || typeof e!=='object' || typeof e.exp!=='number' || !e.user || typeof e.user.id!=='string') return null;
+  return {plus:e.plus===true, admin:e.admin===true, exp:e.exp,
+          user:{id:e.user.id.slice(0,80), username:String(e.user.username||'').slice(0,64)}};
+}
+try{ waEnt=waParseEnt(JSON.parse(waGet(WA_ENT)||'null')); }catch(e){ waEnt=null; }
+
+function waValid(){ return !!(waEnt && waGet(WA_TOKEN) && waEnt.exp*1000>Date.now()); }
+function whopEntitled(){ return waValid() && waEnt.plus===true; }
+function isAdmin(){ return waValid() && waEnt.admin===true; }
+function whopSignedIn(){ return waValid(); }
+function whopUser(){ return waValid() ? waEnt.user : null; }
+function waClear(){ waSet(WA_TOKEN,null); waSet(WA_ENT,null); waEnt=null; }
+
+/* Boot, before any other script: take the token (or error) out of the URL. */
+(function waConsumeUrl(){
+  let h='', q=null;
+  try{ h=location.hash||''; q=new URLSearchParams(location.search); }catch(e){}
+  const tok=/[#&]whop_session=([A-Za-z0-9_.\-]{20,4096})/.exec(h);
+  const err=/[#&]whop_error=([a-z_]{1,32})/.exec(h);
+  const ret=!!(q && q.get('whop')==='return');
+  if(tok){ waClear(); waSet(WA_TOKEN,tok[1]); waSet(WA_CO,null); waFresh='login'; }
+  else if(err){ waFresh='err:'+err[1]; }
+  else if(ret){ waFresh='return'; }
+  if(!(tok||err||ret)) return;
+  try{
+    if(q) q.delete('whop');
+    const qs=q&&q.toString();
+    history.replaceState(history.state,'',location.pathname+(qs?'?'+qs:''));
+  }catch(e){
+    try{ location.hash=''; }catch(e2){}
+  }
+})();
+
+let waInflight=null;
+/* Re-checks the stored token with GET /me. Resolves 'ok' | 'signedout' | 'offline'. */
+function whopRefresh(){
+  const tok=waGet(WA_TOKEN);
+  if(!tok){ waEnt=null; waSet(WA_ENT,null); waState='idle'; return Promise.resolve('signedout'); }
+  if(waInflight) return waInflight;
+  waState='checking';
+  const ctl=(typeof AbortController==='function')?new AbortController():null;
+  const timer=setTimeout(()=>{ if(ctl) ctl.abort(); },8000);
+  waInflight=fetch(whopApiBase()+'/me',{headers:{'Authorization':'Bearer '+tok},cache:'no-store',
+      credentials:'omit',signal:ctl?ctl.signal:undefined})
+    .then(r=>{
+      if(r.status===401){ waClear(); return 'signedout'; }
+      if(!r.ok) throw new Error('me '+r.status);
+      return r.json().then(b=>{
+        const ent=waParseEnt(b);
+        if(!ent) throw new Error('me body');
+        if(typeof b.token==='string' && /^[A-Za-z0-9_.\-]{20,4096}$/.test(b.token)) waSet(WA_TOKEN,b.token);
+        waEnt=ent; waSet(WA_ENT,JSON.stringify(ent));
+        return 'ok';
+      });
+    })
+    /* Unreachable or 5xx: keep the last signed answer only until its own exp
+       (waValid checks that), so PLUS fails closed once it runs out. */
+    .catch(()=>'offline')
+    .then(res=>{ waState=res==='ok'?'ok':(res==='offline'?'offline':'idle');
+                 clearTimeout(timer); waInflight=null; waApplyUI(); return res; });
+  return waInflight;
+}
+
+function waPing(){
+  const ctl=(typeof AbortController==='function')?new AbortController():null;
+  const timer=setTimeout(()=>{ if(ctl) ctl.abort(); },5000);
+  return fetch(whopApiBase()+'/health',{mode:'no-cors',cache:'no-store',credentials:'omit',signal:ctl?ctl.signal:undefined})
+    .then(()=>true,()=>false).then(ok=>{ clearTimeout(timer); return ok; });
+}
+function waReturnUrl(){
+  try{ if(/^https?:$/.test(location.protocol)) return location.origin+location.pathname; }catch(e){}
+  return 'https://etsemiq.com/';
+}
+/* Top-level navigation to the worker, which runs OAuth (state + PKCE) with Whop. */
+function signInWithWhop(){
+  return waPing().then(ok=>{
+    if(!ok){ waShowOffline(signInWithWhop); return false; }
+    location.href=whopApiBase()+'/auth/login?return='+encodeURIComponent(waReturnUrl());
+    return true;
+  });
+}
+function signOutWhop(){
+  const tok=waGet(WA_TOKEN);
+  waClear(); waState='idle';
+  if(tok){
+    try{ fetch(whopApiBase()+'/auth/logout',{method:'POST',headers:{'Authorization':'Bearer '+tok},
+      credentials:'omit',keepalive:true}).catch(()=>{}); }catch(e){}
+  }
+  const onSettings=document.getElementById('screen-settings');
+  if(onSettings && onSettings.classList.contains('active') && !currentUser){ goHome(); }
+  waApplyUI();
+}
+/* Remembered so that a visitor who comes back from Whop's checkout is offered
+   the sign-in that actually unlocks PLUS. */
+function whopNoteCheckout(){ waSet(WA_CO,String(Date.now())); }
+
+function waBadge(kind){
+  return kind==='admin'
+    ? `<span class="wa-badge wa-admin">${waEsc(t('wa.adminbadge'))}</span>`
+    : `<span class="wa-badge wa-plus">PLUS</span>`;
+}
+function waRenderBadges(){
+  const kind=isAdmin()?'admin':(whopEntitled()?'plus':null);
+  const d=document.getElementById('whop-nav'), m=document.getElementById('whop-nav-m');
+  if(d) d.innerHTML=kind
+    ? `<button type="button" class="wa-badge-btn" onclick="openSettings()" aria-label="${waEsc(t('set.title'))}">${waBadge(kind)}</button>`
+    : '';
+  if(m) m.innerHTML=kind?waBadge(kind):'';
+}
+function waApplyUI(){
+  const on=id=>{ const e=document.getElementById(id); return !!(e && e.classList.contains('active')); };
+  try{ waRenderBadges(); }catch(e){}
+  try{ if(typeof renderAuthNav==='function') renderAuthNav(); }catch(e){}
+  try{ if(typeof renderMobileMenu==='function') renderMobileMenu(); }catch(e){}
+  try{
+    if(on('screen-settings') && typeof renderSettings==='function') renderSettings();
+    if(on('screen-games') && typeof renderGamesHub==='function') renderGamesHub();
+    if(on('screen-lobby') && typeof renderLobby==='function') renderLobby();
+  }catch(e){}
+}
+
+function waDialog(cfg){ if(typeof openDialog==='function') openDialog(cfg); }
+function waShowOffline(retry){
+  waDialog({bob:'thinking', title:t('wa.off.t'), body:t('wa.off.b'),
+    actions:[{label:t('wa.retry'),kind:'primary',fn:retry||null},{label:t('plus.later'),kind:'ghost',fn:null}]});
+}
+function waShowError(code){
+  const key={denied:'wa.err.denied',state:'wa.err.state',unavailable:'wa.off.b'}[code]||'wa.err.oauth';
+  waDialog({bob:'thinking', title:t('wa.err.t'), body:t(key),
+    actions:[{label:t('wa.signin'),kind:'primary',fn:signInWithWhop},{label:t('plus.later'),kind:'ghost',fn:null}]});
+}
+function waShowReturnPrompt(){
+  waDialog({bob:'plus', title:t('wa.ret.t'), body:t('wa.ret.b'),
+    actions:[{label:t('wa.signin'),kind:'primary',fn:signInWithWhop},{label:t('plus.later'),kind:'ghost',fn:null}]});
+}
+function waShowNoMembership(){
+  const u=whopUser(), who=u?('<b><bdi>'+waEsc(u.username?'@'+u.username:u.id)+'</bdi></b>'):'';
+  waDialog({bob:'plus', title:t('wa.nomem.t'), body:t('wa.nomem.b').replace('{user}',who),
+    actions:[{label:t('wa.cta'),kind:'primary',fn:()=>openCheckout()},{label:t('plus.later'),kind:'ghost',fn:null}]});
+}
+function waUnlocked(){
+  if(window._reportData && typeof finishUnlock==='function'){ finishUnlock(); return; }
+  if(typeof renderLobby==='function'){ renderLobby(); showScreen('screen-lobby'); }
+  if(typeof bobMoment==='function') bobMoment('celebrate',t('wa.unlocked'),4200);
+}
+function waAfterLogin(res){
+  if(res==='ok'){ if(whopEntitled()) waUnlocked(); else waShowNoMembership(); }
+  else if(res==='offline') waShowOffline(()=>whopRefresh().then(waAfterLogin));
+  else waShowError('oauth');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  waRenderBadges();
+  const fresh=waFresh; waFresh=null;
+  if(fresh && fresh.indexOf('err:')===0){ waShowError(fresh.slice(4)); }
+  else if(!fresh || fresh==='return'){
+    const co=+(waGet(WA_CO)||0);
+    if(!whopEntitled() && (fresh==='return' || (co && Date.now()-co<6*3600e3))){
+      waSet(WA_CO,null);
+      waShowReturnPrompt();
+    }
+  }
+  const p=whopRefresh();
+  if(fresh==='login') p.then(waAfterLogin);
+});
+
+/* ---- strings (merged into T the same way T_EXT is) ---- */
+const T_WHOP={
+en:{
+'wa.signin':'Sign in with Whop','wa.already':'Already a member?','wa.or':'or',
+'wa.planname':'Etsem.IQ PLUS · Monthly','wa.firstmonth':'first month',
+'wa.then':'then $19.99/month','wa.terms':'$1.99 for your first month, then $19.99/month. Cancel anytime.',
+'wa.cta':'Get PLUS: $1.99 today','wa.securenote':'Checkout is on Whop. Your card details go to Whop, never to this site.',
+'wa.freenote':'The 30-question test and your estimated range are always free. PLUS unlocks the full report, the certificate and the training games.',
+'wa.loginsub':'PLUS members: sign in with Whop. You can also use a free account to keep your results on this device.',
+'wa.loginhint':'Use the Whop account you paid with. That is what unlocks PLUS.',
+'wa.localnote':'Free account: saves your results and game progress in this browser. It does not include PLUS.',
+'wa.supsub':'A free account saves your results, certificate and game progress in this browser. PLUS comes only from a Whop membership.',
+'wa.createfree':'Create free account','wa.createone':'Create a free one',
+'wa.err.name':'Enter your name','wa.err.email':'Enter a valid email','wa.err.pass':'At least 6 characters',
+'wa.err.taken':'That email already has an account','wa.err.login':'Email or password is incorrect',
+'wa.ret.t':'Sign in with Whop to unlock PLUS',
+'wa.ret.b':'Finished checkout on Whop? Sign in with the same Whop account you paid with and PLUS unlocks right away.',
+'wa.nomem.t':'No PLUS membership found',
+'wa.nomem.b':'You are signed in with Whop as {user}, but this Whop account has no active Etsem.IQ PLUS membership. If you paid with a different Whop account, sign out in Account settings and sign in with that one.',
+'wa.off.t':'Can’t reach the sign-in service',
+'wa.off.b':'We couldn’t confirm your membership just now. The free test and free content still work. Check your connection and try again.',
+'wa.retry':'Try again','wa.err.t':'Sign-in didn’t finish',
+'wa.err.denied':'Sign-in was cancelled on Whop. Nothing was changed.',
+'wa.err.state':'That sign-in expired or was started in another browser. Please try again.',
+'wa.err.oauth':'Whop couldn’t complete the sign-in. Please try again.',
+'wa.unlocked':'PLUS is unlocked. Everything is open.',
+'wa.signedin':'Signed in with Whop as {user}','wa.notsigned':'You are not signed in with Whop.',
+'wa.uid':'Whop user ID','wa.signout':'Sign out of Whop','wa.adminbadge':'Admin',
+'wa.plusactive':'PLUS is active on your Whop account.',
+'wa.adminnote':'Admin access: everything is unlocked. The server grants this to your Whop account; nothing typed on this site can.',
+'wa.manage':'Cancel / manage subscription',
+'wa.managenote':'Whop handles billing, receipts and cancellation. This opens your orders on Whop in a new tab.',
+'wa.nomember':'This Whop account has no active PLUS membership.',
+'wa.stale':'We couldn’t reach the membership service, so this shows your last confirmed status.'
+},
+he:{
+'wa.signin':'התחברות עם Whop','wa.already':'כבר מנויים?','wa.or':'או',
+'wa.planname':'Etsem.IQ PLUS · חודשי','wa.firstmonth':'לחודש הראשון',
+'wa.then':'ואז $19.99 לחודש','wa.terms':'$1.99 לחודש הראשון, ואז $19.99 לחודש. אפשר לבטל בכל עת.',
+'wa.cta':'קבלו PLUS: ‏$1.99 היום','wa.securenote':'התשלום מתבצע ב-Whop. פרטי הכרטיס עוברים ל-Whop ולעולם לא לאתר הזה.',
+'wa.freenote':'מבחן 30 השאלות והטווח המשוער תמיד בחינם. PLUS פותח את הדוח המלא, התעודה ומשחקי האימון.',
+'wa.loginsub':'מנויי PLUS: התחברו עם Whop. אפשר גם להשתמש בחשבון חינמי כדי לשמור את התוצאות במכשיר הזה.',
+'wa.loginhint':'התחברו עם חשבון ה-Whop ששילמתם איתו. זה מה שפותח את PLUS.',
+'wa.localnote':'חשבון חינמי: שומר את התוצאות וההתקדמות במשחקים בדפדפן הזה. הוא לא כולל PLUS.',
+'wa.supsub':'חשבון חינמי שומר את התוצאות, התעודה וההתקדמות במשחקים בדפדפן הזה. PLUS מגיע רק ממנוי Whop.',
+'wa.createfree':'יצירת חשבון חינמי','wa.createone':'צרו חשבון חינמי',
+'wa.err.name':'הזינו את שמכם','wa.err.email':'הזינו כתובת אימייל תקינה','wa.err.pass':'לפחות 6 תווים',
+'wa.err.taken':'כבר קיים חשבון עם האימייל הזה','wa.err.login':'האימייל או הסיסמה שגויים',
+'wa.ret.t':'התחברו עם Whop כדי לפתוח את PLUS',
+'wa.ret.b':'סיימתם לשלם ב-Whop? התחברו עם אותו חשבון Whop ששילמתם איתו, ו-PLUS ייפתח מיד.',
+'wa.nomem.t':'לא נמצא מנוי PLUS',
+'wa.nomem.b':'התחברתם עם Whop בתור {user}, אבל לחשבון ה-Whop הזה אין מנוי Etsem.IQ PLUS פעיל. אם שילמתם עם חשבון Whop אחר, התנתקו בהגדרות החשבון והתחברו עם החשבון ההוא.',
+'wa.off.t':'אין חיבור לשירות ההתחברות',
+'wa.off.b':'לא הצלחנו לאמת את המנוי כרגע. המבחן החינמי והתוכן החינמי ממשיכים לעבוד. בדקו את החיבור ונסו שוב.',
+'wa.retry':'נסו שוב','wa.err.t':'ההתחברות לא הושלמה',
+'wa.err.denied':'ההתחברות בוטלה ב-Whop. שום דבר לא השתנה.',
+'wa.err.state':'תוקף ההתחברות פג או שהיא התחילה בדפדפן אחר. נסו שוב.',
+'wa.err.oauth':'‏Whop לא הצליח להשלים את ההתחברות. נסו שוב.',
+'wa.unlocked':'‏PLUS פתוח. הכול זמין לכם.',
+'wa.signedin':'מחוברים עם Whop בתור {user}','wa.notsigned':'אתם לא מחוברים עם Whop.',
+'wa.uid':'מזהה משתמש ב-Whop','wa.signout':'התנתקות מ-Whop','wa.adminbadge':'מנהל',
+'wa.plusactive':'‏PLUS פעיל בחשבון ה-Whop שלכם.',
+'wa.adminnote':'גישת מנהל: הכול פתוח. השרת מעניק אותה לחשבון ה-Whop שלכם, ושום דבר שמקלידים באתר לא יכול להעניק אותה.',
+'wa.manage':'ביטול / ניהול מנוי',
+'wa.managenote':'‏Whop מטפל בחיובים, בקבלות ובביטול. הכפתור פותח את ההזמנות שלכם ב-Whop בלשונית חדשה.',
+'wa.nomember':'לחשבון ה-Whop הזה אין מנוי PLUS פעיל.',
+'wa.stale':'לא הצלחנו להגיע לשירות המנויים, לכן מוצג כאן הסטטוס האחרון שאומת.'
+},
+es:{
+'wa.signin':'Iniciar sesión con Whop','wa.already':'¿Ya eres miembro?','wa.or':'o',
+'wa.planname':'Etsem.IQ PLUS · Mensual','wa.firstmonth':'el primer mes',
+'wa.then':'luego $19.99/mes','wa.terms':'$1.99 el primer mes y luego $19.99/mes. Cancela cuando quieras.',
+'wa.cta':'Obtener PLUS: $1.99 hoy','wa.securenote':'El pago se hace en Whop. Los datos de tu tarjeta van a Whop, nunca a este sitio.',
+'wa.freenote':'El test de 30 preguntas y tu rango estimado son siempre gratis. PLUS desbloquea el informe completo, el certificado y los juegos de entrenamiento.',
+'wa.loginsub':'Miembros PLUS: inicien sesión con Whop. También puedes usar una cuenta gratuita para guardar tus resultados en este dispositivo.',
+'wa.loginhint':'Usa la cuenta de Whop con la que pagaste. Eso es lo que desbloquea PLUS.',
+'wa.localnote':'Cuenta gratuita: guarda tus resultados y tu progreso en los juegos en este navegador. No incluye PLUS.',
+'wa.supsub':'Una cuenta gratuita guarda tus resultados, tu certificado y tu progreso en este navegador. PLUS solo se obtiene con una membresía de Whop.',
+'wa.createfree':'Crear cuenta gratuita','wa.createone':'Crea una gratis',
+'wa.err.name':'Escribe tu nombre','wa.err.email':'Escribe un correo válido','wa.err.pass':'Al menos 6 caracteres',
+'wa.err.taken':'Ya existe una cuenta con ese correo','wa.err.login':'El correo o la contraseña no son correctos',
+'wa.ret.t':'Inicia sesión con Whop para desbloquear PLUS',
+'wa.ret.b':'¿Terminaste el pago en Whop? Inicia sesión con la misma cuenta de Whop con la que pagaste y PLUS se desbloquea al instante.',
+'wa.nomem.t':'No encontramos una membresía PLUS',
+'wa.nomem.b':'Has iniciado sesión con Whop como {user}, pero esta cuenta de Whop no tiene una membresía Etsem.IQ PLUS activa. Si pagaste con otra cuenta de Whop, cierra sesión en Ajustes de la cuenta y entra con esa.',
+'wa.off.t':'No podemos conectar con el servicio de inicio de sesión',
+'wa.off.b':'Ahora mismo no pudimos confirmar tu membresía. El test gratuito y el contenido gratuito siguen funcionando. Revisa tu conexión e inténtalo de nuevo.',
+'wa.retry':'Reintentar','wa.err.t':'El inicio de sesión no se completó',
+'wa.err.denied':'Cancelaste el inicio de sesión en Whop. No se cambió nada.',
+'wa.err.state':'El inicio de sesión caducó o se empezó en otro navegador. Inténtalo de nuevo.',
+'wa.err.oauth':'Whop no pudo completar el inicio de sesión. Inténtalo de nuevo.',
+'wa.unlocked':'PLUS está desbloqueado. Tienes acceso a todo.',
+'wa.signedin':'Sesión iniciada con Whop como {user}','wa.notsigned':'No has iniciado sesión con Whop.',
+'wa.uid':'ID de usuario de Whop','wa.signout':'Cerrar sesión de Whop','wa.adminbadge':'Admin',
+'wa.plusactive':'PLUS está activo en tu cuenta de Whop.',
+'wa.adminnote':'Acceso de administrador: todo está desbloqueado. Lo concede el servidor a tu cuenta de Whop; nada de lo que se escriba en este sitio puede hacerlo.',
+'wa.manage':'Cancelar / gestionar suscripción',
+'wa.managenote':'Whop gestiona los cobros, los recibos y la cancelación. Esto abre tus pedidos en Whop en una pestaña nueva.',
+'wa.nomember':'Esta cuenta de Whop no tiene una membresía PLUS activa.',
+'wa.stale':'No pudimos conectar con el servicio de membresías, así que ves tu último estado confirmado.'
+},
+ru:{
+'wa.signin':'Войти через Whop','wa.already':'Уже участник?','wa.or':'или',
+'wa.planname':'Etsem.IQ PLUS · помесячно','wa.firstmonth':'за первый месяц',
+'wa.then':'затем $19.99 в месяц','wa.terms':'$1.99 за первый месяц, затем $19.99 в месяц. Отменить можно в любой момент.',
+'wa.cta':'Получить PLUS: $1.99 сегодня','wa.securenote':'Оплата проходит на Whop. Данные карты получает Whop, а не этот сайт.',
+'wa.freenote':'Тест из 30 вопросов и примерный диапазон всегда бесплатны. PLUS открывает полный отчёт, сертификат и тренировочные игры.',
+'wa.loginsub':'Участники PLUS, войдите через Whop. Можно также завести бесплатный аккаунт, чтобы сохранять результаты на этом устройстве.',
+'wa.loginhint':'Войдите в тот аккаунт Whop, с которого оплачивали. Именно он открывает PLUS.',
+'wa.localnote':'Бесплатный аккаунт сохраняет результаты и прогресс в играх в этом браузере. PLUS в него не входит.',
+'wa.supsub':'Бесплатный аккаунт сохраняет результаты, сертификат и прогресс в играх в этом браузере. PLUS даёт только подписка на Whop.',
+'wa.createfree':'Создать бесплатный аккаунт','wa.createone':'Создать бесплатно',
+'wa.err.name':'Введите имя','wa.err.email':'Введите корректный email','wa.err.pass':'Не меньше 6 символов',
+'wa.err.taken':'Аккаунт с этим email уже есть','wa.err.login':'Неверный email или пароль',
+'wa.ret.t':'Войдите через Whop, чтобы открыть PLUS',
+'wa.ret.b':'Оплатили на Whop? Войдите в тот же аккаунт Whop, с которого платили, и PLUS откроется сразу.',
+'wa.nomem.t':'Подписка PLUS не найдена',
+'wa.nomem.b':'Вы вошли через Whop как {user}, но у этого аккаунта Whop нет активной подписки Etsem.IQ PLUS. Если вы платили с другого аккаунта Whop, выйдите в настройках аккаунта и войдите в тот.',
+'wa.off.t':'Сервис входа недоступен',
+'wa.off.b':'Сейчас не удалось подтвердить подписку. Бесплатный тест и бесплатные материалы по-прежнему работают. Проверьте подключение и попробуйте снова.',
+'wa.retry':'Попробовать снова','wa.err.t':'Вход не завершён',
+'wa.err.denied':'Вход отменён на Whop. Ничего не изменилось.',
+'wa.err.state':'Срок входа истёк, или его начали в другом браузере. Попробуйте ещё раз.',
+'wa.err.oauth':'Whop не смог завершить вход. Попробуйте ещё раз.',
+'wa.unlocked':'PLUS открыт. Вам доступно всё.',
+'wa.signedin':'Вы вошли через Whop как {user}','wa.notsigned':'Вы не вошли через Whop.',
+'wa.uid':'ID пользователя Whop','wa.signout':'Выйти из Whop','wa.adminbadge':'Админ',
+'wa.plusactive':'PLUS активен в вашем аккаунте Whop.',
+'wa.adminnote':'Доступ администратора: открыто всё. Его выдаёт сервер вашему аккаунту Whop, и ничто, введённое на этом сайте, не может его дать.',
+'wa.manage':'Отменить / управлять подпиской',
+'wa.managenote':'Оплатой, чеками и отменой занимается Whop. Кнопка откроет ваши заказы на Whop в новой вкладке.',
+'wa.nomember':'У этого аккаунта Whop нет активной подписки PLUS.',
+'wa.stale':'Сервис подписок недоступен, поэтому показан последний подтверждённый статус.'
+},
+ar:{
+'wa.signin':'تسجيل الدخول عبر Whop','wa.already':'عضو بالفعل؟','wa.or':'أو',
+'wa.planname':'Etsem.IQ PLUS · شهري','wa.firstmonth':'للشهر الأول',
+'wa.then':'ثم 19.99$ شهرياً','wa.terms':'1.99$ للشهر الأول، ثم 19.99$ شهرياً. يمكنك الإلغاء في أي وقت.',
+'wa.cta':'احصل على PLUS: ‏1.99$ اليوم','wa.securenote':'الدفع يتم على Whop. بيانات بطاقتك تذهب إلى Whop ولا تصل إلى هذا الموقع أبداً.',
+'wa.freenote':'اختبار الثلاثين سؤالاً ونطاقك التقديري مجانيان دائماً. ‏PLUS يفتح التقرير الكامل والشهادة وألعاب التدريب.',
+'wa.loginsub':'أعضاء PLUS: سجّلوا الدخول عبر Whop. ويمكنك أيضاً استخدام حساب مجاني لحفظ نتائجك على هذا الجهاز.',
+'wa.loginhint':'استخدم حساب Whop الذي دفعت به، فهو ما يفتح PLUS.',
+'wa.localnote':'الحساب المجاني يحفظ نتائجك وتقدّمك في الألعاب في هذا المتصفح، ولا يشمل PLUS.',
+'wa.supsub':'الحساب المجاني يحفظ نتائجك وشهادتك وتقدّمك في الألعاب في هذا المتصفح. لا يأتي PLUS إلا من عضوية على Whop.',
+'wa.createfree':'إنشاء حساب مجاني','wa.createone':'أنشئ حساباً مجانياً',
+'wa.err.name':'أدخل اسمك','wa.err.email':'أدخل بريداً إلكترونياً صالحاً','wa.err.pass':'6 أحرف على الأقل',
+'wa.err.taken':'يوجد حساب بهذا البريد بالفعل','wa.err.login':'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+'wa.ret.t':'سجّل الدخول عبر Whop لفتح PLUS',
+'wa.ret.b':'أنهيت الدفع على Whop؟ سجّل الدخول بحساب Whop نفسه الذي دفعت به، وسيُفتح PLUS فوراً.',
+'wa.nomem.t':'لم نجد عضوية PLUS',
+'wa.nomem.b':'سجّلت الدخول عبر Whop باسم {user}، لكن حساب Whop هذا ليست لديه عضوية Etsem.IQ PLUS فعّالة. إذا دفعت بحساب Whop آخر، فسجّل الخروج من إعدادات الحساب ثم ادخل بذلك الحساب.',
+'wa.off.t':'تعذّر الوصول إلى خدمة تسجيل الدخول',
+'wa.off.b':'لم نتمكن من تأكيد عضويتك الآن. الاختبار المجاني والمحتوى المجاني ما زالا يعملان. تحقّق من اتصالك وحاول مرة أخرى.',
+'wa.retry':'حاول مرة أخرى','wa.err.t':'لم يكتمل تسجيل الدخول',
+'wa.err.denied':'أُلغي تسجيل الدخول على Whop. لم يتغير شيء.',
+'wa.err.state':'انتهت صلاحية تسجيل الدخول أو بدأ في متصفح آخر. حاول مرة أخرى.',
+'wa.err.oauth':'لم يتمكن Whop من إكمال تسجيل الدخول. حاول مرة أخرى.',
+'wa.unlocked':'‏PLUS مفتوح الآن. كل شيء متاح لك.',
+'wa.signedin':'مسجّل الدخول عبر Whop باسم {user}','wa.notsigned':'لم تسجّل الدخول عبر Whop.',
+'wa.uid':'معرّف المستخدم في Whop','wa.signout':'تسجيل الخروج من Whop','wa.adminbadge':'مشرف',
+'wa.plusactive':'‏PLUS فعّال في حساب Whop الخاص بك.',
+'wa.adminnote':'صلاحية المشرف: كل شيء مفتوح. يمنحها الخادم لحساب Whop الخاص بك، ولا يمكن لأي شيء يُكتب في هذا الموقع أن يمنحها.',
+'wa.manage':'إلغاء / إدارة الاشتراك',
+'wa.managenote':'يتولى Whop الفوترة والإيصالات والإلغاء. يفتح هذا الزر طلباتك على Whop في علامة تبويب جديدة.',
+'wa.nomember':'حساب Whop هذا ليست لديه عضوية PLUS فعّالة.',
+'wa.stale':'تعذّر الوصول إلى خدمة العضويات، لذا تظهر هنا آخر حالة مؤكَّدة.'
+}};
+Object.keys(T_WHOP).forEach(l=>{ if(T[l]) Object.assign(T[l], T_WHOP[l]); });
+</script>
 <script>
 /* ==================== STORAGE (graceful fallback) ==================== */
 const mem = {};
@@ -3580,7 +3924,9 @@ function load(k,dflt){
 let currentUser = load('etsem_session', null);
 function accounts(){ return load('etsem_accounts', {}); }
 function saveAccounts(a){ store('etsem_accounts', a); }
-const isMember = () => !!(currentUser && currentUser.plus);
+/* PLUS comes only from the server-verified Whop entitlement (script#whop-auth).
+   Local accounts are free accounts; any old `plus` flag on them is ignored. */
+const isMember = () => whopEntitled() || isAdmin();
 
 function hash(s){ let h=0; for(let i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))|0; } return 'h'+h; }
 
@@ -3590,19 +3936,23 @@ function doSignup(){
   const pass=document.getElementById('su-pass').value;
   let ok=true;
   const err=(id,m)=>{document.getElementById('err-'+id).textContent=m; if(m)ok=false;};
-  err('su-name', name.length<2?'Enter your name':'');
-  err('su-email', /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)?'':'Enter a valid email');
-  err('su-pass', pass.length<6?'At least 6 characters':'');
+  err('su-name', name.length<2?t('wa.err.name'):'');
+  err('su-email', /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)?'':t('wa.err.email'));
+  err('su-pass', pass.length<6?t('wa.err.pass'):'');
   if(!ok) return;
   const a=accounts();
-  if(a[email]){ document.getElementById('err-su-email').textContent='That email already has an account'; return; }
-  a[email]={name,email,pw:hash(pass),plus:true,created:Date.now(),progress:{},lastReport:window._reportData||null};
+  if(a[email]){ document.getElementById('err-su-email').textContent=t('wa.err.taken'); return; }
+  /* A free account: it saves progress, it never grants PLUS. */
+  a[email]={name,email,pw:hash(pass),created:Date.now(),progress:{},lastReport:window._reportData||null};
   saveAccounts(a);
-  currentUser={name,email,plus:true};
+  currentUser={name,email};
   store('etsem_session',currentUser);
   gameProgress = {};
+  reloadBests();
   renderAuthNav();
-  finishUnlock();
+  if(isMember()) finishUnlock();
+  else if(window._reportData){ renderTeaser(); showScreen('screen-results'); }
+  else goHome();
 }
 
 function doLogin(){
@@ -3610,14 +3960,15 @@ function doLogin(){
   const pass=document.getElementById('li-pass').value;
   const a=accounts();
   if(!a[email]||a[email].pw!==hash(pass)){
-    document.getElementById('err-li-pass').textContent='Email or password is incorrect'; return;
+    document.getElementById('err-li-pass').textContent=t('wa.err.login'); return;
   }
   document.getElementById('err-li-pass').textContent='';
-  currentUser={name:a[email].name,email,plus:a[email].plus};
+  currentUser={name:a[email].name,email};
   store('etsem_session',currentUser);
   gameProgress = a[email].progress || {};
   if(a[email].lastReport) window._reportData=a[email].lastReport;
   lastCertId = a[email].certId || null;
+  reloadBests();
   renderAuthNav();
   goHome();
 }
@@ -3909,110 +4260,34 @@ function updUrgency(){
   el.textContent=`${String(Math.floor(urgencySec/60)).padStart(2,'0')}:${String(urgencySec%60).padStart(2,'0')}`;
 }
 
-/* ==================== PLANS + CHECKOUT ==================== */
-/* amt    = what the card is charged TODAY (this must equal every headline price shown)
-   renew  = what the card is charged on each renewal after that
-   cycle  = i18n key for how often the renewal happens
-   days   = length of one billing cycle, used to show the next charge date        */
+/* ==================== PLAN + CHECKOUT ==================== */
+/* One plan, sold on Whop. amt is what the card is charged TODAY (the FIRSTMONTH199
+   promo on the checkout link), renew is every month after that. PLUS is granted
+   by the etsemiq-api worker after "Sign in with Whop", never by this page. */
 const PLAN_INFO={
-  monthly :{amt:'$19.99', renew:'$19.99', cycle:'cyc.mo',  days:30},
-  sixmonth:{amt:'$89.00', renew:'$89.00', cycle:'cyc.6mo', days:182},
-  annual  :{amt:'$149.00',renew:'$149.00',cycle:'cyc.yr',  days:365}
+  monthly:{amt:'$1.99', renew:'$19.99', cycle:'cyc.mo', days:30}
 };
 let selectedPlan='monthly';
-function planBtnLabel(k){
-  return `${t('btn.continue')} — ${PLAN_INFO[k].amt} ${t('pay.todaynow')}`;
+function planBtnLabel(){ return t('wa.cta'); }
+function selectPlan(){
+  selectedPlan='monthly';
+  document.querySelectorAll('.plan-card').forEach(e=>e.classList.toggle('selected',e.dataset.plan==='monthly'));
+  const b=document.getElementById('btn-unlock'); if(b)b.textContent=planBtnLabel();
 }
-function selectPlan(k){
-  selectedPlan=k;
-  document.querySelectorAll('.plan-card').forEach(e=>e.classList.remove('selected'));
-  const el=document.querySelector(`.plan-card[data-plan="${k}"]`); if(el)el.classList.add('selected');
-  const b=document.getElementById('btn-unlock'); if(b)b.textContent=planBtnLabel(k);
-}
-let checkoutOrigin='screen-results';
-function checkoutBack(){ showScreen(checkoutOrigin); }
-
-/* Renders the full billing terms: charged now, charged later, when, and how to stop it. */
-function renderCheckoutTerms(){
-  const info=PLAN_INFO[selectedPlan];
-  const next=new Date(Date.now()+info.days*864e5);
-  const dateStr=next.toLocaleDateString(lang==='en'?undefined:lang,{year:'numeric',month:'long',day:'numeric'});
-  document.getElementById('checkout-terms').innerHTML=`
-    <div class="terms-row total"><span class="k">${t('co.today')}</span><span>${info.amt}</span></div>
-    <div class="terms-row"><span class="k">${t('co.thenevery').replace('{cycle}',t(info.cycle))}</span><span>${info.renew}</span></div>
-    <div class="terms-row"><span class="k">${t('co.nextcharge')}</span><span>${dateStr}</span></div>
-    <div class="terms-note">${t('co.cancelnote')}</div>`;
-}
-
-function openCheckout(origin){
-  if(selectedPlan==='monthly'){
-    window.location.href='https://whop.com/checkout/plan_gov3K39kXZUmB?promoCode=FIRSTMONTH199';
-    return;
-  }
-  const info=PLAN_INFO[selectedPlan];
-  checkoutOrigin=origin||'screen-results';
-  document.getElementById('checkout-back').textContent=
-    checkoutOrigin==='screen-pricing'?t('btn.backpricing'):t('btn.backresults');
-  document.getElementById('checkout-plan-label').textContent=t('pay.'+selectedPlan);
-  document.getElementById('checkout-plan-amount').textContent=info.amt;
-  document.getElementById('pay-btn-label').textContent=`${t('btn.continue')} ${info.amt}`;
-  renderCheckoutTerms();
-  ['co-name','co-number','co-expiry','co-cvc','co-zip'].forEach(i=>document.getElementById(i).value='');
-  ['err-name','err-number','err-expiry','err-cvc','err-zip'].forEach(i=>document.getElementById(i).textContent='');
-  document.getElementById('co-brand').textContent='';
-  showScreen('screen-checkout');
-}
-function formatCardNumber(i,brandId){
-  const d=i.value.replace(/\D/g,'').slice(0,19);
-  i.value=d.replace(/(.{4})/g,'$1 ').trim();
-  const b=document.getElementById(brandId||'co-brand');
-  if(b) b.textContent=d.startsWith('4')?'VISA':(/^5[1-5]/.test(d)?'MASTERCARD':(/^3[47]/.test(d)?'AMEX':''));
-}
-function formatExpiry(i){
-  const d=i.value.replace(/\D/g,'').slice(0,4);
-  i.value=d.length>=3?d.slice(0,2)+'/'+d.slice(2):d;
-}
-function luhn(n){let s=0,a=false;for(let i=n.length-1;i>=0;i--){let x=+n[i];if(a){x*=2;if(x>9)x-=9;}s+=x;a=!a;}return s%10===0;}
-function validateAndPay(){
-  let ok=true;
-  const set=(id,m)=>{document.getElementById('err-'+id).textContent=m;
-    document.getElementById('co-'+id).classList.toggle('invalid',!!m); if(m)ok=false;};
-  set('name',document.getElementById('co-name').value.trim().length<2?'Enter the name on the card':'');
-  const n=document.getElementById('co-number').value.replace(/\D/g,'');
-  set('number',(n.length<13||n.length>19)?'Enter a valid card number':(!luhn(n)?'That number does not look valid':''));
-  const ex=/^(\d{2})\/(\d{2})$/.exec(document.getElementById('co-expiry').value);
-  if(!ex) set('expiry','MM/YY');
-  else{const mm=+ex[1],yy=+ex[2],now=new Date(),cy=now.getFullYear()%100,cm=now.getMonth()+1;
-    set('expiry',(mm<1||mm>12)?'Invalid month':((yy<cy||(yy===cy&&mm<cm))?'Card has expired':''));}
-  const c=document.getElementById('co-cvc').value;
-  set('cvc',(c.length<3||c.length>4)?'3–4 digits':'');
-  set('zip',document.getElementById('co-zip').value.trim().length<3?'Enter a postal code':'');
-  if(!ok) return;
-  const btn=document.getElementById('btn-pay'),sp=document.getElementById('pay-spinner');
-  btn.disabled=true; sp.classList.add('show');
-  setTimeout(()=>{ btn.disabled=false; sp.classList.remove('show');
-    if(currentUser){ const a=accounts(); if(a[currentUser.email]){a[currentUser.email].plus=true;saveAccounts(a);}
-      currentUser.plus=true; store('etsem_session',currentUser); renderAuthNav(); finishUnlock(); }
-    else showScreen('screen-signup');
-  },1200);
+/* The CTAs are real links to this exact URL; this only adds the member shortcut
+   and the "came back from checkout" hint. Called without an event it navigates. */
+function openCheckout(e){
+  if(isMember()){ if(e) e.preventDefault(); openSettings(); return false; }
+  whopNoteCheckout();
+  if(!e) window.location.href='https://whop.com/checkout/plan_gov3K39kXZUmB?promoCode=FIRSTMONTH199';
+  return true;
 }
 
 let lastCertId=null;
 
-/* Writes the subscription onto the account so Account settings can show — and cancel — it. */
-function recordSubscription(){
-  if(!currentUser) return;
-  const a=accounts(); const acc=a[currentUser.email]; if(!acc) return;
-  const info=PLAN_INFO[selectedPlan];
-  acc.plus=true; acc.plan=selectedPlan;
-  acc.subStarted=Date.now();
-  acc.nextCharge=Date.now()+info.days*864e5;
-  acc.cancelledAt=null;
-  saveAccounts(a);
-}
-
 function finishUnlock(){
-  recordSubscription();
+  /* The subscription lives on Whop; only a verified entitlement opens the report. */
+  if(!isMember()){ openPricing(); return; }
   /* Someone can buy straight from the pricing page without ever taking the test.
      There is no report to unlock in that case — drop them into the member lobby. */
   if(!window._reportData){ renderLobby(); showScreen('screen-lobby'); bobNudge(); return; }
@@ -6179,27 +6454,27 @@ difficulty:{en:["The free test runs through four bands — easy, medium, hard an
  es:["El test recorre cuatro bandas — fácil, medio, difícil y extremo — y la banda fija el peso. En los juegos, la dificultad es el número de nivel: 50 por modo. Hardcore va por encima, sin escalera."],
  ru:["В тесте четыре уровня — лёгкий, средний, сложный и экстремальный, и уровень задаёт вес. В играх сложность — это номер уровня, по 50 на режим. Хардкор стоит выше всего, без лестницы."],
  ar:["يمر الاختبار بأربع مراتب — سهل ومتوسط وصعب ومتطرف — والمرتبة تحدد الوزن. وفي الألعاب الصعوبة هي رقم المستوى، 50 لكل نمط. وهاردكور فوق ذلك كله بلا سلّم."]},
-plus:{en:["PLUS is the paid tier, and it is one thing with three billing lengths — not three products. It unlocks your exact score and percentile, all five category results, the downloadable certificate, and all six training games including Hardcore. The thirty-question test and your estimated range stay free whether you buy or not.",
+plus:{en:["PLUS is the paid tier: one monthly plan, $1.99 for the first month and then $19.99 a month. It unlocks your exact score and percentile, all five category results, the downloadable certificate, and all six training games including Hardcore. The thirty-question test and your estimated range stay free whether you buy or not.",
   "PLUS unlocks: the exact number instead of a range, the percentile, all five categories, the certificate, and every training mode including Hardcore. The test itself and your estimated range are free permanently — PLUS is only about what happens after you finish."],
- he:["PLUS הוא המסלול בתשלום, והוא דבר אחד עם שלושה אורכי חיוב — לא שלושה מוצרים. הוא פותח את הציון המדויק והאחוזון, את כל חמש תוצאות הקטגוריות, את התעודה להורדה, ואת כל שישה משחקי האימון כולל הארדקור. המבחן והטווח המשוער נשארים חינם בכל מקרה.",
+ he:["PLUS הוא המסלול בתשלום: תוכנית חודשית אחת, $1.99 לחודש הראשון ואז $19.99 לחודש. הוא פותח את הציון המדויק והאחוזון, את כל חמש תוצאות הקטגוריות, את התעודה להורדה, ואת כל שישה משחקי האימון כולל הארדקור. המבחן והטווח המשוער נשארים חינם בכל מקרה.",
   "PLUS פותח: המספר המדויק במקום טווח, האחוזון, כל חמש הקטגוריות, התעודה וכל מצבי האימון כולל הארדקור. המבחן עצמו חינם לתמיד."],
- es:["PLUS es el nivel de pago, una sola cosa con tres duraciones de facturación. Desbloquea la puntuación exacta y el percentil, las cinco categorías, el certificado y los seis juegos, Hardcore incluido."],
- ru:["PLUS — платный уровень, одна вещь с тремя вариантами оплаты. Открывает точный балл и процентиль, все пять категорий, сертификат и все шесть игр, включая Хардкор."],
- ar:["‏PLUS هو المستوى المدفوع، شيء واحد بثلاث مدد فوترة. يفتح الدرجة الدقيقة والمئين والفئات الخمس والشهادة والألعاب الست بما فيها هاردكور."]},
-pricing:{en:["Three ways to pay for the same PLUS:<ul><li><b>$19.99 / month</b>, renews monthly.</li><li><b>$89 / 6 months</b> — works out to $14.83 a month.</li><li><b>$149 / year</b> — works out to $12.42 a month.</li></ul>Every one renews until you cancel, and cancelling from Account settings takes effect immediately. The test and your estimated range are free regardless.",
-  "PLUS costs $19.99 monthly, $89 for six months ($14.83/mo) or $149 a year ($12.42/mo). All three are subscriptions that renew until cancelled, and you can cancel any time from Account settings. Nothing about the free test changes either way."],
- he:["שלוש דרכים לשלם על אותו PLUS:<ul><li><b>$19.99 לחודש</b>, מתחדש חודשית.</li><li><b>$89 ל-6 חודשים</b> — יוצא $14.83 לחודש.</li><li><b>$149 לשנה</b> — יוצא $12.42 לחודש.</li></ul>כולם מתחדשים עד לביטול, וביטול מהגדרות החשבון נכנס לתוקף מיד.",
-  "‏PLUS עולה $19.99 לחודש, $89 לשישה חודשים ($14.83 לחודש) או $149 לשנה ($12.42 לחודש). כל השלושה מנויים שמתחדשים עד לביטול."],
- es:["PLUS cuesta 19,99 $ al mes, 89 $ por seis meses (14,83 $/mes) o 149 $ al año (12,42 $/mes). Todos se renuevan hasta que canceles, y puedes cancelar cuando quieras desde Ajustes."],
- ru:["PLUS стоит $19.99 в месяц, $89 за шесть месяцев ($14.83/мес) или $149 в год ($12.42/мес). Все три продлеваются до отмены, отменить можно в любой момент в настройках."],
- ar:["‏PLUS بـ19.99 دولاراً شهرياً، أو 89 دولاراً لستة أشهر (14.83 شهرياً)، أو 149 دولاراً سنوياً (12.42 شهرياً). كلها تتجدد حتى الإلغاء، ويمكن الإلغاء في أي وقت من الإعدادات."]},
-cancel:{en:["Account settings → PLUS membership → Cancel PLUS, then confirm. It takes effect immediately, there is no retention flow and no phone call, and no further charge is made. You keep access to the free test and your estimated range afterwards.",
-  "You cancel it yourself in two taps: Account settings, then Cancel PLUS under the membership card. Immediate, no questions, no future charges."],
- he:["הגדרות חשבון ← מנוי PLUS ← ביטול PLUS, ואז אישור. זה נכנס לתוקף מיד, אין מסלול שימור ואין שיחת טלפון, ולא יבוצע חיוב נוסף. המבחן החינמי והטווח המשוער נשארים זמינים.",
-  "מבטלים לבד בשתי הקלקות: הגדרות חשבון, ואז ביטול PLUS בכרטיס המנוי. מיידי, בלי שאלות ובלי חיובים עתידיים."],
- es:["Ajustes de la cuenta → Membresía PLUS → Cancelar PLUS y confirma. Es inmediato y no hay más cargos."],
- ru:["Настройки аккаунта → Подписка PLUS → Отменить PLUS, затем подтвердить. Действует сразу, дальнейших списаний не будет."],
- ar:["إعدادات الحساب ← عضوية PLUS ← إلغاء PLUS ثم التأكيد. يسري فوراً ولا خصومات لاحقة."]},
+ es:["PLUS es el nivel de pago: un único plan mensual, $1.99 el primer mes y luego $19.99 al mes. Desbloquea la puntuación exacta y el percentil, las cinco categorías, el certificado y los seis juegos, Hardcore incluido."],
+ ru:["PLUS — платный уровень: один помесячный тариф, $1.99 за первый месяц, затем $19.99 в месяц. Открывает точный балл и процентиль, все пять категорий, сертификат и все шесть игр, включая Хардкор."],
+ ar:["‏PLUS هو المستوى المدفوع: خطة شهرية واحدة، 1.99$ للشهر الأول ثم 19.99$ شهرياً. يفتح الدرجة الدقيقة والمئين والفئات الخمس والشهادة والألعاب الست بما فيها هاردكور."]},
+pricing:{en:["PLUS is one monthly plan: <b>$1.99 for your first month</b>, then <b>$19.99 a month</b>. It renews until you cancel, and you cancel on Whop: Account settings → Cancel / manage subscription takes you straight there. The test and your estimated range are free either way.",
+  "One plan: $1.99 for the first month, then $19.99 a month, renewing until you cancel. Checkout and billing run on Whop. Nothing about the free test changes either way."],
+ he:["‏PLUS הוא תוכנית חודשית אחת: <b>$1.99 לחודש הראשון</b>, ואז <b>$19.99 לחודש</b>. המנוי מתחדש עד לביטול, והביטול נעשה ב-Whop: הגדרות החשבון ← ביטול / ניהול מנוי מעבירים אתכם ישר לשם. המבחן והטווח המשוער חינם בכל מקרה.",
+  "תוכנית אחת: $1.99 לחודש הראשון, ואז $19.99 לחודש, מתחדש עד לביטול. התשלום והחיובים מתבצעים ב-Whop."],
+ es:["PLUS es un único plan mensual: <b>$1.99 el primer mes</b> y luego <b>$19.99 al mes</b>. Se renueva hasta que canceles, y la cancelación se hace en Whop: Ajustes de la cuenta → Cancelar / gestionar suscripción te lleva directamente. El test y tu rango estimado son gratis en cualquier caso."],
+ ru:["PLUS — один помесячный тариф: <b>$1.99 за первый месяц</b>, затем <b>$19.99 в месяц</b>. Подписка продлевается до отмены, а отменяется на Whop: «Настройки аккаунта» → «Отменить / управлять подпиской» ведёт прямо туда. Тест и примерный диапазон бесплатны в любом случае."],
+ ar:["‏PLUS خطة شهرية واحدة: <b>1.99$ للشهر الأول</b>، ثم <b>19.99$ شهرياً</b>. تتجدد حتى تلغيها، والإلغاء يتم على Whop: إعدادات الحساب ← إلغاء / إدارة الاشتراك تأخذك إلى هناك مباشرة. الاختبار ونطاقك التقديري مجانيان في كل الأحوال."]},
+cancel:{en:["Account settings → Cancel / manage subscription opens your orders on Whop, where the payment is handled. Pick Etsem.IQ PLUS and choose Cancel membership. That stops the next renewal; you keep PLUS until the end of the period you already paid for, and Whop does not charge you again. The free test and your estimated range stay available.",
+  "You cancel on Whop, in a couple of taps: Account settings → Cancel / manage subscription, then Cancel membership on your Etsem.IQ PLUS order. PLUS stays until the paid period ends, and there are no further charges after that."],
+ he:["הגדרות החשבון ← ביטול / ניהול מנוי פותחים את ההזמנות שלכם ב-Whop, שם מתבצע התשלום. בחרו ב-Etsem.IQ PLUS ולחצו על ביטול המנוי. זה עוצר את החידוש הבא; PLUS נשאר פעיל עד סוף התקופה ששילמתם עליה, ו-Whop לא יחייב שוב. המבחן החינמי והטווח המשוער נשארים זמינים.",
+  "מבטלים ב-Whop בכמה הקשות: הגדרות החשבון ← ביטול / ניהול מנוי, ואז ביטול המנוי בהזמנת Etsem.IQ PLUS. ‏PLUS נשאר עד סוף התקופה ששולמה, ואחר כך אין חיובים נוספים."],
+ es:["Ajustes de la cuenta → Cancelar / gestionar suscripción abre tus pedidos en Whop, donde se gestiona el pago. Elige Etsem.IQ PLUS y pulsa Cancelar membresía. Así se detiene la próxima renovación; conservas PLUS hasta el final del periodo pagado y Whop no vuelve a cobrarte."],
+ ru:["«Настройки аккаунта» → «Отменить / управлять подпиской» открывает ваши заказы на Whop, где и проходит оплата. Выберите Etsem.IQ PLUS и нажмите отмену подписки. Следующего продления не будет; PLUS остаётся до конца оплаченного периода, и Whop больше не спишет деньги."],
+ ar:["إعدادات الحساب ← إلغاء / إدارة الاشتراك تفتح طلباتك على Whop حيث تتم عملية الدفع. اختر Etsem.IQ PLUS ثم إلغاء العضوية. هذا يوقف التجديد التالي، ويبقى PLUS حتى نهاية الفترة المدفوعة، ولن يخصم Whop منك مرة أخرى."]},
 refund:{en:["Refunds are not something I can process from here — that needs a person with access to the billing records. Write to <b>{email}</b> with the email on the account and roughly when the charge appeared, and include a screenshot of the statement line if you have one. In the meantime, cancelling in Account settings stops any future charge immediately, which is worth doing first so the clock is not running.",
   "I cannot issue a refund myself. Email <b>{email}</b> from the address on the account, say what was charged and when, and attach the statement line if you can. Cancel in Account settings first, though — that stops anything further from being taken while the refund is looked at."],
  he:["החזרים אינם משהו שאני יכול לטפל בו מכאן — זה דורש אדם עם גישה לרשומות החיוב. כתבו ל-<b>{email}</b> מהאימייל של החשבון, ציינו מתי הופיע החיוב וצרפו צילום מסך אם יש. בינתיים, ביטול בהגדרות החשבון עוצר כל חיוב עתידי מיד — כדאי לעשות את זה קודם.",
@@ -6207,13 +6482,13 @@ refund:{en:["Refunds are not something I can process from here — that needs a 
  es:["No puedo procesar reembolsos desde aquí. Escribe a <b>{email}</b> desde el correo de la cuenta con la fecha del cargo. Cancela primero en Ajustes para detener cobros futuros."],
  ru:["Возврат я отсюда сделать не могу. Напишите на <b>{email}</b> с почты аккаунта и укажите дату списания. Сначала отмените подписку в настройках, чтобы остановить будущие списания."],
  ar:["لا أستطيع معالجة الاسترداد من هنا. راسل <b>{email}</b> من بريد الحساب مع تاريخ الخصم. وألغِ أولاً من الإعدادات لإيقاف أي خصم لاحق."]},
-billing:{en:["Everything about your billing is on one screen: Account settings shows the plan, the renewal amount, the renewal frequency and the exact date of the next charge, and the card details can be updated in the same place. Whatever figure you were shown at checkout is the figure that is charged — there is no separate introductory rate that quietly changes later.",
-  "Account settings has the plan, what renews, how often, and the next charge date, plus the form to update the card. The price you saw when you subscribed is the price that keeps being charged."],
- he:["כל מה שקשור לחיוב נמצא במסך אחד: הגדרות החשבון מציגות את התוכנית, סכום החידוש, תדירות החידוש והתאריך המדויק של החיוב הבא, ואפשר לעדכן שם גם את פרטי הכרטיס. הסכום שהוצג בקופה הוא הסכום שמחויב — אין מחיר היכרות נפרד שמשתנה בשקט.",
-  "בהגדרות החשבון יש את התוכנית, מה מתחדש, באיזו תדירות, ומתי החיוב הבא, וגם טופס לעדכון הכרטיס."],
- es:["Todo lo de facturación está en Ajustes de la cuenta: plan, importe de renovación, frecuencia, fecha del próximo cargo y el formulario para actualizar la tarjeta."],
- ru:["Всё про оплату в одном месте — настройки аккаунта: тариф, сумма продления, периодичность, дата следующего списания и форма смены карты."],
- ar:["كل ما يخص الفوترة في إعدادات الحساب: الخطة ومبلغ التجديد ودوريته وتاريخ الخصم القادم ونموذج تحديث البطاقة."]},
+billing:{en:["Billing runs on Whop, which takes the payment and keeps your card and receipts. Account settings → Cancel / manage subscription opens your Whop orders, where you can update the card, see the next charge or cancel. The price is $1.99 for the first month, an introductory promo on the checkout link, and then $19.99 a month.",
+  "Whop handles the money: card, receipts, renewals and cancelling. Account settings links you to your orders there. First month $1.99, then $19.99 a month."],
+ he:["החיובים מתבצעים ב-Whop, שגובה את התשלום ושומר את הכרטיס והקבלות. הגדרות החשבון ← ביטול / ניהול מנוי פותחים את ההזמנות שלכם ב-Whop, שם אפשר לעדכן כרטיס, לראות את החיוב הבא או לבטל. המחיר הוא $1.99 לחודש הראשון (מבצע היכרות בקישור התשלום), ואז $19.99 לחודש.",
+  "‏Whop מטפל בכסף: כרטיס, קבלות, חידושים וביטול. הגדרות החשבון מקשרות להזמנות שלכם שם."],
+ es:["La facturación la gestiona Whop, que cobra el pago y guarda tu tarjeta y tus recibos. Ajustes de la cuenta → Cancelar / gestionar suscripción abre tus pedidos en Whop, donde puedes cambiar la tarjeta, ver el próximo cargo o cancelar. El primer mes cuesta $1.99 (una promoción de bienvenida) y luego $19.99 al mes."],
+ ru:["Оплатой занимается Whop: он списывает деньги и хранит карту и чеки. «Настройки аккаунта» → «Отменить / управлять подпиской» открывает ваши заказы на Whop, где можно сменить карту, посмотреть следующее списание или отменить. Первый месяц стоит $1.99 (вводная акция), затем $19.99 в месяц."],
+ ar:["تتم الفوترة على Whop، فهو يحصّل الدفع ويحتفظ ببطاقتك وإيصالاتك. إعدادات الحساب ← إلغاء / إدارة الاشتراك تفتح طلباتك على Whop، وهناك يمكنك تحديث البطاقة أو معرفة الخصم القادم أو الإلغاء. الشهر الأول بـ1.99$ (عرض ترحيبي)، ثم 19.99$ شهرياً."]},
 account:{en:["Accounts here are stored in your own browser, not on a server, which has one consequence worth knowing: there is no password reset email, because there is no server to send it. If you are locked out, create a fresh account — and if you are on the same browser as before, your saved report and game progress are still there.<ul><li>Clearing site data clears the account with it.</li><li>A different browser or device starts empty.</li></ul>",
   "Your account lives in this browser's storage rather than on our servers. That means no reset link is possible; make a new account instead. It also means clearing your browser data removes it, and signing in from another device will not find it."],
  he:["החשבונות כאן נשמרים בדפדפן שלכם ולא בשרת, ולזה יש השלכה אחת שכדאי להכיר: אין מייל לאיפוס סיסמה, כי אין שרת שישלח אותו. אם ננעלתם בחוץ, צרו חשבון חדש — ואם אתם באותו דפדפן, הדוח וההתקדמות עדיין שם.<ul><li>מחיקת נתוני האתר מוחקת גם את החשבון.</li><li>דפדפן או מכשיר אחר מתחילים ריקים.</li></ul>",
@@ -6437,13 +6712,7 @@ function setLanguage(l){
   if(document.getElementById('screen-levelmap').classList.contains('active')) openLevelMap(currentGameKey);
   if(document.getElementById('screen-quiz').classList.contains('active')) renderQuestion();
   if(document.getElementById('screen-results').classList.contains('active')){ renderTeaser(); selectPlan(selectedPlan); }
-  if(document.getElementById('screen-checkout').classList.contains('active')){
-    renderCheckoutTerms();
-    document.getElementById('checkout-back').textContent=
-      checkoutOrigin==='screen-pricing'?t('btn.backpricing'):t('btn.backresults');
-    document.getElementById('checkout-plan-label').textContent=t('pay.'+selectedPlan);
-    document.getElementById('pay-btn-label').textContent=`${t('btn.continue')} ${PLAN_INFO[selectedPlan].amt}`;
-  }
+  waRenderBadges();
   if(document.getElementById('screen-lobby').classList.contains('active')) renderLobby();
   if(document.getElementById('screen-settings').classList.contains('active')) renderSettings();
   if(bobStarted) renderChips();
@@ -6482,14 +6751,14 @@ function showScreen(id,opts){
 }
 function goHome(){
   clearInterval(urgencyInt);
-  if(currentUser && isMember()){ renderLobby(); showScreen('screen-lobby'); }
+  if(isMember()){ renderLobby(); showScreen('screen-lobby'); }
   else showScreen('screen-landing');
 }
 function retakeTest(){ beginTest(); }
 
 /* ==================== MEMBER LOBBY ==================== */
 function renderLobby(){
-  const nameFirst=(currentUser.name||'').split(' ')[0];
+  const nameFirst=((currentUser&&currentUser.name)||(whopUser()&&whopUser().username)||'').split(' ')[0];
   document.getElementById('lobby-welcome').textContent=
     ({en:`Welcome back, ${nameFirst}`,he:`ברוך שובך, ${nameFirst}`,es:`Bienvenido de nuevo, ${nameFirst}`,
       ru:`С возвращением, ${nameFirst}`,ar:`مرحباً بعودتك، ${nameFirst}`})[lang];
@@ -6539,22 +6808,21 @@ function renderLobbyGames(){
 
 /* ==================== ACCOUNT SETTINGS ==================== */
 function openSettings(){
-  if(!currentUser){ showScreen('screen-login'); return; }
+  if(!currentUser && !whopSignedIn()){ showScreen('screen-login'); return; }
   renderSettings();
   showScreen('screen-settings');
 }
 function renderSettings(){
-  const a=accounts()[currentUser.email]||{};
-  document.getElementById('set-name').textContent=currentUser.name;
-  document.getElementById('set-email').textContent=currentUser.email;
-  document.getElementById('set-plan').textContent=a.plan?t('pay.'+a.plan):'—';
+  const a=currentUser?(accounts()[currentUser.email]||{}):{};
+  const wu=whopUser();
+  document.getElementById('set-name').textContent=currentUser?currentUser.name:(wu?(wu.username?'@'+wu.username:wu.id):'—');
+  document.getElementById('set-email').textContent=currentUser?currentUser.email:'—';
+  document.getElementById('set-plan').textContent=isMember()?t('wa.planname'):t('plan.free');
   document.getElementById('set-since').textContent=a.created
     ? new Date(a.created).toLocaleDateString(lang==='en'?undefined:lang,{year:'numeric',month:'long',day:'numeric'}) : '—';
   document.getElementById('set-iqid').textContent=a.certId||lastCertId||'—';
   document.getElementById('set-score').textContent=(a.lastReport&&a.lastReport.iq)||(window._reportData&&window._reportData.iq)||'—';
-  document.getElementById('set-next').textContent=
-    (a.plus && a.nextCharge) ? fmtDate(a.nextCharge) : (a.cancelledAt?t('set.nofuture'):'—');
-  renderMembershipCard(a);
+  renderMembershipCard();
 
   document.getElementById('set-lang-grid').innerHTML=Object.keys(LANGS).map(l=>{
     const cfg=LANGS[l];
@@ -6567,92 +6835,50 @@ function fmtDate(ms){
   return new Date(ms).toLocaleDateString(lang==='en'?undefined:lang,{year:'numeric',month:'long',day:'numeric'});
 }
 
-/* ---- Cancel membership: takes effect the moment it is confirmed, no email, no support ticket ---- */
-let cancelArmed=false;
-function renderMembershipCard(a){
+/* ---- Membership: shows what the server confirmed. Billing and cancelling
+   happen on Whop, so this card hands off to Whop instead of pretending to. ---- */
+function renderMembershipCard(){
   const body=document.getElementById('membership-body');
   if(!body) return;
-  if(!a.plus){
-    const note = a.cancelledAt
-      ? `<p style="font-size:13.5px;color:var(--muted);line-height:1.5;margin-bottom:14px;">
-           ${t('set.cancelled').replace('{date}',fmtDate(a.cancelledAt))}</p>`
-      : `<p style="font-size:13.5px;color:var(--muted);line-height:1.5;margin-bottom:14px;">${t('set.nomember')}</p>`;
-    body.innerHTML=note+
-      `<button class="btn-primary" onclick="openPricing()">${t('set.resub')}</button>`;
-    return;
-  }
-  const info=PLAN_INFO[a.plan]||PLAN_INFO.monthly;
-  const rows=`
-    <div class="terms-box">
-      <div class="terms-row total"><span class="k">${t('set.plan')}</span><span>${t('pay.'+(a.plan||'monthly'))}</span></div>
-      <div class="terms-row"><span class="k">${t('co.thenevery').replace('{cycle}',t(info.cycle))}</span><span>${info.renew}</span></div>
-      <div class="terms-row"><span class="k">${t('set.nextcharge')}</span><span>${a.nextCharge?fmtDate(a.nextCharge):'—'}</span></div>
-    </div>`;
-  if(!cancelArmed){
-    body.innerHTML=rows+`<button class="btn-danger" onclick="armCancel()">${t('set.cancelbtn')}</button>`;
+  const wu=whopUser(), p=x=>`<p class="wa-p">${x}</p>`;
+  let h='';
+  if(wu){
+    const who='<b><bdi>'+waEsc(wu.username?'@'+wu.username:wu.id)+'</bdi></b>';
+    h+=`<div class="wa-who">${t('wa.signedin').replace('{user}',who)}`+
+       (isAdmin()?waBadge('admin'):(whopEntitled()?waBadge('plus'):''))+`</div>`;
+    h+=`<div class="wa-uid">${t('wa.uid')}: <code dir="ltr">${waEsc(wu.id)}</code></div>`;
   } else {
-    body.innerHTML=rows+`
-      <div class="cancel-confirm">
-        <p>${t('set.cancelconfirm')}</p>
-        <div class="cancel-actions">
-          <button class="btn-secondary" onclick="cancelArmed=false;renderSettings();">${t('set.keepplan')}</button>
-          <button class="btn-danger-solid" onclick="confirmCancel()">${t('set.cancelyes')}</button>
-        </div>
-      </div>`;
+    h+=p(t('wa.notsigned'));
   }
-}
-function armCancel(){ cancelArmed=true; renderSettings(); }
-function confirmCancel(){
-  const a=accounts(); const acc=a[currentUser.email];
-  if(acc){
-    acc.plus=false;
-    acc.cancelledAt=Date.now();
-    acc.nextCharge=null;
-    saveAccounts(a);
+  if(waState==='offline') h+=`<p class="wa-p wa-warn">${t('wa.stale')}</p>`;
+  if(isAdmin()) h+=p(t('wa.adminnote'));
+  else if(whopEntitled()) h+=p(t('wa.plusactive'));
+  else if(wu) h+=p(t('wa.nomember'));
+  if(whopEntitled()){
+    h+=`<a class="wa-manage" href="${WHOP_MANAGE_URL}" target="_blank" rel="noopener noreferrer">${t('wa.manage')}</a>`+
+       `<p class="wa-p wa-small">${t('wa.managenote')} ${t('set.canceldone')}</p>`;
+  } else {
+    h+=`<button class="btn-primary wa-wide" onclick="openPricing()">${t('set.resub')}</button>`;
   }
-  currentUser.plus=false;
-  store('etsem_session',currentUser);
-  cancelArmed=false;
-  renderAuthNav();
-  renderSettings();
-  const toast=document.getElementById('bill-toast');
-  if(toast){ toast.style.color='var(--teal)'; toast.textContent=t('set.canceldone'); }
+  h+= wu
+    ? `<button class="btn-secondary wa-wide" onclick="signOutWhop()">${t('wa.signout')}</button>`
+    : `<button class="wa-whop-btn" onclick="signInWithWhop()">${t('wa.signin')}</button>`;
+  body.innerHTML=h;
 }
 
-function saveBilling(){
-  const toast=document.getElementById('bill-toast');
-  const num=document.getElementById('bill-number').value.replace(/\D/g,'');
-  if(num && !luhn(num)){
-    toast.style.color='var(--reveal)';
-    toast.textContent=({en:'That card number does not look valid.',he:'מספר הכרטיס לא תקין.',es:'El número de tarjeta no es válido.',ru:'Номер карты недействителен.',ar:'رقم البطاقة غير صالح.'})[lang];
-    return;
-  }
-  toast.style.color='var(--teal)';
-  toast.textContent=({en:'Billing info updated (simulated — nothing was actually charged or stored).',
-    he:'פרטי החיוב עודכנו (הדמיה — לא בוצע חיוב או שמירה בפועל).',
-    es:'Datos de facturación actualizados (simulado — no se cobró ni guardó nada realmente).',
-    ru:'Платёжные данные обновлены (симуляция — ничего не было списано или сохранено).',
-    ar:'تم تحديث بيانات الفوترة (محاكاة — لم يتم خصم أو حفظ أي شيء فعلياً).'})[lang];
-  ['bill-name','bill-number','bill-expiry','bill-cvc','bill-zip'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('bill-brand').textContent='';
-}
 function openHow(){ showScreen('screen-how'); }
 function openPricing(){ renderPricing(); showScreen('screen-pricing'); }
 /* Buying is not gated behind the test. Anyone who already knows what the test is —
    including someone who just reloaded the page — goes straight to checkout. */
-function pickPlanAndGo(k){
-  selectedPlan=k;
-  selectPlan(k);
-  if(isMember()){ openSettings(); return; }
-  openCheckout('screen-pricing');
+function pickPlanAndGo(){
+  selectPlan();
+  openCheckout();
 }
 function renderPricing(){
   const tick='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 10l4 4 8-8"/></svg>';
   const li=k=>`<li>${tick}<span>${t(k)}</span></li>`;
   const plusF=['pricep.f4','pricep.f5','pricep.f6','pricep.f7','pricep.f8','pricep.f9'].map(li).join('');
-  ['price-plus','price-six','price-annual'].forEach(id=>{
-    const e=document.getElementById(id); if(e) e.innerHTML=plusF;
-  });
+  const e=document.getElementById('price-plus'); if(e) e.innerHTML=plusF;
 }
 
 /* floating sparkles */
@@ -7159,7 +7385,7 @@ function armAudio(){
   mountBobs(document);
   renderMobileMenu();
   auditSelfCheck();
-  if(currentUser && isMember()){ renderLobby(); showScreen('screen-lobby'); }
+  if(isMember()){ renderLobby(); showScreen('screen-lobby'); }
 
   /* First visit gets one short hello from Bob, once, and never again. */
   if(!load('etsem_seen_bob',false)){
