@@ -4955,6 +4955,7 @@ en:{
   'ach.hc70.n':'Hardened','ach.hc70.d':'Score 70% or more in Hardcore.',
   'ach.streak5.n':'Habit','ach.streak5.d':'Play 5 days in a row.',
   'ach.lvl30.n':'Deep end','ach.lvl30.d':'Clear level 30 in any game.',
+  'sp.mirrorturn':'Which option is a mirror image of this shape? It may also be turned.',
   'sp.notrot':'Three of these are the same shape, only turned. Which one is NOT?',
   'sp.accel':'Each turn is bigger than the last by the same amount. Which comes next?',
   'ww.name':'Word Wit',
@@ -5006,6 +5007,7 @@ he:{
   'ach.hc70.n':'מחושלים','ach.hc70.d':'קבלו 70% ומעלה בהארדקור.',
   'ach.streak5.n':'הרגל','ach.streak5.d':'שחקו 5 ימים ברצף.',
   'ach.lvl30.n':'למים העמוקים','ach.lvl30.d':'עברו את שלב 30 במשחק כלשהו.',
+  'sp.mirrorturn':'איזו אפשרות היא תמונת ראי של הצורה? ייתכן שהיא גם מסובבת.',
   'sp.notrot':'שלוש מאלה הן אותה צורה, רק מסובבת. איזו לא?',
   'sp.accel':'כל סיבוב גדול מהקודם באותה כמות. מה בא אחר כך?',
   'ww.name':'חדות מילים',
@@ -5057,6 +5059,7 @@ es:{
   'ach.hc70.n':'Curtido','ach.hc70.d':'Saca un 70% o más en Hardcore.',
   'ach.streak5.n':'Hábito','ach.streak5.d':'Juega 5 días seguidos.',
   'ach.lvl30.n':'A fondo','ach.lvl30.d':'Supera el nivel 30 en cualquier juego.',
+  'sp.mirrorturn':'¿Qué opción es una imagen especular de esta figura? Puede que además esté girada.',
   'sp.notrot':'Tres de estas son la misma figura, solo que girada. ¿Cuál NO lo es?',
   'sp.accel':'Cada giro es mayor que el anterior en la misma cantidad. ¿Cuál sigue?',
   'ww.name':'Ingenio verbal',
@@ -5108,6 +5111,7 @@ ru:{
   'ach.hc70.n':'Закалка','ach.hc70.d':'Наберите 70% или больше в Хардкоре.',
   'ach.streak5.n':'Привычка','ach.streak5.d':'Играйте 5 дней подряд.',
   'ach.lvl30.n':'На глубине','ach.lvl30.d':'Пройдите 30-й уровень в любой игре.',
+  'sp.mirrorturn':'Какой вариант — зеркальное отражение этой фигуры? Оно может быть ещё и повёрнуто.',
   'sp.notrot':'Три из них — одна и та же фигура, только повёрнутая. Какая — НЕТ?',
   'sp.accel':'Каждый поворот больше предыдущего на одну и ту же величину. Что дальше?',
   'ww.name':'Игра слов',
@@ -5159,6 +5163,7 @@ ar:{
   'ach.hc70.n':'صلب','ach.hc70.d':'احصل على 70% أو أكثر في هاردكور.',
   'ach.streak5.n':'عادة','ach.streak5.d':'العب 5 أيام متتالية.',
   'ach.lvl30.n':'في العمق','ach.lvl30.d':'اجتز المستوى 30 في أي لعبة.',
+  'sp.mirrorturn':'أي خيار هو صورة مرآتية لهذا الشكل؟ قد يكون مُداراً أيضاً.',
   'sp.notrot':'ثلاثة من هذه هي الشكل نفسه لكن مُدار. أيها ليس كذلك؟',
   'sp.accel':'كل دورة أكبر من السابقة بالمقدار نفسه. ما التالي؟',
   'ww.name':'براعة الكلمات',
@@ -5269,7 +5274,7 @@ const GAME_BANKS={
       ru:'Задачи на поворот и отражение. Зрительно-пространственные задания тренируют рабочую память.',
       ar:'مسائل الدوران والانعكاس. المهام البصرية المكانية تبني الذاكرة العاملة.'}[lang]),
     icon:'<rect x="12" y="12" width="20" height="20" rx="3" fill="#FFE7D2" stroke="var(--accent)" stroke-width="3" transform="rotate(18 22 22)"/><rect x="24" y="24" width="17" height="17" rx="3" fill="none" stroke="var(--teal)" stroke-width="3"/>',
-    secsPerLevel:150, gen:(lvl)=>genSpatial(lvl)
+    secsPerLevel:150, secs:(lvl)=>Math.round(150-(Math.min(lvl,50)-1)*60/49), gen:(lvl)=>genSpatial(lvl)
   },
   wordrecall:{
     name:()=>({en:'Word Recall',he:'שליפת מילים',es:'Recuerdo verbal',ru:'Словесная память',ar:'استرجاع الكلمات'}[lang]),
@@ -5441,7 +5446,7 @@ function genSpeed(lvl){
     }
     if(!item){   /* never reached in the self-check; a plain +n series as a safe floor */
       const a0=gRand(2,9), d=gRand(2,9), seq=[0,1,2,3].map(k=>a0+d*k), ans=a0+4*d;
-      item=shuffleOpts({num:true,prompt:p('nextnum'),seq,opts:[ans,ans+1,ans-1,ans+d].map(v=>({val:String(v)})),ans:0,key:ans,rule:'add'});
+      item=shuffleOpts({num:true,prompt:p('nextnum'),seq,opts:[ans,ans+1,ans-1,ans+d].map(v=>({val:String(v)})),ans:0,key:ans,rule:'add',fb:1});
     }
     seen.add(item.seq.join(','));
     qs.push(item);
@@ -5449,27 +5454,130 @@ function genSpeed(lvl){
   return qs;
 }
 
-function genSpatial(lvl){
-  const glyphs=['flag','ell','barb','drop'];
-  const qs=[];
-  for(let i=0;i<6;i++){
-    const g=glyphs[Math.floor(Math.random()*glyphs.length)];
-    const stepAng=lvl<4?90:(lvl<10?45:(lvl<22?30:(lvl<36?20:15)));
-    const base=Math.floor(Math.random()*4)*90;
-    if(i%2===0){
-      const seq=[0,1,2].map(k=>({glyph:g,rot:base+stepAng*k}));
-      const ansO={glyph:g,rot:base+stepAng*3};
-      const q={prompt:p('whichrotation'),seq,
-        opts:[ansO,{glyph:g,rot:base+stepAng*2},{glyph:g,rot:base+stepAng*4},{glyph:g,rot:base+stepAng*3,mir:true}],ans:0};
-      qs.push(shuffleOpts(q));
-    } else {
-      const r=base;
-      const q={prompt:p('mirror'),noQ:true,seq:[{glyph:g,rot:r}],
-        opts:[{glyph:g,rot:r,mir:true},{glyph:g,rot:r},{glyph:g,rot:(r+180)%360},{glyph:g,rot:(r+90)%360,mir:true}],ans:0};
-      qs.push(shuffleOpts(q));
+function genSpatial(lvl){ return spGen(lvl); }
+
+/* ==================== SPATIAL — mental rotation and reflection ====================
+   Item types, introduced by level:
+     rot     a shape turns by a fixed angle; pick the next frame      (1+)
+     mirror  pick the one reflection among rotations                  (1+;
+             from 15 the reflection is also turned)
+     notrot  three rotations and one impostor: which is NOT the shape (11+)
+     accel   each turn is bigger than the last by the same amount     (44+)
+   Composite figures (a small second glyph fixed to the first) arrive at 26
+   and make up 4 of 6 items by 44; their distractors include "the small part
+   turned on its own". Step angles shrink 90 → 45 → 30/45/60 → 20/30/40 →
+   15/20/25/35, both directions from 6, and the time drops 150 → 90 s.
+
+   Exactly-one-answer check: every glyph is chiral, and a composite holds one
+   copy of a chiral glyph, so a figure's pose (glyph, composite part angle,
+   turn mod 360, mirrored) identifies its image uniquely. spVerify() checks
+   each option set on those signatures before the item is used.          */
+const SP_GLYPHS=['flag','ell','barb','drop'];
+const _spMod=v=>((v%360)+360)%360;
+function spComposite(A,B,k){
+  const key=`cx_${A}_${B}_${_spMod(k)}`;
+  if(!GLYPHS[key]) GLYPHS[key]=`<g transform="scale(.7)">${GLYPHS[A]}</g>`+
+    `<g transform="translate(15 15) scale(.5) rotate(${_spMod(k)} 16 16)">${GLYPHS[B]}</g>`;
+  return key;
+}
+function spParts(glyph){
+  const m=/^cx_(\w+?)_(\w+?)_(\d+)$/.exec(glyph);
+  return m?{A:m[1],B:m[2],k:+m[3]}:{A:glyph,B:'',k:0};
+}
+const spSig=o=>`${o.glyph}:${_spMod(o.rot||0)}:${o.mir?1:0}`;
+/* same figure up to a turn (a reflection turned is still a reflection) */
+const spSameShape=(a,b)=>a.glyph===b.glyph && !!a.mir===!!b.mir;
+function spPick(pool,n,avoid){
+  const seen=new Set(avoid), out=[];
+  gShuffle(pool.slice()).forEach(o=>{ const s=spSig(o); if(out.length<n && !seen.has(s)){ seen.add(s); out.push(o); } });
+  return out;
+}
+function spStep(lvl){
+  const R=a=>a[Math.floor(Math.random()*a.length)];
+  if(lvl<=5) return 90;
+  if(lvl<=12) return R([45,90]);
+  if(lvl<=22) return R([30,45,60]);
+  if(lvl<=35) return R([20,30,40]);
+  return R([15,20,25,35]);
+}
+function spFigure(comp){
+  const R=a=>a[Math.floor(Math.random()*a.length)];
+  const A=R(SP_GLYPHS);
+  if(!comp) return {key:A,comp:null};
+  const B=R(SP_GLYPHS.filter(x=>x!==A)), k=R([0,90,180,270]);
+  return {key:spComposite(A,B,k),comp:{A,B,k}};
+}
+/* the same composite with its small part turned on its own */
+const spInnerTurned=(fig,by)=>spComposite(fig.comp.A,fig.comp.B,fig.comp.k+by);
+
+function spRot(lvl,fig){
+  const s=spStep(lvl), dir=lvl<=5?1:(Math.random()<0.5?1:-1), base=gRand(0,7)*45;
+  const at=k=>({glyph:fig.key,rot:base+dir*s*k});
+  const ans=at(3);
+  const pool=[at(2),at(4),at(1),{glyph:fig.key,rot:ans.rot,mir:true},
+              {glyph:fig.key,rot:base-dir*s*3},{glyph:fig.key,rot:ans.rot+180}];
+  if(s>=30) pool.push({glyph:fig.key,rot:ans.rot+dir*s/2},{glyph:fig.key,rot:ans.rot-dir*s/2});
+  if(fig.comp) pool.push({glyph:spInnerTurned(fig,90),rot:ans.rot},{glyph:spInnerTurned(fig,180),rot:ans.rot});
+  return {sp:'rot',prompt:p('whichrotation'),seq:[at(0),at(1),at(2)],
+          opts:[ans,...spPick(pool,3,[spSig(ans)])],ans:0,key:ans};
+}
+function spAccel(lvl,fig){
+  const s=[15,20,25,30][gRand(0,3)], dir=Math.random()<0.5?1:-1, base=gRand(0,7)*45;
+  const at=c=>({glyph:fig.key,rot:base+dir*s*c});
+  const ans=at(10);                                      /* turns s, 2s, 3s → next 4s */
+  const pool=[at(9),at(12),at(8),{glyph:fig.key,rot:ans.rot,mir:true},{glyph:fig.key,rot:ans.rot+180}];
+  if(fig.comp) pool.push({glyph:spInnerTurned(fig,90),rot:ans.rot});
+  return {sp:'accel',prompt:t('sp.accel'),seq:[at(0),at(1),at(3),at(6)],
+          opts:[ans,...spPick(pool,3,[spSig(ans)])],ans:0,key:ans};
+}
+function spMirror(lvl,fig){
+  const unit=lvl<15?90:(lvl<30?45:30);
+  const r=gRand(0,7)*45, F={glyph:fig.key,rot:r};
+  const x=lvl<15?0:gRand(1,Math.floor(360/unit)-1)*unit;
+  const ans={glyph:fig.key,rot:r+x,mir:true};
+  const pool=[];
+  for(let a=0;a<360;a+=unit) pool.push({glyph:fig.key,rot:r+a});
+  if(fig.comp) pool.push({glyph:spInnerTurned(fig,90),rot:r+gRand(0,3)*90});
+  return {sp:'mirror',prompt:lvl<15?p('mirror'):t('sp.mirrorturn'),noQ:true,seq:[F],
+          opts:[ans,...spPick(pool,3,[spSig(ans)])],ans:0,base:F};
+}
+function spNotRot(lvl,fig){
+  const unit=lvl<26?45:30;
+  const r=gRand(0,7)*45, F={glyph:fig.key,rot:r};
+  const offs=gShuffle([...Array(Math.floor(360/unit)-1).keys()].map(i=>(i+1)*unit)).slice(0,3);
+  const rots=offs.map(a=>({glyph:fig.key,rot:r+a}));
+  const turn=gRand(0,Math.floor(360/unit)-1)*unit;
+  const odd = (fig.comp && Math.random()<0.5)
+    ? {glyph:spInnerTurned(fig,[90,180,270][gRand(0,2)]),rot:r+turn}
+    : {glyph:fig.key,rot:r+turn,mir:true};
+  return {sp:'notrot',prompt:t('sp.notrot'),noQ:true,seq:[F],opts:[odd,...rots],ans:0,base:F};
+}
+/* Exactly one option satisfies the item's rule, and it is the key. */
+function spVerify(q){
+  const sigs=q.opts.map(optSig);
+  if(new Set(sigs).size!==sigs.length) return false;
+  let good;
+  if(q.sp==='rot'||q.sp==='accel') good=q.opts.map(o=>spSig(o)===spSig(q.key));
+  else if(q.sp==='mirror') good=q.opts.map(o=>o.glyph===q.base.glyph && !!o.mir!==!!q.base.mir);
+  else good=q.opts.map(o=>!spSameShape(o,q.base));
+  return good.filter(Boolean).length===1 && good[q.ans]===true;
+}
+function spGen(lvl){
+  let plan;
+  if(lvl<=10)      plan=['rot','mirror','rot','mirror','rot','mirror'];
+  else if(lvl<=25) plan=['rot','mirror','notrot','rot','notrot','mirror'];
+  else if(lvl<=43) plan=['rot','notrot','mirror','rot','notrot','rot'];
+  else             plan=['accel','rot','notrot','mirror','notrot','rot'];
+  const nComp = lvl<26?0:(lvl<=35?2:(lvl<=43?3:4));
+  const comps=gShuffle(plan.map((_,i)=>i<nComp));
+  const make={rot:spRot,accel:spAccel,mirror:spMirror,notrot:spNotRot};
+  return gShuffle(plan.map((type,i)=>{
+    for(let tries=0;tries<30;tries++){
+      const q=make[type](lvl,spFigure(comps[i]));
+      if(q.opts.length===4 && spVerify(q)) return shuffleOpts(q);
     }
-  }
-  return qs;
+    return Object.assign(shuffleOpts(spRot(Math.min(lvl,5),spFigure(false))),{fb:1});   /* safe floor; the self-check flags it */
+  }));
 }
 
 const WORD_SETS=[
@@ -5529,16 +5637,24 @@ function genWord(lvl){
    gamesSelfCheck(2000) → {speed:{items,bad:[]}, …}. Empty "bad" lists pass.
      speed    key in range and equal to the generator's answer; options
               distinct positive integers; speedVerify() (every fitting rule
-              family predicts the key and nothing else).                    */
+              family predicts the key and nothing else).
+     spatial  options render differently and are distinct by pose signature;
+              exactly one option satisfies the item's rule (spVerify).      */
 function gamesSelfCheck(n){
   n=n||500;
-  const rep={speed:{items:0,bad:[]}};
+  const rep={speed:{items:0,bad:[]},spatial:{items:0,bad:[]}};
   for(let k=0;k<n;k++){
     const lvl=1+(k%LEVELS_PER_GAME);
+    genSpatial(lvl).forEach(q=>{
+      rep.spatial.items++;
+      const html=q.opts.map(svgFor);
+      if(q.fb || !(q.ans>=0&&q.ans<4) || !spVerify(q) || new Set(html).size!==4)
+        rep.spatial.bad.push({lvl,sp:q.sp,opts:q.opts.map(spSig).join(' | '),ans:q.ans});
+    });
     genSpeed(lvl).forEach(q=>{
       rep.speed.items++;
       const vals=q.opts.map(o=>+o.val);
-      if(!(q.ans>=0&&q.ans<q.opts.length) || vals[q.ans]!==q.key || !speedVerify(q.seq,q.key,vals))
+      if(q.fb || !(q.ans>=0&&q.ans<q.opts.length) || vals[q.ans]!==q.key || !speedVerify(q.seq,q.key,vals))
         rep.speed.bad.push({lvl,rule:q.rule,seq:q.seq.join(','),opts:vals.join(','),key:q.key});
     });
   }
