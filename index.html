@@ -5535,7 +5535,7 @@ function openLevelMap(key){
       :`${i}<span class="node-stars">${[1,2,3].map(s=>`<i class="${s<=stars?'':'empty'}">★</i>`).join('')}</span>`;
     html+=`<div class="level-row" style="padding-left:${offs[(i-1)%offs.length]}%">
       <button class="level-node ${st}" ${st==='locked'?'disabled':`onclick="playLevel('${key}',${i})"`}>${inner}</button>
-      ${st==='locked'?'':`<span class="level-label"><b>${t('game.level')} ${i}</b>${st==='done'?'★'.repeat(stars):t('btn.continue')}</span>`}
+      ${st==='locked'?'':`<span class="level-label"><b>${t('game.level')} ${i}${gLevelTag(key,i)}</b>${st==='done'?'★'.repeat(stars):t('btn.continue')}</span>`}
     </div>`;
   }
   document.getElementById('level-path').innerHTML=html;
@@ -5544,6 +5544,12 @@ function openLevelMap(key){
   if(showScreen('screen-levelmap')) gStopRun();
 }
 
+/* A short tag on level-map nodes whose level plays differently. */
+function gLevelTag(key,lvl){
+  if(key!=='memmatrix') return '';
+  const m=mmConfig(lvl).mode;
+  return m==='std'?'':`<span class="gx-tag">${t('gx.mm.'+m)}</span>`;
+}
 function playLevel(key,lvl){
   currentGameKey=key; currentLevel=lvl;
   const c=CATALOG.find(x=>x.key===key);
@@ -5570,23 +5576,50 @@ function finishQuizGameLevel(){
   finishLevel(Math.round(correct/total*100), `${correct}/${total}`);
 }
 
-/* ==================== MEMORY MATRIX (real flash-recall) ==================== */
+/* ==================== MEMORY MATRIX (flash-recall, 50 levels) ====================
+   The curve follows working-memory span instead of running past it:
+     tiles to hold   2 → 9      (the old curve reached 32 of 36)
+     grid            3×3 (1–6), 4×4 (7–18), 5×5 (19–34), 6×6 (35–50)
+     flash           1600 → 800 ms
+   Two late variants add a different kind of load rather than more tiles:
+     Sequence (21, 25, … 49) — Corsi-style: tiles light one at a time and must
+       be repeated in order. Holding order is harder than holding a set, so
+       these levels use one tile fewer (max 7).
+     Mirror (31, 35, … 47) — rebuild the pattern flipped left↔right. That adds
+       manipulation of what you hold on top of storing it (max 7).
+   Five rounds per level, so 3 / 4 / 5 clean rounds give 1 / 2 / 3 stars, and
+   up to level 15 the first wrong tap in a round is a forgiven strike.      */
 let mmState=null;
+const MM_ROUNDS=5, MM_SCR='screen-memmatrix';
 function mmConfig(lvl){
-  const size=lvl<=3?3:(lvl<=8?4:(lvl<=20?5:6));
-  const litCount=2+Math.floor(lvl*0.6);
-  const rounds=Math.min(6,3+Math.floor(lvl/12));
-  const flashMs=Math.max(550,1600-lvl*28);
-  return {size,litCount:Math.min(litCount,size*size-1),rounds,flashMs};
+  const L=Math.max(1,Math.min(LEVELS_PER_GAME,lvl|0));
+  const span=2+Math.round((L-1)*7/49);
+  const size=L<=6?3:(L<=18?4:(L<=34?5:6));
+  const flashMs=Math.round(1600-(L-1)*800/49);
+  let mode='std';
+  if(L>=21 && L%4===1) mode='seq';
+  else if(L>=31 && L%4===3) mode='mirror';
+  const count = mode==='std' ? span : Math.max(3,Math.min(7,span-1));
+  return {size,count:Math.min(count,Math.floor(size*size*0.4)),rounds:MM_ROUNDS,flashMs,mode,
+          strikes:L<=15?1:0, stepMs:Math.max(420,Math.round(flashMs*0.55))};
 }
+function gStarsFor(pct){ return pct>=95?3:(pct>=80?2:(pct>=PASS_PCT?1:0)); }
+const mmCell=i=>document.querySelector(`#mm-grid .mm-cell[data-i="${i}"]`);
+
 function startMemMatrix(lvl){
   currentGameKey='memmatrix'; currentLevel=lvl;
+  const tok=gNewRun();
   const cfg=mmConfig(lvl);
-  mmState={cfg,round:0,results:[],lit:[],picked:[],phase:'idle',streak:0};
+  mmState={tok,cfg,round:0,results:[],shown:[],target:[],picked:[],phase:'idle',
+           streak:0,bestStreak:0,strikes:0,runXp:0};
   document.getElementById('mm-level').textContent=lvl;
+  const md=document.getElementById('mm-mode');
+  md.hidden=cfg.mode==='std'; md.textContent=cfg.mode==='std'?'':t('gx.mm.'+cfg.mode);
+  gComboChip('mm-combo',0);
+  gSyncSoundChips();
   armActivity('game');
-  showScreen('screen-memmatrix');
-  bobSetStage('mm-bob','testStart',bobLine('levelStart'),'warm');
+  showScreen(MM_SCR);
+  bobSetStage('mm-bob','testStart',cfg.mode==='std'?bobLine('levelStart'):t('mm.intro.'+cfg.mode),'warm');
   mmNextRound();
 }
 function mmRenderDots(){
@@ -5594,72 +5627,135 @@ function mmRenderDots(){
     .map((_,i)=>{const r=mmState.results[i];
       return `<i class="${r===undefined?'':(r?'ok':'bad')}"></i>`;}).join('');
 }
+function mmSetInteractive(on){
+  document.querySelectorAll('#mm-grid .mm-cell').forEach(c=>c.setAttribute('aria-disabled',on?'false':'true'));
+}
 function mmNextRound(){
-  if(mmState.round>=mmState.cfg.rounds){ mmFinish(); return; }
-  const {size,litCount,flashMs}=mmState.cfg;
-  const total=size*size;
+  const s=mmState;
+  if(s.round>=s.cfg.rounds){ mmFinish(); return; }
+  const {size,count,mode}=s.cfg, total=size*size;
   const cells=[...Array(total).keys()];
-  mmState.lit=pick(cells,litCount);
-  mmState.picked=[];
-  mmState.phase='ready';
-  document.getElementById('mm-round').textContent=`${mmState.round+1}/${mmState.cfg.rounds}`;
+  const mirror=i=>Math.floor(i/size)*size+(size-1-i%size);
+  let shown=pick(cells,count), guard=0;
+  /* a mirror round must not be its own reflection */
+  if(mode==='mirror') while(guard++<40 && shown.every(i=>shown.includes(mirror(i)))) shown=pick(cells,count);
+  s.shown=shown;
+  s.target = mode==='mirror' ? shown.map(mirror) : shown.slice();   /* in 'seq' the order matters */
+  s.picked=[]; s.strikes=s.cfg.strikes; s.phase='ready';
+  document.getElementById('mm-round').textContent=`${s.round+1}/${s.cfg.rounds}`;
   mmRenderDots();
   const grid=document.getElementById('mm-grid');
   grid.style.gridTemplateColumns=`repeat(${size},1fr)`;
-  grid.innerHTML=cells.map(i=>`<div class="mm-cell" data-i="${i}"></div>`).join('');
+  grid.classList.toggle('mirror-hint',mode==='mirror');
+  grid.innerHTML=cells.map(i=>{
+    const r=Math.floor(i/size)+1, c=i%size+1;
+    return `<button type="button" class="mm-cell" data-i="${i}" aria-disabled="true"
+      aria-label="${gEsc(t('mm.cell',{r,c}))}" onclick="mmPick(${i})"></button>`;
+  }).join('');
+  gGridKeys(grid,size);
   const status=document.getElementById('mm-status');
-  status.className='mm-status'; status.textContent=t('mm.getready');
-
-  setTimeout(()=>{
-    /* FLASH: show the pattern */
-    mmState.phase='flash';
-    status.className='mm-status flash'; status.textContent=t('mm.watch');
-    mmState.lit.forEach(i=>grid.querySelector(`[data-i="${i}"]`).classList.add('lit'));
-    setTimeout(()=>{
-      /* HIDE, then accept input */
-      grid.querySelectorAll('.mm-cell').forEach(c=>c.classList.remove('lit'));
-      mmState.phase='recall';
-      status.className='mm-status recall';
-      status.textContent=t('mm.recall')+` (${litCount})`;
-      grid.querySelectorAll('.mm-cell').forEach(c=>c.onclick=()=>mmPick(+c.dataset.i));
-    },flashMs);
-  },700);
-}
-function mmPick(i){
-  if(mmState.phase!=='recall'||mmState.picked.includes(i)) return;
-  const grid=document.getElementById('mm-grid');
-  const cell=grid.querySelector(`[data-i="${i}"]`);
-  mmState.picked.push(i);
-  if(mmState.lit.includes(i)){
-    cell.classList.add('picked'); cell.textContent='✓';
-    if(mmState.picked.filter(x=>mmState.lit.includes(x)).length===mmState.lit.length){
-      mmState.phase='done'; mmState.results.push(true); mmRenderDots();
-      const s=document.getElementById('mm-status'); s.className='mm-status recall'; s.textContent=t('mm.correct');
-      mmState.streak=(mmState.streak||0)+1;
-      fxBurst('#mm-grid',{count:14,spread:96});
-      bobSetStage('mm-bob', mmState.streak>=3?'streak':'correct',
-                  bobLine(mmState.streak>=3?'streak3':'correct'),
-                  mmState.streak>=3?'hot':'good',1600);
-      playChime(true);
-      mmState.round++; setTimeout(mmNextRound,900);
-    }
+  if(s.round===0){
+    /* a 3-2-1 beat before the very first flash, so it is never missed */
+    const beat=(n,at)=>gLater(()=>{ status.className='mm-status count'; status.textContent=String(n); gSfx('tick'); },at,MM_SCR);
+    beat(3,0); beat(2,430); beat(1,860);
+    gLater(()=>{ gSfx('go'); mmFlash(); },1290,MM_SCR);
   } else {
-    cell.classList.add('miss'); cell.textContent='✕';
-    mmState.phase='done'; mmState.results.push(false); mmRenderDots();
-    const s=document.getElementById('mm-status'); s.className='mm-status wrong'; s.textContent=t('mm.wrong');
-    mmState.streak=0;
-    bobSetStage('mm-bob','wrong',bobLine('wrong'),'',1800);
-    playChime(false);
-    /* reveal what it actually was */
-    mmState.lit.forEach(x=>grid.querySelector(`[data-i="${x}"]`).classList.add('lit'));
-    mmState.round++; setTimeout(mmNextRound,1400);
+    status.className='mm-status'; status.textContent=t('mm.getready');
+    gLater(mmFlash,650,MM_SCR);
   }
 }
-function mmFinish(){
-  const ok=mmState.results.filter(Boolean).length;
-  finishLevel(Math.round(ok/mmState.cfg.rounds*100),`${ok}/${mmState.cfg.rounds}`);
+function mmFlash(){
+  const s=mmState, grid=document.getElementById('mm-grid'), status=document.getElementById('mm-status');
+  s.phase='flash';
+  status.className='mm-status flash';
+  status.textContent=t(s.cfg.mode==='seq'?'mm.seqwatch':'mm.watch');
+  if(s.cfg.mode==='seq'){
+    const step=s.cfg.stepMs, gap=150;
+    s.shown.forEach((ix,k)=>{
+      gLater(()=>{ const c=mmCell(ix); if(c) c.classList.add('seqlit'); gSfx('flash'); },k*(step+gap),MM_SCR);
+      gLater(()=>{ const c=mmCell(ix); if(c) c.classList.remove('seqlit'); },k*(step+gap)+step,MM_SCR);
+    });
+    gLater(mmRecall,s.shown.length*(step+gap)+120,MM_SCR);
+  } else {
+    s.shown.forEach(ix=>mmCell(ix).classList.add('lit'));
+    gLater(()=>{ grid.querySelectorAll('.mm-cell').forEach(c=>c.classList.remove('lit')); mmRecall(); },s.cfg.flashMs,MM_SCR);
+  }
 }
-
+function mmRecallText(){
+  const s=mmState, k={std:'mm.recall',seq:'mm.seqrecall',mirror:'mm.mirrorrecall'}[s.cfg.mode];
+  return `${t(k)} (${s.picked.length}/${s.target.length})`;
+}
+function mmRecall(){
+  const s=mmState;
+  s.phase='recall';
+  const status=document.getElementById('mm-status');
+  status.className='mm-status recall'; status.textContent=mmRecallText();
+  mmSetInteractive(true);
+}
+function mmPick(i){
+  const s=mmState;
+  if(!s||s.phase!=='recall'||s.picked.includes(i)) return;
+  const el=mmCell(i);
+  if(!el||el.classList.contains('strike')) return;
+  const seq=s.cfg.mode==='seq';
+  const ok = seq ? s.target[s.picked.length]===i : s.target.includes(i);
+  const status=document.getElementById('mm-status');
+  if(ok){
+    s.picked.push(i);
+    el.classList.add('picked');
+    el.innerHTML = seq ? `<span class="ord">${s.picked.length}</span>` : '✓';
+    el.setAttribute('aria-label',el.getAttribute('aria-label')+' ✓');
+    if(s.picked.length===s.target.length) mmRoundEnd(true);
+    else { status.className='mm-status recall'; status.textContent=mmRecallText(); }
+  } else if(s.strikes>0){
+    /* forgiven slip: shake, say so, and give the cell back */
+    s.strikes--;
+    el.classList.add('strike'); el.textContent='✕';
+    status.className='mm-status wrong'; status.textContent=t('mm.strike');
+    gLater(()=>{
+      el.classList.remove('strike'); el.textContent='';
+      if(s.phase==='recall'){ status.className='mm-status recall'; status.textContent=mmRecallText(); }
+    },700,MM_SCR);
+  } else {
+    el.classList.add('miss'); el.textContent='✕';
+    mmRoundEnd(false);
+  }
+}
+function mmRoundEnd(ok){
+  const s=mmState, grid=document.getElementById('mm-grid'), status=document.getElementById('mm-status');
+  s.phase='done'; s.results.push(ok); mmRenderDots();
+  mmSetInteractive(false);
+  if(ok){
+    s.streak++; s.bestStreak=Math.max(s.bestStreak,s.streak);
+    const mult=gMult(s.streak), gain=3*mult;
+    s.runXp+=gain;
+    status.className='mm-status recall'; status.textContent=t('mm.correct');
+    fxBurst(grid,{count:14,spread:96});
+    gXpFloat(status,gain,mult);
+    gComboChip('mm-combo',s.streak);
+    bobSetStage('mm-bob',s.streak>=3?'streak':'correct',bobLine(s.streak>=3?'streak3':'correct'),s.streak>=3?'hot':'good',1600);
+    if(s.streak===3) gSfx('combo',2); else playChime(true);
+  } else {
+    s.streak=0;
+    gComboChip('mm-combo',0);
+    status.className='mm-status wrong'; status.textContent=t('mm.wrong');
+    bobSetStage('mm-bob','wrong',bobLine('wrong'),'',1800);
+    playChime(false);
+    /* show what it actually was — with the order on a sequence round */
+    s.target.forEach((x,k)=>{
+      const c=mmCell(x); if(!c||c.classList.contains('picked')) return;
+      c.classList.add('lit','reveal');
+      if(s.cfg.mode==='seq') c.innerHTML=`<span class="ord">${k+1}</span>`;
+    });
+  }
+  s.round++;
+  gLater(mmNextRound,ok?950:1800,MM_SCR);
+}
+function mmFinish(){
+  const s=mmState, ok=s.results.filter(Boolean).length, total=s.cfg.rounds;
+  const pct=Math.round(ok/total*100);
+  finishLevel(pct,`${ok}/${total}`,{nudge:gNudgeCorrect(ok,total,gStarsFor(pct)),runXp:s.runXp,combo:s.bestStreak});
+}
 
 /* ==================== LOGIC QUEST PUZZLE (50 levels, 10 rule bands) ==================== */
 const TILE_COLORS=['#7C4DFF','#12B39B','#4C6FE0','#F0B429','#FF4D9D','#22C3E6','#8BD450'];
