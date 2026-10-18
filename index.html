@@ -1265,7 +1265,7 @@
     <div class="stat-strip">
       <div class="stat"><b>30</b><span data-i18n="stat.items"></span></div>
       <div class="stat"><b>5</b><span data-i18n="stat.cats"></span></div>
-      <div class="stat"><b>~22 min</b><span data-i18n="stat.time"></span></div>
+      <div class="stat"><b data-i18n="stat.duration">~22 min</b><span data-i18n="stat.time"></span></div>
     </div>
 
     <div class="how-section" id="how">
@@ -1458,8 +1458,8 @@
       <div class="cert-peek-blur">
         <div class="cert"><div class="cert-band"></div>
           <div class="cert-inner" style="padding:26px;">
-            <div class="cert-mark">ETSEM.IQ · OFFICIAL RESULT</div>
-            <div class="memorize-word" style="font-size:24px;">Your Name</div>
+            <div class="cert-mark" data-i18n="cert.official">ETSEM.IQ · OFFICIAL RESULT</div>
+            <div class="memorize-word" style="font-size:24px;" data-i18n="cert.yourname">Your name</div>
             <div class="cert-score" style="font-size:21px;">•••</div>
           </div></div>
       </div>
@@ -1602,7 +1602,7 @@
       <div class="cert">
         <div class="cert-band"></div>
         <div class="cert-inner">
-          <div class="cert-mark">ETSEM.IQ · OFFICIAL RESULT</div>
+          <div class="cert-mark" data-i18n="cert.official">ETSEM.IQ · OFFICIAL RESULT</div>
           <svg class="cert-medal" viewBox="0 0 80 80">
             <circle cx="40" cy="30" r="22" fill="none" stroke="var(--gold)" stroke-width="3"/>
             <circle cx="40" cy="30" r="15" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
@@ -2751,6 +2751,7 @@ let lang = 'en';
 function t(key, vars){
   let s = (T[lang] && T[lang][key]) || T.en[key] || key;
   if(vars) Object.keys(vars).forEach(k => s = s.replace('{'+k+'}', vars[k]));
+  if(LANGS[lang] && LANGS[lang].rtl && s.charAt(0)==='←') s = '→'+s.slice(1);   /* "back" points right in RTL */
   return s;
 }
 
@@ -3887,8 +3888,8 @@ function showEmailGate(){
   const faster=Math.max(5,Math.min(99,Math.round(100-(used/engine.limit)*100)));
   document.getElementById('quick-stats-row').innerHTML=`
     <div class="quick-stat"><b>${Math.round(r.ratio*100)}%</b><span>${t('game.score')}</span></div>
-    <div class="quick-stat"><b>${faster}%</b><span>${t('social.today')}</span></div>
-    <div class="quick-stat"><b>${m}:${String(s).padStart(2,'0')}</b><span>${t('stat.time')}</span></div>`;
+    <div class="quick-stat"><b>${faster}%</b><span>${t('gate.faster')}</span></div>
+    <div class="quick-stat"><b>${m}:${String(s).padStart(2,'0')}</b><span>${t('gate.yourtime')}</span></div>`;
   showScreen('screen-email-gate');
 }
 
@@ -3904,7 +3905,7 @@ function renderTeaser(){
     return `<div class="cat-row"><div class="cat-name">${catName(c)}</div>
       <div class="cat-track"><div class="cat-fill ${lock?'locked':''}" style="width:${cats[c]}%"></div></div>
       ${lock?`<svg class="cat-lock" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="9" width="12" height="8" rx="1.5"/><path d="M6.5 9V6.5a3.5 3.5 0 0 1 7 0V9"/></svg>`
-        :`<div class="cat-val">${cats[c]}<span class="unlocked-tag">free</span></div>`}</div>`;
+        :`<div class="cat-val">${cats[c]}<span class="unlocked-tag">${t('res.freetag')}</span></div>`}</div>`;
   }).join('');
   selectPlan(selectedPlan);
 }
@@ -4040,6 +4041,35 @@ function finishUnlock(){
 }
 
 /* ==================== REPORT + SHARED HELPERS (fixes) ==================== */
+const T_FIX={
+  en:{'gate.faster':'faster than average','gate.yourtime':'your time','gate.emaillabel':'Email address',
+      'stat.duration':'~22 min','cert.official':'ETSEM.IQ · OFFICIAL RESULT','cert.yourname':'Your name',
+      'cert.namelabel':'Name on the certificate','res.freetag':'free','nav.home':'Etsem.IQ home','nav.lang':'Language',
+      'm.close':'Close menu','bob.open':'Chat with Bob, your training companion','bob.panel':'Chat with Bob',
+      'bob.close':'Close chat','bob.send':'Send message','bob.inputlabel':'Message to Bob'},
+  he:{'gate.faster':'מהר מהממוצע','gate.yourtime':'הזמן שלכם','gate.emaillabel':'כתובת אימייל',
+      'stat.duration':'כ־22 דק׳','cert.official':'ETSEM.IQ · תוצאה רשמית','cert.yourname':'השם שלכם',
+      'cert.namelabel':'השם על התעודה','res.freetag':'חינם','nav.home':'Etsem.IQ – דף הבית','nav.lang':'שפה',
+      'm.close':'סגירת התפריט','bob.open':'שיחה עם בוב, שותף האימון שלכם','bob.panel':'שיחה עם בוב',
+      'bob.close':'סגירת הצ׳אט','bob.send':'שליחת הודעה','bob.inputlabel':'הודעה לבוב'},
+  es:{'gate.faster':'más rápido que la media','gate.yourtime':'tu tiempo','gate.emaillabel':'Correo electrónico',
+      'stat.duration':'~22 min','cert.official':'ETSEM.IQ · RESULTADO OFICIAL','cert.yourname':'Tu nombre',
+      'cert.namelabel':'Nombre en el certificado','res.freetag':'gratis','nav.home':'Etsem.IQ – inicio','nav.lang':'Idioma',
+      'm.close':'Cerrar el menú','bob.open':'Habla con Bob, tu compañero de entrenamiento','bob.panel':'Chat con Bob',
+      'bob.close':'Cerrar el chat','bob.send':'Enviar mensaje','bob.inputlabel':'Mensaje para Bob'},
+  ru:{'gate.faster':'быстрее среднего','gate.yourtime':'ваше время','gate.emaillabel':'Электронная почта',
+      'stat.duration':'~22 мин','cert.official':'ETSEM.IQ · ОФИЦИАЛЬНЫЙ РЕЗУЛЬТАТ','cert.yourname':'Ваше имя',
+      'cert.namelabel':'Имя в сертификате','res.freetag':'бесплатно','nav.home':'Etsem.IQ – главная','nav.lang':'Язык',
+      'm.close':'Закрыть меню','bob.open':'Чат с Бобом, вашим помощником в тренировках','bob.panel':'Чат с Бобом',
+      'bob.close':'Закрыть чат','bob.send':'Отправить сообщение','bob.inputlabel':'Сообщение для Боба'},
+  ar:{'gate.faster':'أسرع من المتوسط','gate.yourtime':'وقتك','gate.emaillabel':'البريد الإلكتروني',
+      'stat.duration':'نحو 22 دقيقة','cert.official':'ETSEM.IQ · نتيجة رسمية','cert.yourname':'اسمك',
+      'cert.namelabel':'الاسم على الشهادة','res.freetag':'مجاناً','nav.home':'Etsem.IQ – الرئيسية','nav.lang':'اللغة',
+      'm.close':'إغلاق القائمة','bob.open':'تحدّث مع بوب، رفيق تدريبك','bob.panel':'محادثة مع بوب',
+      'bob.close':'إغلاق المحادثة','bob.send':'إرسال الرسالة','bob.inputlabel':'رسالة إلى بوب'}
+};
+Object.keys(T_FIX).forEach(l=>{ if(T[l]) Object.assign(T[l], T_FIX[l]); });
+
 /* Percentile on the IQ scale: the normal CDF with mean 100 and SD 15
    (Abramowitz–Stegun 7.1.26 for erf, |error| < 1.5e-7), clamped to 1..99. */
 function iqPercentile(iq){
@@ -6491,7 +6521,9 @@ function setLanguage(l){
   if(document.getElementById('screen-pricing').classList.contains('active')) renderPricing();
   if(document.getElementById('screen-games').classList.contains('active')) renderGamesHub();
   if(document.getElementById('screen-levelmap').classList.contains('active')) openLevelMap(currentGameKey);
-  if(document.getElementById('screen-quiz').classList.contains('active')) renderQuestion();
+  if(document.getElementById('screen-quiz').classList.contains('active')) rerenderQuestionText();
+  if(document.getElementById('screen-report').classList.contains('active')) renderReport();
+  const tk=document.getElementById('ticker-text'); if(tk && TICKER[ti]) tk.innerHTML=tickerHTML(TICKER[ti]);
   if(document.getElementById('screen-results').classList.contains('active')){ renderTeaser(); selectPlan(selectedPlan); }
   if(document.getElementById('screen-checkout').classList.contains('active')){
     renderCheckoutTerms();
@@ -6510,9 +6542,32 @@ function setLanguage(l){
 }
 function applyI18n(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>{ el.setAttribute('aria-label',t(el.dataset.i18nAria)); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.placeholder=t(el.dataset.i18nPh); });
   const nb=document.getElementById('btn-next');
   if(nb&&engine.qs.length) nb.textContent=engine.cur===engine.qs.length-1?t('btn.seeresults'):t('btn.next');
   selectPlan(selectedPlan);
+}
+/* A language switch mid-question re-renders the words only. The answer state
+   (the picked option, the lock that stops a game answer being re-picked, the
+   correct/wrong marks and the enabled Next button) is carried across, and the
+   re-render does not count as a new question for Bob or the entry animation. */
+function rerenderQuestionText(){
+  if(!engine.qs || !engine.qs[engine.cur]) return;
+  const sel=engine.sel, locked=engine.locked;
+  const marks={};
+  document.querySelectorAll('#question-mount .option').forEach(el=>{
+    marks[el.dataset.i]=['selected','is-correct','is-wrong'].filter(c=>el.classList.contains(c));
+  });
+  const nextOn=document.getElementById('btn-next').classList.contains('enabled');
+  const beat=window.quizBobBeat; window.quizBobBeat=function(){};
+  try{ renderQuestion(); } finally { window.quizBobBeat=beat; }
+  document.getElementById('question-mount').classList.remove('q-swap');
+  engine.sel=sel; engine.locked=locked;
+  document.querySelectorAll('#question-mount .option').forEach(el=>{
+    (marks[el.dataset.i]||[]).forEach(c=>el.classList.add(c));
+  });
+  if(nextOn || sel!==null) document.getElementById('btn-next').classList.add('enabled');
 }
 
 /* ==================== NAV / INIT ==================== */
