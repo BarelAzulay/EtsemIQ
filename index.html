@@ -1215,6 +1215,8 @@
   .gx-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:5px 12px;
     border-radius:14px;background:var(--bg-soft);color:var(--ink);border:1px solid var(--line);}
   .gx-chip.xp{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent);}
+  /* "+12 XP ×2" must not be reordered by an RTL page */
+  .gx-chip,.fx-pop,.gx-combo{unicode-bidi:plaintext;}
   .gx-chip.up{background:var(--teal-soft);color:var(--teal-ink);border-color:var(--teal);}
   .gx-chip.rec{background:#FFF5DF;color:#8A5B00;border-color:var(--gold);}
   :root[data-theme="dark"] .gx-chip.rec{background:#3A2B08;color:#FFD98A;}
@@ -1252,6 +1254,7 @@
   .gx-pinfo .sub .on{color:var(--accent-ink);font-weight:600;}
   .gx-player details{grid-column:1 / -1;border-top:1px solid var(--line);padding-top:12px;}
   .gx-player summary{cursor:pointer;font-weight:600;font-size:13.5px;min-height:44px;display:flex;align-items:center;gap:8px;}
+  .gx-player summary .gx-trophy{width:22px;height:22px;flex-shrink:0;}
   .gx-achs{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
   .gx-achs li{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;background:var(--bg-soft);font-size:12.5px;min-width:0;}
   .gx-achs li .gx-trophy{width:26px;height:26px;flex-shrink:0;}
@@ -4935,11 +4938,11 @@ en:{
   'gx.shp.0':'circle','gx.shp.1':'square','gx.shp.2':'triangle','gx.shp.3':'diamond','gx.shp.4':'star','gx.shp.5':'hexagon','gx.shp.6':'cross',
   'lr.outofmoves':'Out of moves — {f} of {n} found. Find every target to pass.',
   'lr.nudge1':'1 more correct for {s}','lr.nudgen':'{n} more correct for {s}',
-  'lr.nudgemiss':'Finish with at most {m} wrong taps for {s}','lr.nudgeclean':'Finish without a wrong tap for {s}',
+  'lr.nudgemiss':'Wrong taps allowed for {s}: {m}','lr.nudgeclean':'Finish without a wrong tap for {s}',
   'lr.best':'Your best on this level: {p}%','lr.record':'New record — up from {p}%',
   'lr.xp':'+{n} XP','lr.levelup':'Player level {n}!',
   'gx.player':'Player level {n}','gx.xpto':'{a} / {b} XP to level {n}',
-  'gx.daystreak':'{n}-day streak','gx.daystreak0':'Play today to start a streak',
+  'gx.daystreak':'{n}-day streak','gx.daystreak1':'Day 1 of a streak — come back tomorrow','gx.daystreak0':'Play today to start a streak',
   'gx.achs':'Achievements','gx.achcount':'{a} of {b} unlocked','gx.achunlocked':'Achievement unlocked',
   'gx.combo':'Combo ×{m}',
   'ach.first.n':'First clear','ach.first.d':'Pass any level.',
@@ -4987,11 +4990,11 @@ he:{
   'gx.shp.0':'עיגול','gx.shp.1':'ריבוע','gx.shp.2':'משולש','gx.shp.3':'מעוין','gx.shp.4':'כוכב','gx.shp.5':'משושה','gx.shp.6':'צלב',
   'lr.outofmoves':'נגמרו המהלכים — נמצאו {f} מתוך {n}. כדי לעבור צריך למצוא את כולן.',
   'lr.nudge1':'עוד תשובה נכונה אחת ל-{s}','lr.nudgen':'עוד {n} תשובות נכונות ל-{s}',
-  'lr.nudgemiss':'סיימו עם {m} לחיצות שגויות לכל היותר ל-{s}','lr.nudgeclean':'סיימו בלי לחיצה שגויה ל-{s}',
+  'lr.nudgemiss':'לחיצות שגויות מותרות ל-{s}: {m}','lr.nudgeclean':'סיימו בלי לחיצה שגויה ל-{s}',
   'lr.best':'השיא שלכם בשלב הזה: {p}%','lr.record':'שיא חדש — עלייה מ-{p}%',
   'lr.xp':'+{n} XP','lr.levelup':'רמת שחקן {n}!',
   'gx.player':'רמת שחקן {n}','gx.xpto':'{a} / {b} XP לרמה {n}',
-  'gx.daystreak':'רצף של {n} ימים','gx.daystreak0':'שחקו היום כדי להתחיל רצף',
+  'gx.daystreak':'רצף של {n} ימים','gx.daystreak1':'יום ראשון ברצף — חזרו מחר','gx.daystreak0':'שחקו היום כדי להתחיל רצף',
   'gx.achs':'הישגים','gx.achcount':'{a} מתוך {b} נפתחו','gx.achunlocked':'הישג חדש נפתח',
   'gx.combo':'קומבו ×{m}',
   'ach.first.n':'צעד ראשון','ach.first.d':'עברו שלב כלשהו.',
@@ -5039,11 +5042,11 @@ es:{
   'gx.shp.0':'círculo','gx.shp.1':'cuadrado','gx.shp.2':'triángulo','gx.shp.3':'rombo','gx.shp.4':'estrella','gx.shp.5':'hexágono','gx.shp.6':'cruz',
   'lr.outofmoves':'Sin movimientos: encontraste {f} de {n}. Para superarlo hay que encontrarlas todas.',
   'lr.nudge1':'1 acierto más para {s}','lr.nudgen':'{n} aciertos más para {s}',
-  'lr.nudgemiss':'Termina con {m} toques erróneos como máximo para {s}','lr.nudgeclean':'Termina sin ningún toque erróneo para {s}',
+  'lr.nudgemiss':'Toques erróneos permitidos para {s}: {m}','lr.nudgeclean':'Termina sin ningún toque erróneo para {s}',
   'lr.best':'Tu mejor marca en este nivel: {p}%','lr.record':'Nuevo récord: antes {p}%',
   'lr.xp':'+{n} XP','lr.levelup':'¡Nivel de jugador {n}!',
   'gx.player':'Nivel de jugador {n}','gx.xpto':'{a} / {b} XP para el nivel {n}',
-  'gx.daystreak':'Racha de {n} días','gx.daystreak0':'Juega hoy para empezar una racha',
+  'gx.daystreak':'Racha de {n} días','gx.daystreak1':'Día 1 de racha: vuelve mañana','gx.daystreak0':'Juega hoy para empezar una racha',
   'gx.achs':'Logros','gx.achcount':'{a} de {b} desbloqueados','gx.achunlocked':'Logro desbloqueado',
   'gx.combo':'Combo ×{m}',
   'ach.first.n':'Primer paso','ach.first.d':'Supera cualquier nivel.',
@@ -5091,11 +5094,11 @@ ru:{
   'gx.shp.0':'круг','gx.shp.1':'квадрат','gx.shp.2':'треугольник','gx.shp.3':'ромб','gx.shp.4':'звезда','gx.shp.5':'шестиугольник','gx.shp.6':'крест',
   'lr.outofmoves':'Ходы закончились — найдено {f} из {n}. Чтобы пройти, найдите все цели.',
   'lr.nudge1':'До {s} не хватает одного верного ответа','lr.nudgen':'До {s} не хватает верных ответов: {n}',
-  'lr.nudgemiss':'Для {s}: не больше {m} ошибочных нажатий','lr.nudgeclean':'Для {s}: ни одного ошибочного нажатия',
+  'lr.nudgemiss':'Для {s} допускается ошибочных нажатий: {m}','lr.nudgeclean':'Для {s}: ни одного ошибочного нажатия',
   'lr.best':'Ваш рекорд на этом уровне: {p}%','lr.record':'Новый рекорд — было {p}%',
   'lr.xp':'+{n} XP','lr.levelup':'Уровень игрока {n}!',
   'gx.player':'Уровень игрока {n}','gx.xpto':'{a} / {b} XP до уровня {n}',
-  'gx.daystreak':'Дней подряд: {n}','gx.daystreak0':'Сыграйте сегодня, чтобы начать серию',
+  'gx.daystreak':'Дней подряд: {n}','gx.daystreak1':'Первый день серии — возвращайтесь завтра','gx.daystreak0':'Сыграйте сегодня, чтобы начать серию',
   'gx.achs':'Достижения','gx.achcount':'Открыто: {a} из {b}','gx.achunlocked':'Новое достижение',
   'gx.combo':'Комбо ×{m}',
   'ach.first.n':'Первый шаг','ach.first.d':'Пройдите любой уровень.',
@@ -5143,11 +5146,11 @@ ar:{
   'gx.shp.0':'دائرة','gx.shp.1':'مربع','gx.shp.2':'مثلث','gx.shp.3':'معيّن','gx.shp.4':'نجمة','gx.shp.5':'مسدّس','gx.shp.6':'صليب',
   'lr.outofmoves':'نفدت الحركات — وجدت {f} من {n}. لتجتاز المستوى يجب أن تجدها كلها.',
   'lr.nudge1':'إجابة صحيحة واحدة أخرى للحصول على {s}','lr.nudgen':'ينقصك {n} من الإجابات الصحيحة للحصول على {s}',
-  'lr.nudgemiss':'أنهِ بما لا يزيد عن {m} من الضغطات الخاطئة للحصول على {s}','lr.nudgeclean':'أنهِ دون أي ضغطة خاطئة للحصول على {s}',
+  'lr.nudgemiss':'الضغطات الخاطئة المسموح بها للحصول على {s}: {m}','lr.nudgeclean':'أنهِ دون أي ضغطة خاطئة للحصول على {s}',
   'lr.best':'أفضل نتيجة لك في هذا المستوى: {p}%','lr.record':'رقم قياسي جديد — بعد {p}%',
   'lr.xp':'+{n} XP','lr.levelup':'مستوى اللاعب {n}!',
   'gx.player':'مستوى اللاعب {n}','gx.xpto':'{a} / {b} XP للمستوى {n}',
-  'gx.daystreak':'سلسلة {n} أيام','gx.daystreak0':'العب اليوم لتبدأ سلسلة',
+  'gx.daystreak':'أيام متتالية: {n}','gx.daystreak1':'اليوم الأول من السلسلة — عُد غداً','gx.daystreak0':'العب اليوم لتبدأ سلسلة',
   'gx.achs':'الإنجازات','gx.achcount':'{a} من {b} مفتوحة','gx.achunlocked':'إنجاز جديد',
   'gx.combo':'كومبو ×{m}',
   'ach.first.n':'الخطوة الأولى','ach.first.d':'اجتز أي مستوى.',
@@ -5202,15 +5205,15 @@ es:{failTwice:["Dos intentos fallidos aquí. Baja el ritmo en la primera ronda: 
 ru:{failTwice:["Здесь уже две неудачи. Первый раунд — помедленнее: правило новое, но вам по силам.",
                "Дважды чуть-чуть не хватило. Прочитайте правило вслух перед стартом.",
                "Это вторая. Десять секунд паузы — и снова, свежим взглядом."],
-    dayStreak:["{n}-й день подряд. Привычка — вот что делает тренировку рабочей.","{n} дней подряд. Так это и работает.",
-               "Серия: {n} дней. Нравится такая регулярность."],
+    dayStreak:["{n}-й день подряд. Привычка — вот что делает тренировку рабочей.","Уже {n}-й день подряд. Так это и работает.",
+               "Серия продолжается: {n}-й день. Нравится такая регулярность."],
     combo:["Комбо растёт. Держите ритм.","Это серия — не отпускайте.","Вы в потоке. Не думайте — читайте."],
     levelUp:["Новый уровень игрока. Заслуженно.","Уровень повышен. Работа видна."]},
 ar:{failTwice:["محاولتان هنا. تمهّل في الجولة الأولى — القاعدة جديدة وليست فوق قدرتك.",
                "نقصك القليل مرتين. جرّب قراءة القاعدة بصوت عالٍ قبل أن تبدأ.",
                "هذه الثانية. خذ عشر ثوانٍ ثم أعد — العين المرتاحة تساعد."],
-    dayStreak:["اليوم {n} على التوالي. العادات هي ما يجعل التدريب يثمر.","{n} أيام متتالية. هكذا تنجح.",
-               "السلسلة: {n} أيام. تعجبني هذه المواظبة."],
+    dayStreak:["اليوم {n} على التوالي. العادات هي ما يجعل التدريب يثمر.","أيام متتالية: {n}. هكذا تنجح.",
+               "السلسلة مستمرة لليوم {n}. تعجبني هذه المواظبة."],
     combo:["الكومبو يكبر. حافظ على الإيقاع.","هذه سلسلة — ابقَ معها.","أنت في أوج تركيزك. لا تفكر، اقرأ."],
     levelUp:["مستوى لاعب جديد. تستحقه.","ارتفع مستواك. الجهد واضح."]}
 };
@@ -5937,7 +5940,30 @@ function renderGamesHub(){
     :`<div class="upgrade-prompt"><p><b>${t('games.upsellt')}</b>${t('games.upselld')}</p>
        <button class="btn-upgrade" onclick="openPricing()">${t('games.plusplans')}</button></div>`;
 
+  /* Player panel: level, XP, day streak and achievements. Shown once there
+     is something to show (a member, or anyone who has earned XP). */
+  let pp=document.getElementById('gx-player-wrap');
+  if(!pp){ pp=document.createElement('div'); pp.id='gx-player-wrap'; document.getElementById('games-grid').before(pp); }
+  pp.innerHTML=(isMember()||gMeta().xp>0)?gPlayerPanelHTML():'';
+
+  /* CATALOG is read now, not at boot, so games added by later blocks appear. */
   document.getElementById('games-grid').innerHTML=CATALOG.map(c=>gameCardHTML(c)).join('');
+}
+function gPlayerPanelHTML(){
+  const m=gMeta(), li=gLevelInfo(m.xp), day=gDayStreak();
+  const got=ACHS.filter(a=>m.ach[a.id]).length;
+  const xpLine=t('gx.xpto',{a:li.into,b:li.need,n:li.L+1});
+  const list=ACHS.map(a=>`<li class="${m.ach[a.id]?'':'locked'}">${TROPHY_SVG}<div><b>${t('ach.'+a.id+'.n')}</b><span>${t('ach.'+a.id+'.d')}</span></div></li>`).join('');
+  return `<div class="gx-player">
+    <div class="gx-lvl" aria-hidden="true"><small>${t('game.level')}</small><b>${li.L}</b></div>
+    <div class="gx-pinfo">
+      <div class="ttl">${t('gx.player',{n:li.L})}</div>
+      <div class="gx-xpbar" role="progressbar" aria-valuemin="0" aria-valuemax="${li.need}" aria-valuenow="${li.into}" aria-label="${gEsc(xpLine)}"><i style="width:${Math.round(li.into/li.need*100)}%"></i></div>
+      <div class="sub"><span>${xpLine}</span><span class="${day?'on':''}">🔥 ${day>1?t('gx.daystreak',{n:day}):(day?t('gx.daystreak1'):t('gx.daystreak0'))}</span></div>
+    </div>
+    <details><summary>${TROPHY_SVG}<span>${t('gx.achs')} · ${t('gx.achcount',{a:got,b:ACHS.length})}</span></summary>
+      <ul class="gx-achs">${list}</ul></details>
+  </div>`;
 }
 
 const LOCK_SVG='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">'+
