@@ -3814,7 +3814,10 @@ function runTimer(){
 }
 function updateTimer(){
   const m=Math.floor(engine.left/60),s=engine.left%60;
-  document.getElementById('timer-label').textContent=`${m}:${String(s).padStart(2,'0')}`;
+  const el=document.getElementById('timer-label');
+  el.textContent=`${m}:${String(s).padStart(2,'0')}`;
+  /* Game modes pulse through the last ten seconds; the scored test never does. */
+  el.classList.toggle('low', engine.mode!=='main' && engine.left<=10);
 }
 
 function renderQuestion(){
@@ -3895,7 +3898,8 @@ function renderStreakChip(){
   const st=engine.streak||0;
   if(st<2 || engine.mode==='main'){ chip.style.display='none'; return; }
   chip.style.display='';
-  chip.textContent='🔥 '+st;
+  const mult=gMult(st);
+  chip.textContent='🔥 '+st+(mult>1?' · '+t('gx.combo',{m:mult}):'');
   chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump');
 }
 
@@ -3908,7 +3912,15 @@ function selectOption(i){
   document.getElementById('btn-next').classList.add('enabled');
   /* Training games mark the answer immediately. The scored test does not:
      showing the key mid-assessment would let the score be gamed. */
-  if(engine.mode!=='main') markAnswer(el,i);
+  if(engine.mode!=='main'){
+    const ok=markAnswer(el,i);
+    /* Game quizzes then move on by themselves — quickly after a right answer,
+       longer after a wrong one so the correct option can be read. Next still
+       works as a skip; the guard stops a double advance. */
+    const run=engine, cur=engine.cur;
+    gLater(()=>{ if(engine===run && engine.cur===cur && engine.sel!==null) nextQuestion(); },
+           ok?700:1400,'screen-quiz');
+  }
 }
 
 /* Shared correct/wrong treatment for every game-mode question. */
@@ -3921,23 +3933,30 @@ function markAnswer(el,i){
     const right=document.querySelector(`.option[data-i="${q.ans}"]`);
     if(right) right.classList.add('is-correct');
   }
+  /* a non-colour cue on top of the green/pink */
+  const mark=(node,ch)=>{ if(node && !node.querySelector('.gx-mark')) node.insertAdjacentHTML('beforeend',`<span class="gx-mark" aria-hidden="true">${ch}</span>`); };
   if(ok){
     engine.streak=(engine.streak||0)+1;
     engine.bestStreak=Math.max(engine.bestStreak||0,engine.streak);
     engine.correct=(engine.correct||0)+1;
+    const mult=gMult(engine.streak), gain=(engine.mode==='hardcore'?5:2)*mult;
+    engine.runXp=(engine.runXp||0)+gain;
+    el.classList.add('gx-pop'); mark(el,'✓');
     fxBurst(el,{count:10,spread:62});
-    fxPop(el,'+1');
+    gXpFloat(el,gain,mult);
     renderStreakChip();
-    if(engine.streak===3) bobReact('streak3');
-    else if(engine.streak>=5 && engine.streak%5===0) bobReact('streak5');
-    else bobReact('correct');
-    playChime(true);
+    if(engine.streak===3){ bobReact('streak3'); gSfx('combo',2); }
+    else if(engine.streak===6){ bobReact('streak3',{text:bobLine('combo')}); gSfx('combo',3); }
+    else if(engine.streak>=5 && engine.streak%5===0){ bobReact('streak5'); playChime(true); }
+    else { bobReact('correct'); playChime(true); }
   } else {
     engine.streak=0;
+    mark(el,'✕'); mark(document.querySelector(`.option[data-i="${q.ans}"]`),'✓');
     renderStreakChip();
     bobReact('wrong');
     playChime(false);
   }
+  return ok;
 }
 
 function nextQuestion(){
@@ -5240,7 +5259,7 @@ const GAME_BANKS={
       ru:'Быстрые последовательности на время. Скорость обработки — один из показателей, который чаще всего улучшается.',
       ar:'تسلسلات سريعة ضد الوقت. سرعة المعالجة من أكثر المجالات تحسناً.'}[lang]),
     icon:'<circle cx="26" cy="26" r="22" fill="#DCF3EE" stroke="var(--teal)" stroke-width="3"/><path d="M26 14v12l8 6" stroke="var(--teal)" stroke-width="3.2" fill="none" stroke-linecap="round"/>',
-    secsPerLevel:60, gen:(lvl)=>genSpeed(lvl)
+    secsPerLevel:60, secs:(lvl)=>Math.round(70-(Math.min(lvl,50)-1)*20/49), gen:(lvl)=>genSpeed(lvl)
   },
   spatial:{
     name:()=>({en:'Spatial Reasoning',he:'חשיבה מרחבית',es:'Razonamiento espacial',ru:'Пространственное мышление',ar:'التفكير المكاني'}[lang]),
@@ -5273,26 +5292,160 @@ function shuffleOpts(q){
   return q;
 }
 
-function genSpeed(lvl){
-  const qs=[]; const capLvl=Math.min(lvl,16); const step=1+capLvl;
-  for(let i=0;i<6;i++){
-    const start=2+Math.floor(Math.random()*6), inc=step+Math.floor(Math.random()*capLvl);
-    const seq=[start,start+inc,start+inc*2,start+inc*3];
-    const ansV=start+inc*4;
-    /* build distractors that are guaranteed distinct from each other and the answer */
-    const used=new Set([ansV]);
-    const cand=[ansV+inc,ansV-inc,ansV+1,ansV-1,ansV+2,ansV-2,ansV+inc+1,ansV-inc-1,ansV*2,ansV+3];
-    const distractors=[];
-    for(const c of cand){
-      if(distractors.length>=3) break;
-      if(c>0 && !used.has(c)){ used.add(c); distractors.push(c); }
-    }
-    let pad=ansV+4;
-    while(distractors.length<3){ if(!used.has(pad)){used.add(pad);distractors.push(pad);} pad++; }
-    const q={num:true,prompt:p('nextnum'),seq,
-      opts:[{val:String(ansV)},...distractors.map(v=>({val:String(v)}))],ans:0};
-    qs.push(shuffleOpts(q));
+/* ==================== SPEED IQ — rule ladder ====================
+   Each level draws six series from a ladder of rules, newest rules most often:
+     1–5    +n                         25–32  squares, triangular numbers,
+     6–10   −n, mixed with +n                 growing differences
+     11–16  ×2 / ×3                    33–40  two interleaved series
+     17–24  alternating +a/−b, +a/+b   41–50  Fibonacci-like, ×p±q, and all of
+                                              the above at larger values
+   Within a band the numbers grow with the level, so nothing plateaus.
+   Distractors come from misreading the rule (one step off, wrong phase,
+   treating a product as a sum, skipping a step), not just ±1.
+
+   Every item is checked before it is used: speedFits() fits every rule
+   family it knows to the shown terms, and an item is accepted only if each
+   family that fits predicts the same next number, that number is the key,
+   and no option other than the key is predicted by anything.            */
+const SPEED_BANDS=[
+  {from:1,  to:5,  mix:['add','add','add','add','add','add']},
+  {from:6,  to:10, mix:['sub','sub','sub','add','add','sub']},
+  {from:11, to:16, mix:['mul','mul','mul','add','sub','mul']},
+  {from:17, to:24, mix:['alt','alt','alt','mul','sub','alt']},
+  {from:25, to:32, mix:['sq','tri','inc','sq','alt','inc']},
+  {from:33, to:40, mix:['inter','inter','inter','inc','sq','alt']},
+  {from:41, to:50, mix:['fib','lin','lin','inter','inc','fib']}
+];
+function speedBand(lvl){ return SPEED_BANDS.find(b=>lvl>=b.from&&lvl<=b.to)||SPEED_BANDS[SPEED_BANDS.length-1]; }
+
+/* One series of the given rule. f (0..1) is how far into its band the level is. */
+function speedMake(rule,lvl,f){
+  const R=gRand, big=lvl>=17;
+  let seq=[], ans, alt=[];
+  if(rule==='add'){
+    const d=big?R(7,14+Math.round(f*8)):R(1,Math.min(3+lvl,9)), a0=big?R(10,60):R(1,9+lvl);
+    seq=[0,1,2,3].map(k=>a0+d*k); ans=a0+4*d;
+    alt=[ans+1,ans-1,ans+d,ans+2*d,ans+10,ans-2];
+  } else if(rule==='sub'){
+    const d=big?R(6,13+Math.round(f*6)):R(2,4+Math.round(f*6)+Math.floor(lvl/6)), end=R(1,12);
+    ans=end; seq=[4,3,2,1].map(k=>end+d*k);
+    alt=[ans+1,ans-1,ans-d,ans+2*d,ans+10,ans-2].filter(v=>v>0);
+  } else if(rule==='mul'){
+    const r=Math.random()<0.6?2:3, a0=r===2?R(1,4+Math.round(f*4)):R(1,3);
+    seq=[0,1,2,3].map(k=>a0*Math.pow(r,k)); ans=a0*Math.pow(r,4);
+    const l=seq[3], pv=seq[2];
+    alt=[l+(l-pv), l+pv, l*(r===2?3:2), ans+r, ans-r, ans+l];
+  } else if(rule==='alt'){
+    const a=R(3,8+Math.round(f*6)), b=R(1,a-1), plus=Math.random()<0.4, a0=R(4,20);
+    const ds=[a,plus?b:-b];
+    seq=[a0]; for(let k=1;k<6;k++) seq.push(seq[k-1]+ds[(k-1)%2]);
+    ans=seq[5]+ds[1];
+    const l=seq[5];
+    alt=[l+ds[0], l+a+(plus?b:-b), ans+1, ans-1, l-(plus?b:-b)];
+  } else if(rule==='sq'){
+    const k0=R(1,4+Math.round(f*5)), c=lvl>=29?R(-3,6):0, n=f>0.5?5:4;
+    seq=[...Array(n).keys()].map(i=>(k0+i)*(k0+i)+c); ans=(k0+n)*(k0+n)+c;
+    const l=seq[n-1], pv=seq[n-2];
+    alt=[l+(l-pv), l+(l-pv)+1, (k0+n+1)*(k0+n+1)+c, ans+1, ans-1, ans+2];
+  } else if(rule==='tri'){
+    const T=n=>n*(n+1)/2, k0=R(1,5+Math.round(f*4));
+    seq=[0,1,2,3,4].map(i=>T(k0+i)); ans=T(k0+5);
+    const l=seq[4], pv=seq[3];
+    alt=[l+(l-pv), l+(l-pv)+2, ans+1, ans-1, T(k0+6)];
+  } else if(rule==='inc'){
+    const a0=R(1,15), d=R(1,5), s=lvl>=41?R(2,4):R(1,3);
+    seq=[a0]; for(let k=1;k<5;k++) seq.push(seq[k-1]+d+s*(k-1));
+    const ld=d+s*3; ans=seq[4]+ld+s;
+    alt=[seq[4]+ld, seq[4]+ld+2*s, ans+1, ans-1, ans+s+1];
+  } else if(rule==='inter'){
+    const A0=R(1,15), p=R(2,8), geo=lvl>=41&&Math.random()<0.5;
+    const B0=geo?R(1,3):R(30,60+Math.round(f*20)), q=R(2,6);
+    const A=k=>A0+p*k, B=k=>geo?B0*Math.pow(2,k):B0-q*k;
+    seq=[A(0),B(0),A(1),B(1),A(2),B(2),A(3)]; ans=B(3);
+    const l=seq[6];
+    alt=[A(4), B(2)+p, l+(l-seq[5]), ans+1, ans-1, geo?B(2)+B(1):B(2)-2*q];
+  } else if(rule==='fib'){
+    const a=R(1,5), b=R(a,a+6);
+    seq=[a,b]; for(let k=2;k<5;k++) seq.push(seq[k-1]+seq[k-2]);
+    ans=seq[4]+seq[3];
+    const l=seq[4], pv=seq[3];
+    alt=[l*2, l+(l-pv), ans+1, ans-1, l+pv+seq[2]];
+  } else if(rule==='lin'){
+    const p=Math.random()<0.65?2:3, q=[-3,-2,-1,1,2,3][R(0,5)], a0=R(2,6);
+    seq=[a0]; for(let k=1;k<(p===2?5:4);k++) seq.push(seq[k-1]*p+q);
+    const l=seq[seq.length-1]; ans=l*p+q;
+    alt=[l*p, l*p-q, l+(l-seq[seq.length-2]), ans+1, ans-1, l*(p+1)+q];
   }
+  return {rule,seq,ans,alt};
+}
+
+/* Every family the checker knows. Each one only counts as a fit when the
+   shown terms over-determine it (at least one term beyond its parameters). */
+function speedFits(a){
+  const n=a.length, out=[];
+  const d=a.slice(1).map((v,i)=>v-a[i]);
+  const allEq=x=>x.length>0 && x.every(v=>v===x[0]);
+  const isInt=v=>Number.isInteger(v);
+  if(n>=3 && allEq(d)) out.push(['arith',a[n-1]+d[0]]);
+  if(n>=3 && a.every(v=>v!==0)){
+    const ok=a.slice(2).every((v,i)=>v*a[i]===a[i+1]*a[i+1]);
+    const nx=a[n-1]*a[n-1]/a[n-2];
+    if(ok && isInt(nx)) out.push(['geom',nx]);
+  }
+  if(n>=4){ const dd=d.slice(1).map((v,i)=>v-d[i]); if(allEq(dd)) out.push(['poly2',a[n-1]+d[n-2]+dd[0]]); }
+  if(n>=4 && a[1]!==a[0]){
+    const p=(a[2]-a[1])/(a[1]-a[0]), q=a[1]-p*a[0];
+    if(a.slice(1).every((v,i)=>Math.abs(v-(p*a[i]+q))<1e-9)){ const nx=p*a[n-1]+q; if(isInt(nx)) out.push(['linrec',nx]); }
+  }
+  if(n>=4 && a.slice(2).every((v,i)=>v===a[i]+a[i+1])) out.push(['fib',a[n-1]+a[n-2]]);
+  if(n>=5 && d.every((v,i)=>v===d[i%2])) out.push(['altdiff',a[n-1]+d[(n-1)%2]]);
+  if(n>=6){
+    const ev=a.filter((_,i)=>i%2===0), od=a.filter((_,i)=>i%2===1), sub=n%2===0?ev:od;
+    const other=n%2===0?od:ev;
+    const subFit=x=>{ const r=[]; const dx=x.slice(1).map((v,i)=>v-x[i]);
+      if(x.length>=3 && allEq(dx)) r.push(x[x.length-1]+dx[0]);
+      if(x.length>=3 && x.every(v=>v!==0) && x.slice(2).every((v,i)=>v*x[i]===x[i+1]*x[i+1])){
+        const nx=x[x.length-1]*x[x.length-1]/x[x.length-2]; if(isInt(nx)) r.push(nx); }
+      return r; };
+    const fitsOther=subFit(other).length>0;
+    if(fitsOther) subFit(sub).forEach(v=>out.push(['inter',v]));
+  }
+  return out;
+}
+/* true when the item has exactly one defensible next number: its key. */
+function speedVerify(seq,key,vals){
+  const fits=speedFits(seq);
+  if(!fits.length) return false;
+  const preds=new Set(fits.map(f=>f[1]));
+  if(preds.size!==1 || !preds.has(key)) return false;
+  if(new Set(vals).size!==vals.length) return false;
+  return vals.filter(v=>v===key).length===1 && vals.every(v=>Number.isInteger(v)&&v>0);
+}
+
+function genSpeed(lvl){
+  const band=speedBand(lvl), f=(lvl-band.from)/Math.max(1,band.to-band.from);
+  const qs=[], seen=new Set();
+  gShuffle(band.mix.slice()).forEach(rule=>{
+    let item=null;
+    for(let tries=0;tries<40 && !item;tries++){
+      const m=speedMake(rule,lvl,f);
+      if(m.ans<=0 || m.ans>999 || m.seq.some(v=>v<=0) || seen.has(m.seq.join(','))) continue;
+      const shown=new Set(m.seq);
+      const pool=gShuffle([...new Set(m.alt)].filter(v=>Number.isInteger(v)&&v>0&&v!==m.ans&&!shown.has(v)));
+      let pad=1;
+      while(pool.length<3){ const v=m.ans+(pad%2?1:-1)*(2+Math.floor(pad/2)); pad++; if(v>0&&v!==m.ans&&!shown.has(v)&&!pool.includes(v)) pool.push(v); }
+      const opts=[m.ans,...pool.slice(0,3)].map(v=>({val:String(v)}));
+      const q={num:true,prompt:p('nextnum'),seq:m.seq,opts,ans:0,key:m.ans,rule};
+      if(!speedVerify(m.seq,m.ans,opts.map(o=>+o.val))) continue;
+      item=shuffleOpts(q);
+    }
+    if(!item){   /* never reached in the self-check; a plain +n series as a safe floor */
+      const a0=gRand(2,9), d=gRand(2,9), seq=[0,1,2,3].map(k=>a0+d*k), ans=a0+4*d;
+      item=shuffleOpts({num:true,prompt:p('nextnum'),seq,opts:[ans,ans+1,ans-1,ans+d].map(v=>({val:String(v)})),ans:0,key:ans,rule:'add'});
+    }
+    seen.add(item.seq.join(','));
+    qs.push(item);
+  });
   return qs;
 }
 
@@ -5368,6 +5521,28 @@ WORD_SETS.push(
 function genWord(lvl){
   const sets=pick(WORD_SETS,6);
   return sets.map(s=>shuffleOpts({prompt:s.q,opts:s.o.map(x=>({val:x})),ans:0}));
+}
+
+/* ==================== GAMES SELF-CHECK ====================
+   gamesSelfCheck(n) generates n levels' worth of items per game, spread over
+   the whole level range, and checks every one. Run it from the console:
+   gamesSelfCheck(2000) → {speed:{items,bad:[]}, …}. Empty "bad" lists pass.
+     speed    key in range and equal to the generator's answer; options
+              distinct positive integers; speedVerify() (every fitting rule
+              family predicts the key and nothing else).                    */
+function gamesSelfCheck(n){
+  n=n||500;
+  const rep={speed:{items:0,bad:[]}};
+  for(let k=0;k<n;k++){
+    const lvl=1+(k%LEVELS_PER_GAME);
+    genSpeed(lvl).forEach(q=>{
+      rep.speed.items++;
+      const vals=q.opts.map(o=>+o.val);
+      if(!(q.ans>=0&&q.ans<q.opts.length) || vals[q.ans]!==q.key || !speedVerify(q.seq,q.key,vals))
+        rep.speed.bad.push({lvl,rule:q.rule,seq:q.seq.join(','),opts:vals.join(','),key:q.key});
+    });
+  }
+  return rep;
 }
 
 /* ==================== GAMES CATALOG ==================== */
@@ -5563,8 +5738,10 @@ function playLevel(key,lvl){
 /* ==================== QUIZ-STYLE GAME LEVELS ==================== */
 function startQuizGameLevel(key,lvl){
   const bank=GAME_BANKS[key];
+  gNewRun();
+  const secs=typeof bank.secs==='function'?bank.secs(lvl):bank.secsPerLevel;
   engine={mode:key,qs:bank.gen(lvl),cur:0,answers:[],sel:null,timer:null,
-    left:bank.secsPerLevel,limit:bank.secsPerLevel,streak:0,bestStreak:0,correct:0};
+    left:secs,limit:secs,streak:0,bestStreak:0,correct:0,runXp:0};
   armActivity('game');
   showScreen('screen-quiz'); renderQuestion(); runTimer();
   /* A level opens with a level line, not the free test's "thirty items". */
@@ -5573,7 +5750,9 @@ function startQuizGameLevel(key,lvl){
 function finishQuizGameLevel(){
   const correct=engine.answers.filter(Boolean).length;
   const total=engine.qs.length||1;
-  finishLevel(Math.round(correct/total*100), `${correct}/${total}`);
+  const pct=Math.round(correct/total*100);
+  finishLevel(pct,`${correct}/${total}`,
+    {nudge:gNudgeCorrect(correct,total,gStarsFor(pct)),runXp:engine.runXp||0,combo:engine.bestStreak||0});
 }
 
 /* ==================== MEMORY MATRIX (flash-recall, 50 levels) ====================
