@@ -142,3 +142,30 @@ test('admin sessions expire like any other', async () => {
   now = (exp + 1) * 1000;
   assert.equal((await handle(me(token), ENV)).status, 401);
 });
+
+test('IPv6 failures count per /64, so rotating addresses inside one /64 does not help', async () => {
+  const { failKey } = await import('../src/index.js');
+  assert.equal(failKey('203.0.113.7'), '203.0.113.7');
+  assert.equal(failKey('2001:db8:aa:bb:1:2:3:4'), '2001:db8:aa:bb::/64');
+  assert.equal(failKey('2001:0db8:00aa:00bb::5'), '2001:db8:aa:bb::/64');
+  assert.equal(failKey('2001:db8::1'), '2001:db8:0:0::/64');
+  const handle = createHandler({ fetch: noFetch });
+  for (let i = 0; i < 5; i++) await handle(post({ username: USER, password: 'bad' }, { ip: `2001:db8:aa:bb::${i + 1}` }), ENV);
+  assert.equal((await handle(post({ username: USER, password: PASS }, { ip: '2001:db8:aa:bb:ffff::9' }), ENV)).status, 429);
+  assert.equal((await handle(post({ username: USER, password: PASS }, { ip: '2001:db8:aa:cc::1' }), ENV)).status, 200);
+});
+
+test('an oversized Content-Length is refused before the body is read', async () => {
+  const handle = createHandler({ fetch: noFetch });
+  const req = new Request('https://api.etsemiq.com/auth/admin', {
+    method: 'POST', headers: { Origin: SITE, 'Content-Type': 'application/json', 'Content-Length': '999999' }, body: '{}',
+  });
+  assert.equal((await handle(req, ENV)).status, 400);
+});
+
+test('the Whop-hosted copy of the site may log in', async () => {
+  const handle = createHandler({ fetch: noFetch });
+  const res = await handle(post({ username: USER, password: PASS }, { origin: 'https://etsemiq-web.whop.site' }), ENV);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get('Access-Control-Allow-Origin'), 'https://etsemiq-web.whop.site');
+});

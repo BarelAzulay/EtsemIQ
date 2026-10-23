@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import { allowedOrigins, isAllowedOrigin, corsHeaders, safeReturnUrl, parseAdminIds, decideEntitlement } from '../src/policy.js';
 
 test('CORS allow-list: production origins only by default', () => {
-  assert.deepEqual(allowedOrigins({}), ['https://etsemiq.com', 'https://www.etsemiq.com']);
+  assert.deepEqual(allowedOrigins({}), ['https://etsemiq.com', 'https://www.etsemiq.com', 'https://etsemiq-web.whop.site']);
   assert.equal(isAllowedOrigin('https://etsemiq.com', {}), true);
   assert.equal(isAllowedOrigin('https://www.etsemiq.com', {}), true);
+  assert.equal(isAllowedOrigin('https://etsemiq-web.whop.site', {}), true);
   for (const bad of ['http://etsemiq.com', 'https://etsemiq.com.evil.example', 'https://evil-etsemiq.com',
+    'https://other.whop.site', 'https://etsemiq-web.whop.site.evil.example', 'http://etsemiq-web.whop.site',
     'https://api.etsemiq.com', 'null', '', null, undefined, 'https://etsemiq.com/', 'https://ETSEMIQ.com:443x']) {
     assert.equal(isAllowedOrigin(bad, {}), false, String(bad));
   }
@@ -17,9 +19,9 @@ test('CORS: extra dev origin from env, bare origins only', () => {
   assert.equal(isAllowedOrigin('http://localhost:8080', { EXTRA_ORIGIN: 'http://localhost:8080/' }), true);
   assert.equal(isAllowedOrigin('http://localhost:8081', { EXTRA_ORIGIN: 'http://localhost:8080' }), false);
   /* junk in EXTRA_ORIGIN never widens the list */
-  assert.deepEqual(allowedOrigins({ EXTRA_ORIGIN: '*' }).length, 2);
-  assert.deepEqual(allowedOrigins({ EXTRA_ORIGIN: 'https://x.example/path' }).length, 2);
-  assert.deepEqual(allowedOrigins({ EXTRA_ORIGIN: 'javascript:alert(1)' }).length, 2);
+  assert.deepEqual(allowedOrigins({ EXTRA_ORIGIN: '*' }).length, 3);
+  assert.deepEqual(allowedOrigins({ EXTRA_ORIGIN: 'https://x.example/path' }).length, 3);
+  assert.deepEqual(allowedOrigins({ EXTRA_ORIGIN: 'javascript:alert(1)' }).length, 3);
 });
 
 test('CORS headers: never reflect a disallowed origin, never "*"', () => {

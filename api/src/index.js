@@ -243,17 +243,40 @@ async function me(request, env, deps, cors) {
 const adminFails = new Map();
 const ADMIN_MAX_FAILS = 5;
 const ADMIN_FAIL_WINDOW_MS = 15 * 60_000;
+const ADMIN_FAILS_MAX_KEYS = 5000;
 export function _clearAdminFails() { adminFails.clear(); }
+
+/* IPv6 users usually hold a whole /64, so count failures per /64, not per address. */
+export function failKey(ip) {
+  if (!ip.includes(':')) return ip;
+  const [head, tail = ''] = ip.toLowerCase().split('::');
+  const h = head ? head.split(':') : [];
+  const t = tail ? tail.split(':') : [];
+  const full = ip.includes('::') ? [...h, ...Array(Math.max(0, 8 - h.length - t.length)).fill('0'), ...t] : h;
+  return full.slice(0, 4).map(g => g.replace(/^0+(?=.)/, '')).join(':') + '::/64';
+}
+
+/* Never wipe the table to make room: that would also lift live lockouts. Drop
+   expired entries first, then the oldest ones (Map keeps insertion order). */
+function makeRoom(nowMs) {
+  if (adminFails.size < ADMIN_FAILS_MAX_KEYS) return;
+  for (const [k, v] of adminFails) if (nowMs - v.first >= ADMIN_FAIL_WINDOW_MS) adminFails.delete(k);
+  for (const k of adminFails.keys()) {
+    if (adminFails.size < ADMIN_FAILS_MAX_KEYS) break;
+    adminFails.delete(k);
+  }
+}
 
 async function adminLogin(request, env, deps, cors) {
   /* Only the site itself may post here, which also stops cross-site form posts. */
   if (!isAllowedOrigin(request.headers.get('Origin'), env)) return json(403, { error: 'forbidden' }, cors);
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ip = failKey(request.headers.get('CF-Connecting-IP') || 'unknown');
   const nowMs = deps.now();
   const f = adminFails.get(ip);
   if (f && nowMs - f.first < ADMIN_FAIL_WINDOW_MS && f.n >= ADMIN_MAX_FAILS) return json(429, { error: 'rate_limited' }, cors);
 
   if (!/^application\/json\b/i.test(request.headers.get('Content-Type') || '')) return json(400, { error: 'bad_request' }, cors);
+  if (Number(request.headers.get('Content-Length') || 0) > 2048) return json(400, { error: 'bad_request' }, cors);
   const raw = await request.text();
   if (raw.length > 2048) return json(400, { error: 'bad_request' }, cors);
   let body;
@@ -265,7 +288,8 @@ async function adminLogin(request, env, deps, cors) {
   if (!await checkAdminLogin(env, username.trim(), password)) {
     const cur = f && nowMs - f.first < ADMIN_FAIL_WINDOW_MS ? f : { n: 0, first: nowMs };
     cur.n++;
-    if (adminFails.size > 5000) adminFails.clear();
+    adminFails.delete(ip); /* re-insert so the most recent failures are the last evicted */
+    makeRoom(nowMs);
     adminFails.set(ip, cur);
     return json(401, { error: 'invalid_login' }, cors);
   }

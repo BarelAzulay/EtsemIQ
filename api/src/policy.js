@@ -2,9 +2,10 @@
  * and what a Whop access answer means for PLUS and admin. No I/O here, so all
  * of it is unit-tested directly. */
 
-export const PROD_ORIGINS = ['https://etsemiq.com', 'https://www.etsemiq.com'];
+/* etsemiq-web.whop.site is the same site hosted by Whop (whop.app.json, route "etsemiq-web"). */
+export const PROD_ORIGINS = ['https://etsemiq.com', 'https://www.etsemiq.com', 'https://etsemiq-web.whop.site'];
 
-/* The allow-list: the two production origins plus, optionally, ONE extra origin
+/* The allow-list: the production origins plus, optionally, ONE extra origin
  * from env (EXTRA_ORIGIN) for local development, e.g. "http://localhost:8080".
  * The extra value must itself be a bare origin; anything else is ignored. */
 export function allowedOrigins(env = {}) {
