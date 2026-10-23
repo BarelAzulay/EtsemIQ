@@ -4,11 +4,13 @@
  *   GET  /auth/login?return=<url>  start OAuth (state + PKCE), 302 to Whop
  *   GET  /auth/callback            finish OAuth, check access, 302 to <return>#whop_session=<token>
  *   GET  /me                       Authorization: Bearer <token> -> current entitlement
+ *   POST /auth/admin               {username, password} -> admin session token (adminpw.js)
  *   POST /auth/logout              stateless; the client drops its token
  *   GET  /health                   liveness + "is it configured"
  *
  * Secrets (wrangler secret put): WHOP_CLIENT_ID, WHOP_CLIENT_SECRET, WHOP_API_KEY,
- *   WHOP_PRODUCT_ID, SESSION_SECRET, ADMIN_WHOP_USER_IDS (optional).
+ *   WHOP_PRODUCT_ID, SESSION_SECRET, ADMIN_WHOP_USER_IDS (optional),
+ *   ADMIN_USERNAME + ADMIN_PASSWORD_HASH (optional; set with scripts/set-admin-login.mjs).
  * Vars (wrangler.jsonc): PUBLIC_URL, EXTRA_ORIGIN, WHOP_TEAM_IS_ADMIN,
  *   SESSION_TTL_SECONDS, REVERIFY_AFTER_SECONDS, WHOP_SCOPES.
  *
@@ -17,6 +19,7 @@
 import { signToken, verifyToken, randomToken, pkceChallenge } from './token.js';
 import { corsHeaders, isAllowedOrigin, safeReturnUrl, decideEntitlement, isWhopUserId } from './policy.js';
 import { WHOP, exchangeCode, getUserInfo, checkAccess, revokeToken, WhopError } from './whop.js';
+import { adminLoginConfigured, checkAdminLogin, passwordVersion } from './adminpw.js';
 
 const OAUTH_COOKIE = '__Host-etsem_oauth';
 const OAUTH_TTL = 600; /* seconds the user has to finish the Whop consent screen */
@@ -95,10 +98,11 @@ export function _clearAccessCache() { accessCache.clear(); }
    shared token therefore dies within that window even while the membership lasts. */
 const MAX_SESSION_SECONDS = 30 * 86400;
 
-async function mintSession(env, { sub, username, ent, nowSec, authTime }) {
+async function mintSession(env, { sub, username, ent, nowSec, authTime, extra = {} }) {
   const s = settings(env);
   const at = Number.isInteger(authTime) ? authTime : nowSec;
   const payload = {
+    ...extra,
     typ: 'sess',
     sub,
     u: typeof username === 'string' ? username.slice(0, 64) : '',
@@ -197,10 +201,20 @@ async function me(request, env, deps, cors) {
   const v = await verifyToken(m[1], env.SESSION_SECRET, { typ: 'sess', nowSec });
   if (!v.ok) return json(401, { error: v.reason === 'expired' ? 'expired' : 'invalid' }, cors);
   const p = v.payload;
-  if (!isWhopUserId(p.sub)) return json(401, { error: 'invalid' }, cors);
   /* Tokens from before `at` existed count as signed in at their iat. */
   const authTime = Number.isInteger(p.at) ? p.at : p.iat;
+
+  /* Password admin session: nothing to re-check with Whop. It stays valid only
+     while the admin login is configured with the same password it was issued for. */
+  if (p.src === 'pw') {
+    if (p.sub !== 'admin' || !adminLoginConfigured(env) || p.pv !== await passwordVersion(env)) return json(401, { error: 'invalid' }, cors);
+    if (!Number.isInteger(authTime) || nowSec - authTime >= MAX_SESSION_SECONDS) return json(401, { error: 'expired' }, cors);
+    return json(200, publicClaims(p), cors);
+  }
+
+  if (!isWhopUserId(p.sub)) return json(401, { error: 'invalid' }, cors);
   if (!Number.isInteger(authTime) || nowSec - authTime >= MAX_SESSION_SECONDS) return json(401, { error: 'expired' }, cors);
+  if (missingConfig(env).length) return json(503, { error: 'not_configured' }, cors);
 
   const s = settings(env);
   if (nowSec - (p.vat || 0) < s.reverifyAfter) return json(200, publicClaims(p), cors);
@@ -220,6 +234,47 @@ async function me(request, env, deps, cors) {
   }
   const ent = decideEntitlement({ userId: p.sub, access, env });
   const { token, payload } = await mintSession(env, { sub: p.sub, username: p.u, ent, nowSec, authTime });
+  return json(200, { ...publicClaims(payload), token }, cors);
+}
+
+/* Failed admin logins per IP inside one isolate: after ADMIN_MAX_FAILS within
+   ADMIN_FAIL_WINDOW_MS the IP gets 429 until the window passes. The optional
+   RATE_LIMITER binding adds a limit across isolates. */
+const adminFails = new Map();
+const ADMIN_MAX_FAILS = 5;
+const ADMIN_FAIL_WINDOW_MS = 15 * 60_000;
+export function _clearAdminFails() { adminFails.clear(); }
+
+async function adminLogin(request, env, deps, cors) {
+  /* Only the site itself may post here, which also stops cross-site form posts. */
+  if (!isAllowedOrigin(request.headers.get('Origin'), env)) return json(403, { error: 'forbidden' }, cors);
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const nowMs = deps.now();
+  const f = adminFails.get(ip);
+  if (f && nowMs - f.first < ADMIN_FAIL_WINDOW_MS && f.n >= ADMIN_MAX_FAILS) return json(429, { error: 'rate_limited' }, cors);
+
+  if (!/^application\/json\b/i.test(request.headers.get('Content-Type') || '')) return json(400, { error: 'bad_request' }, cors);
+  const raw = await request.text();
+  if (raw.length > 2048) return json(400, { error: 'bad_request' }, cors);
+  let body;
+  try { body = JSON.parse(raw); } catch { return json(400, { error: 'bad_request' }, cors); }
+  const username = body && body.username, password = body && body.password;
+  if (typeof username !== 'string' || typeof password !== 'string' || !username || !password ||
+      username.length > 128 || password.length > 256) return json(400, { error: 'bad_request' }, cors);
+
+  if (!await checkAdminLogin(env, username.trim(), password)) {
+    const cur = f && nowMs - f.first < ADMIN_FAIL_WINDOW_MS ? f : { n: 0, first: nowMs };
+    cur.n++;
+    if (adminFails.size > 5000) adminFails.clear();
+    adminFails.set(ip, cur);
+    return json(401, { error: 'invalid_login' }, cors);
+  }
+  adminFails.delete(ip);
+  const nowSec = Math.floor(nowMs / 1000);
+  const { token, payload } = await mintSession(env, {
+    sub: 'admin', username: env.ADMIN_USERNAME.trim(), ent: { plus: true, admin: true }, nowSec,
+    extra: { src: 'pw', pv: await passwordVersion(env) },
+  });
   return json(200, { ...publicClaims(payload), token }, cors);
 }
 
@@ -247,15 +302,25 @@ export function createHandler(deps = {}) {
     }
 
     const routes = {
-      'GET /auth/login': 1, 'GET /auth/callback': 1, 'GET /me': 1, 'POST /auth/logout': 1,
+      'GET /auth/login': 1, 'GET /auth/callback': 1, 'GET /me': 1, 'POST /auth/logout': 1, 'POST /auth/admin': 1,
     };
     if (!routes[`${method} ${path}`]) return json(404, { error: 'not_found' }, cors);
 
-    if (missingConfig(env).length) return json(503, { error: 'not_configured' }, cors);
+    /* The admin login, /me (for admin sessions) and logout work without the
+       Whop settings; me() checks them itself before it talks to Whop. */
+    const sessionReady = typeof env.SESSION_SECRET === 'string' && env.SESSION_SECRET.length >= 32;
+    if (path === '/auth/admin') {
+      if (!sessionReady || !adminLoginConfigured(env)) return json(503, { error: 'not_configured' }, cors);
+    } else if (path === '/me') {
+      if (!sessionReady) return json(503, { error: 'not_configured' }, cors);
+    } else if (path !== '/auth/logout' && missingConfig(env).length) {
+      return json(503, { error: 'not_configured' }, cors);
+    }
 
     /* Optional Cloudflare rate-limiting binding (see docs/WHOP-AUTH-SETUP.md).
-       Both routes can make the worker call Whop, which limits us per credential. */
-    if (env.RATE_LIMITER && (path === '/auth/callback' || path === '/me')) {
+       The Whop routes can make the worker call Whop, which limits us per
+       credential; the admin route is a password guess target. */
+    if (env.RATE_LIMITER && (path === '/auth/callback' || path === '/me' || path === '/auth/admin')) {
       const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
       try {
         const { success } = await env.RATE_LIMITER.limit({ key: `${path}:${ip}` });
@@ -267,6 +332,7 @@ export function createHandler(deps = {}) {
       if (path === '/auth/login') return await login(request, env);
       if (path === '/auth/callback') return await callback(request, env, ctx, d);
       if (path === '/me') return await me(request, env, d, cors);
+      if (path === '/auth/admin') return await adminLogin(request, env, d, cors);
       if (path === '/auth/logout') {
         /* Sessions are stateless signed tokens; logging out means the client
            forgets its token. Rotating SESSION_SECRET ends every session. */

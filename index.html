@@ -1593,6 +1593,10 @@ to{transform:none}
   .wa-or{display:flex;align-items:center;gap:10px;margin:18px 0 6px;color:var(--muted);font-size:12px;}
   .wa-or + .wa-hint{margin:0 0 14px;}
   .wa-or::before,.wa-or::after{content:"";flex:1;height:1px;background:var(--line);}
+  .wa-adminlogin{margin-top:22px;border-top:1px solid var(--line);padding-top:14px;}
+  .wa-adminlogin summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:600;width:max-content;}
+  .wa-adminlogin summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px;}
+  .wa-adminlogin[open] summary{margin-bottom:12px;}
 
   .wa-p{font-size:13.5px;color:var(--muted);line-height:1.5;margin:0 0 12px;}
   .wa-small{font-size:12.5px;margin-top:10px;}
@@ -2356,6 +2360,15 @@ to{transform:none}
       <button class="btn-pay" onclick="doLogin()"><span data-i18n="auth.login"></span></button>
       <div class="form-switch"><span data-i18n="auth.noacct"></span>
         <button onclick="showScreen('screen-signup')" data-i18n="wa.createone"></button></div>
+      <details class="wa-adminlogin">
+        <summary data-i18n="adm.title"></summary>
+        <div class="field-group"><label class="field-label" for="ad-user" data-i18n="adm.user"></label>
+          <input class="form-input" id="ad-user" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="128" onkeydown="if(event.key==='Enter')adminSignIn()"></div>
+        <div class="field-group"><label class="field-label" for="ad-pass" data-i18n="auth.pass"></label>
+          <input class="form-input" id="ad-pass" type="password" autocomplete="current-password" maxlength="256" onkeydown="if(event.key==='Enter')adminSignIn()">
+          <div class="field-error" id="err-ad" role="alert"></div></div>
+        <button class="btn-pay" id="ad-btn" onclick="adminSignIn()"><span data-i18n="adm.btn"></span></button>
+      </details>
     </div>
   </div>
 </section>
@@ -5107,6 +5120,35 @@ function signInWithWhop(){
     return true;
   });
 }
+/* Admin username + password, checked by the worker (POST /auth/admin). The
+   answer is the same kind of signed session a Whop sign-in gives, so isAdmin(),
+   /me re-checks, expiry and sign-out all work the same way. */
+function adminSignIn(){
+  const u=document.getElementById('ad-user'), p=document.getElementById('ad-pass');
+  const err=document.getElementById('err-ad'), btn=document.getElementById('ad-btn');
+  if(!u||!p||!err||!btn||btn.disabled) return;
+  const username=u.value.trim(), password=p.value;
+  if(!username||!password){ err.textContent=t('adm.err.empty'); return; }
+  err.textContent=''; btn.disabled=true;
+  const ctl=(typeof AbortController==='function')?new AbortController():null;
+  const timer=setTimeout(()=>{ if(ctl) ctl.abort(); },15000);
+  fetch(whopApiBase()+'/auth/admin',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username,password}),cache:'no-store',credentials:'omit',signal:ctl?ctl.signal:undefined})
+    .then(r=>r.json().catch(()=>null).then(b=>({s:r.status,b})))
+    .then(({s,b})=>{
+      if(s===200){
+        const ent=waParseEnt(b);
+        if(!ent || !ent.admin || typeof b.token!=='string' || !/^[A-Za-z0-9_.\-]{20,4096}$/.test(b.token)) throw new Error('admin body');
+        waClear(); waSet(WA_TOKEN,b.token); waEnt=ent; waSet(WA_ENT,JSON.stringify(ent)); waState='ok';
+        p.value='';
+        waApplyUI(); waUnlocked();
+        return;
+      }
+      err.textContent=t(s===401?'adm.err.bad':s===429?'adm.err.many':'adm.err.off');
+    })
+    .catch(()=>{ err.textContent=t('adm.err.off'); })
+    .then(()=>{ clearTimeout(timer); btn.disabled=false; });
+}
 function signOutWhop(){
   const tok=waGet(WA_TOKEN);
   waClear(); waState='idle';
@@ -5202,6 +5244,7 @@ en:{
 'wa.freenote':'The 30-question test and your estimated range are always free. PLUS unlocks the full report, the certificate and the training games.',
 'wa.loginsub':'PLUS members: sign in with Whop. You can also use a free account to keep your results on this device.',
 'wa.loginhint':'Use the Whop account you paid with. That is what unlocks PLUS.',
+'adm.title':'Admin login','adm.user':'Username','adm.btn':'Log in as admin','adm.err.empty':'Enter your username and password.','adm.err.bad':'Wrong username or password.','adm.err.many':'Too many tries. Wait 15 minutes and try again.','adm.err.off':'Can’t reach the login service. Check your connection and try again.',
 'wa.localnote':'Free account: saves your results and game progress in this browser. It does not include PLUS.',
 'wa.supsub':'A free account saves your results, certificate and game progress in this browser. PLUS comes only from a Whop membership.',
 'wa.createfree':'Create free account','wa.createone':'Create a free one',
@@ -5235,6 +5278,7 @@ he:{
 'wa.freenote':'מבחן 30 השאלות והטווח המשוער תמיד בחינם. PLUS פותח את הדוח המלא, התעודה ומשחקי האימון.',
 'wa.loginsub':'מנויי PLUS: התחברו עם Whop. אפשר גם להשתמש בחשבון חינמי כדי לשמור את התוצאות במכשיר הזה.',
 'wa.loginhint':'התחברו עם חשבון ה-Whop ששילמתם איתו. זה מה שפותח את PLUS.',
+'adm.title':'כניסת מנהל','adm.user':'שם משתמש','adm.btn':'כניסה כמנהל','adm.err.empty':'יש להזין שם משתמש וסיסמה.','adm.err.bad':'שם המשתמש או הסיסמה שגויים.','adm.err.many':'יותר מדי ניסיונות. נסו שוב בעוד 15 דקות.','adm.err.off':'אין חיבור לשירות הכניסה. בדקו את החיבור ונסו שוב.',
 'wa.localnote':'חשבון חינמי: שומר את התוצאות וההתקדמות במשחקים בדפדפן הזה. הוא לא כולל PLUS.',
 'wa.supsub':'חשבון חינמי שומר את התוצאות, התעודה וההתקדמות במשחקים בדפדפן הזה. PLUS מגיע רק ממנוי Whop.',
 'wa.createfree':'יצירת חשבון חינמי','wa.createone':'צרו חשבון חינמי',
@@ -5268,6 +5312,7 @@ es:{
 'wa.freenote':'El test de 30 preguntas y tu rango estimado son siempre gratis. PLUS desbloquea el informe completo, el certificado y los juegos de entrenamiento.',
 'wa.loginsub':'Miembros PLUS: inicia sesión con Whop. También puedes usar una cuenta gratuita para guardar tus resultados en este dispositivo.',
 'wa.loginhint':'Usa la cuenta de Whop con la que pagaste. Eso es lo que desbloquea PLUS.',
+'adm.title':'Acceso de administrador','adm.user':'Usuario','adm.btn':'Entrar como administrador','adm.err.empty':'Escribe tu usuario y contraseña.','adm.err.bad':'Usuario o contraseña incorrectos.','adm.err.many':'Demasiados intentos. Espera 15 minutos y vuelve a intentarlo.','adm.err.off':'No se puede conectar con el servicio de acceso. Revisa tu conexión e inténtalo de nuevo.',
 'wa.localnote':'Cuenta gratuita: guarda tus resultados y tu progreso en los juegos en este navegador. No incluye PLUS.',
 'wa.supsub':'Una cuenta gratuita guarda tus resultados, tu certificado y tu progreso en este navegador. PLUS solo se obtiene con una membresía de Whop.',
 'wa.createfree':'Crear cuenta gratuita','wa.createone':'Crea una gratis',
@@ -5301,6 +5346,7 @@ ru:{
 'wa.freenote':'Тест из 30 вопросов и примерный диапазон всегда бесплатны. PLUS открывает полный отчёт, сертификат и тренировочные игры.',
 'wa.loginsub':'Участники PLUS, войдите через Whop. Можно также завести бесплатный аккаунт, чтобы сохранять результаты на этом устройстве.',
 'wa.loginhint':'Войдите в тот аккаунт Whop, с которого оплачивали. Именно он открывает PLUS.',
+'adm.title':'Вход для администратора','adm.user':'Имя пользователя','adm.btn':'Войти как администратор','adm.err.empty':'Введите имя пользователя и пароль.','adm.err.bad':'Неверное имя пользователя или пароль.','adm.err.many':'Слишком много попыток. Подождите 15 минут и попробуйте снова.','adm.err.off':'Не удаётся связаться со службой входа. Проверьте подключение и попробуйте снова.',
 'wa.localnote':'Бесплатный аккаунт сохраняет результаты и прогресс в играх в этом браузере. PLUS в него не входит.',
 'wa.supsub':'Бесплатный аккаунт сохраняет результаты, сертификат и прогресс в играх в этом браузере. PLUS даёт только подписка на Whop.',
 'wa.createfree':'Создать бесплатный аккаунт','wa.createone':'Создать бесплатно',
@@ -5334,6 +5380,7 @@ ar:{
 'wa.freenote':'اختبار الثلاثين سؤالاً ونطاقك التقديري مجانيان دائماً. ‏PLUS يفتح التقرير الكامل والشهادة وألعاب التدريب.',
 'wa.loginsub':'أعضاء PLUS: سجّل الدخول عبر Whop. ويمكنك أيضاً استخدام حساب مجاني لحفظ نتائجك على هذا الجهاز.',
 'wa.loginhint':'استخدم حساب Whop الذي دفعت به، فهو ما يفتح PLUS.',
+'adm.title':'دخول المسؤول','adm.user':'اسم المستخدم','adm.btn':'الدخول كمسؤول','adm.err.empty':'أدخل اسم المستخدم وكلمة المرور.','adm.err.bad':'اسم المستخدم أو كلمة المرور غير صحيحة.','adm.err.many':'محاولات كثيرة جدًا. انتظر 15 دقيقة ثم حاول مجددًا.','adm.err.off':'تعذّر الوصول إلى خدمة الدخول. تحقّق من اتصالك وحاول مجددًا.',
 'wa.localnote':'الحساب المجاني يحفظ نتائجك وتقدّمك في الألعاب في هذا المتصفح، ولا يشمل PLUS.',
 'wa.supsub':'الحساب المجاني يحفظ نتائجك وشهادتك وتقدّمك في الألعاب في هذا المتصفح. لا يأتي PLUS إلا من عضوية على Whop.',
 'wa.createfree':'إنشاء حساب مجاني','wa.createone':'أنشئ حساباً مجانياً',
