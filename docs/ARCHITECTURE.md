@@ -1,9 +1,10 @@
 # Etsem.IQ — architecture notes
 
-The product is one file, `index.html`, served as a static asset (Cloudflare
-Workers assets via `wrangler.jsonc`, deployed through Whop). There is no
-server of our own and no build step for the app itself. Everything below is a
-consequence of that.
+The product is one file, `index.html`. GitHub Pages serves it at etsemiq.com,
+and Whop deploys it as a Whop app through Cloudflare Workers assets
+(`wrangler.jsonc`). There is no build step for the app itself. The only server
+code is the small sign-in Worker in `api/` (see PLUS below and
+`docs/WHOP-AUTH-SETUP.md`).
 
 ```
 index.html
@@ -14,9 +15,47 @@ index.html
 ├── <script> 3  core            storage, accounts, quiz engine, scoring, plans
 ├── <script> 4  Bob + UI kit    mascot renderer, voice, dialog, exit guard,
 │                               mobile sheet, screen effects
-└── <script> 5  app             games, level maps, Hardcore run, Bob's brain,
-                                language, nav, settings, theme, music, boot
+├── <script> 5  app             games, level maps, Hardcore run, Bob's brain,
+│                               language, nav, settings, theme, music, boot
+└── <script id="newgames">      Brain Bites (trivia) + Brain Twins (pass the
+                                phone); registers itself with CATALOG.push
 ```
+
+Feature CSS lives in its own `<style id="…">` block before `</head>`:
+`fixes-a11y`, `whop-auth-css`, `games-v2`, `ft-items` and `newgames`. All of
+them read the theme tokens in the main `<style>`, so a palette change reaches
+every screen. The sign-in client is `<script id="whop-auth">`, placed just
+before script 3.
+
+## Games
+
+`CATALOG` lists the 8 games. An entry can carry these optional fields:
+
+- `launch()`: the card calls `launchGame(key)`, which does the PLUS check and
+  then calls `launch()` instead of opening a level map;
+- `metaText()` and `progressText()`;
+- `free:true`.
+
+The hub renders `CATALOG` each time it opens, so a block that loads later can
+add a game. Delayed steps (flashes, hide timers, auto-advance) run on a run
+token tied to their screen (`gLater`), so a Restart or leaving the screen
+cancels the old run.
+
+Progress lives in `gameProgress`, in localStorage, per account:
+
+- stars per level;
+- the personal best per game and level;
+- `_meta`: XP, player level, the day streak and achievements.
+
+Self-checks, callable from the console:
+
+- `gamesSelfCheck(n)` generates n items per generator and asserts the key is
+  right, the options are distinct, and only one option fits the rule.
+- `ngSelfCheck()` checks that every trivia question has all 5 languages,
+  4 unique options and a valid key.
+- `auditSelfCheck()` checks the free test.
+
+Run the whole browser suite with `npm run test:e2e` (see `tests/e2e/README.md`).
 
 Script blocks are parsed in order but only the last one runs anything at load
 (the boot IIFE), so cross-block calls are all resolved by the time they happen.
@@ -38,6 +77,17 @@ Every Bob on the site — the floating button, the chat header, the lobby card,
 the quiz stage, the dialogs, the Hardcore banner — comes from this one function
 at the same 64×64 viewBox, which is why he is recognisably the same character
 everywhere.
+
+**The October 2026 redesign** changed Bob's look but kept the API:
+
+- He has blinking eyes, cheeks, a highlight and an idle bounce.
+- New states: `wave`, `cheer` and `thinkingHard`.
+- `bobSVG(state, {size:'xl'})`, or `data-bob-size="xl"` on a mount, gives the
+  large hero and end-of-round Bob.
+- On desktop his eyes follow the cursor. That is off on touch screens and with
+  reduced motion.
+- `celebrate()` is the one shared burst, and it reuses `fxBurst` and the games'
+  confetti.
 
 **Adding a state** is one entry in `BOB_STATES` plus, if it needs new movement,
 one `@keyframes` rule and one `.bob--<name> .bob-body{animation:…}` line. No
@@ -166,14 +216,39 @@ taken 10 / 20 / 40 / 80 seconds apart are uncorrelated — it is not a loop.
 
 ## PLUS
 
-One paid tier, three billing lengths. `isLocked(key)` is the single gate;
-`CATALOG` entries can carry `free:true` and bypass it. A locked game opens
-`showPlusGate()`, which offers the PLUS plans first, the free test second and
-"not right now" third — it never silently redirects. The Free Test and the
-estimated range are never gated.
+One paid tier, one plan: monthly on Whop, $1.99 for the first month (the
+`FIRSTMONTH199` promo on the checkout link), then $19.99/month. The checkout URL
+is `https://whop.com/checkout/plan_gov3K39kXZUmB?promoCode=FIRSTMONTH199` and the
+CTAs are plain links to it. The 6-month and annual plans and the simulated card
+form were removed: the form granted PLUS without taking money.
 
-Prices and the Whop checkout URL are unchanged by this work:
-$19.99/month · $89/6 months · $149/year, monthly → `whop.com/checkout/plan_RDy7qaLo2Uobp`.
+`isLocked(key)` is still the single gate in the UI; `CATALOG` entries can carry
+`free:true` and bypass it. A locked game opens `showPlusGate()`. The Free Test and
+the estimated range are never gated.
+
+**Who has PLUS** is decided by the `etsemiq-api` Worker (`api/`, deployed to
+`api.etsemiq.com`, separate from the root `wrangler.jsonc`), never by the page:
+
+```
+Sign in with Whop → api /auth/login (state + PKCE) → Whop consent →
+api /auth/callback: code → Whop token → user id → Whop check-access(product) →
+signed session {sub, plus, admin, exp} → etsemiq.com/#whop_session=<token>
+```
+
+`script#whop-auth` (right before the core script) takes the token from the
+fragment, strips it with `history.replaceState`, re-checks it with `GET /me`,
+and caches `{plus, admin, exp, user}` until `exp`. After that it fails closed.
+`isMember()` is `whopEntitled() || isAdmin()` and nothing else. Local
+email/password accounts are free accounts that save progress, and they never
+grant PLUS.
+
+Admin (full access, an "Admin" badge in nav and settings) comes from the Worker
+alone. It is granted for a Whop user id listed in the `ADMIN_WHOP_USER_IDS`
+secret, or for Whop's `access_level: "admin"` (team members of the business).
+
+Cancelling and billing happen on Whop. Settings links to
+`https://whop.com/@me/settings/orders/`. Setup, secrets and the security model:
+[`docs/WHOP-AUTH-SETUP.md`](WHOP-AUTH-SETUP.md).
 
 ---
 
@@ -198,16 +273,30 @@ metrics stressed 12% wider than the fallback: no horizontal overflow anywhere.
 
 ## LIMITATIONS
 
-Things that would need a backend, and are therefore **not** done here:
+There is now one small backend, the `api/` Worker, and it handles only
+sign-in and entitlement. These still need more server work, and are **not**
+done here:
 
-* **A real language model for Bob.** Requires a server to hold the API key. The
-  local engine is a genuine intent system, but it cannot answer questions
-  outside its knowledge base and says so rather than guessing.
-* **Real payments.** The card form is a simulation and says so on screen. The
-  monthly plan already hands off to Whop checkout; the other two would need the
-  same treatment or a processor.
-* **Server-side accounts.** Accounts, results and progress live in
-  `localStorage`. Consequences, which Bob explains when asked: no password-reset
+* **A real language model for Bob.** The `api/` Worker can now hold an API key,
+  so this is possible. It is planned as its own PR:
+  * add a `POST /bob/chat` route on the Worker, calling Claude Haiku 5.5 with
+    Bob's persona as a cached system prompt;
+  * PLUS sessions only, with a daily per-user cap and the rate limiter;
+  * the local engine stays as the fallback for free users, offline use and
+    errors.
+
+  `bobAnswer()` is still the only function that would change on the page.
+* **Server-held PLUS content.** Payments and the PLUS/admin entitlement are now
+  real and server-verified (Whop checkout + the `api/` Worker). But the game
+  code and the report logic still ship in this static page, so a technical user
+  can flip `isMember()` in DevTools and play locally. They still cannot obtain a
+  valid session or Admin. Closing that gap means serving PLUS content from the
+  Worker against the session token.
+* **Instant session revocation.** Sessions are stateless signed tokens (12 h,
+  re-checked with Whop hourly). Signing out forgets the token in this browser.
+  Ending every session at once means rotating `SESSION_SECRET`.
+* **Server-side accounts.** The free local accounts, results and progress live in
+  `localStorage` (PLUS itself follows the Whop account to any device). Consequences, which Bob explains when asked: no password-reset
   email is possible, clearing site data deletes the account, and results do not
   follow a user to another device or browser.
 * **Certificate verification.** `etsemiq.com/verify` is printed on the
